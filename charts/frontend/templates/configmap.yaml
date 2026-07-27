@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "dialog-frontend.fullname" . }}-nginx
+  labels:
+    {{- include "dialog-frontend.labels" . | nindent 4 }}
+data:
+  # nginx config template (Step 3). Mounted at /etc/nginx/templates so the
+  # base image's entrypoint runs envsubst on it at container start, injecting
+  # BACKEND_URL / NGINX_DNS_RESOLVER. Editing this ConfigMap + rolling the
+  # Deployment re-renders the upstream with no image rebuild.
+  default.conf.template: |-
+{{ .Files.Get "files/default.conf.template" | indent 4 }}

@@ -2,5 +2,5 @@ apiVersion: v2
 name: dialog-frontend
 description: Dialog Frontend — React SPA served by nginx, reverse-proxying /api to the backend
 type: application
-version: 0.1.0
-appVersion: "0.1.0"
+version: 0.1.0 # x-release-please-version
+appVersion: "0.1.0" # x-release-please-version

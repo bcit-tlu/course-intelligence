@@ -1,0 +1,157 @@
+name: pr-title-lint
+
+# Enforce Conventional Commit PR titles so release-please can parse changes.
+
+on:
+  pull_request_target:
+    types: [opened, edited, reopened, synchronize]
+    branches: [main]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.type != 'Bot'
+    steps:
+      - id: lint
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+          requireScope: false
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            The subject "{subject}" in PR title "{title}" must start with a
+            lowercase letter (imperative mood, no trailing period).
+
+      - name: Check scope matches changed components
+        if: success()
+        id: scope-check
+        # Advisory step: failures (gh API rate limit, network error, bash error)
+        # must not block PRs. release-please routes commits to changelogs by
+        # file path, so a scope label that does not match changed files yields
+        # a misleading changelog entry. Backend lives at the repo root, so only
+        # the `frontend/` subtree is checked here.
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -euo pipefail
+
+          title="$PR_TITLE"
+
+          scope_re='^[a-z]+\(([^)]+)\)'
+          scope=""
+          if [[ "$title" =~ $scope_re ]]; then
+            scope="${BASH_REMATCH[1]}"
+          fi
+
+          if [[ -z "$scope" ]]; then
+            echo "No scope in title — skipping cross-component check"
+            echo "mismatch=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Only frontend is a distinct subtree; everything else is backend (root).
+          components=("frontend")
+
+          files=$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" \
+            --paginate --jq '.[].filename')
+
+          declare -A touched
+          for f in $files; do
+            for comp in "${components[@]}"; do
+              if [[ "$f" == "${comp}/"* ]]; then
+                touched["$comp"]=1
+              fi
+            done
+          done
+
+          is_component_scope=false
+          for comp in "${components[@]}"; do
+            if [[ "$scope" == "$comp" ]]; then
+              is_component_scope=true
+              break
+            fi
+          done
+
+          if [[ "$is_component_scope" == "true" && -z "${touched[$scope]+x}" ]]; then
+            echo "::warning::PR scope is '$scope' but no files in $scope/ were changed. The changelog entry will have a misleading label."
+            echo "mismatch=true" >> "$GITHUB_OUTPUT"
+            echo "reason=Scope **$scope** but no files in \`$scope/\` were changed." >> "$GITHUB_OUTPUT"
+          else
+            echo "mismatch=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Post scope mismatch warning
+        if: steps.scope-check.outputs.mismatch == 'true'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: scope-mismatch
+          message: |
+            ## Scope vs. changed files mismatch
+
+            ${{ steps.scope-check.outputs.reason }}
+
+            release-please routes commits to changelogs by **file path**, not by scope — so changelog entries will have a misleading scope label.
+
+            **To fix:** either remove the scope (e.g. `fix: ...`) so the label is neutral, or split the changes into separate PRs per component.
+
+      - name: Clear scope mismatch warning
+        if: always() && steps.scope-check.outcome == 'success' && steps.scope-check.outputs.mismatch != 'true'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: scope-mismatch
+          delete: true
+
+      - name: Post failure explainer comment
+        if: failure() && steps.lint.outcome == 'failure'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: pr-title-lint
+          message: |
+            ## PR title must follow Conventional Commits
+
+            release-please uses PR titles on `main` to determine version bumps and changelog entries.
+
+            ```
+            <type>[optional scope][!]: <subject>
+            ```
+
+            - `type`: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+            - `subject`: start lowercase, imperative mood, no trailing period
+            - breaking change: add `!` (or `BREAKING CHANGE:` in body)
+
+            Examples:
+            - ✅ `feat: add search page`
+            - ✅ `fix: correct broken nav link`
+            - ❌ `Add search page`
+            - ❌ `feat: Add search page`
+
+            Edit the PR title in GitHub; this check reruns automatically.
+
+      - name: Clear failure explainer on success
+        if: always() && steps.lint.outcome == 'success'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: pr-title-lint
+          delete: true

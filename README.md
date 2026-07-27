@@ -53,6 +53,13 @@ uv run python main.py docs/nursing_sepsis_learning_module.pdf
 For frontend development against the running API (hot reload on
 http://localhost:5173), see `frontend/README.md`.
 
+### Kubernetes Deployment
+
+For deploying to a cluster with Helm (charts in `charts/`), see
+[`docs/deployment.md`](docs/deployment.md) — install prerequisites (CNPG, ingress,
+metrics-server), secrets, the `helm install` flow, verification, and upgrade/rollback.
+A ready-to-edit `values-staging.yaml` is provided at the repo root.
+
 ### Tests
 
 ```bash

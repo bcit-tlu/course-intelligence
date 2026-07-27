@@ -1,0 +1,99 @@
+# Example staging values for the Dialog Helm charts (Step 11).
+#
+# This single file is shared by BOTH chart installs:
+#   helm install dialog     charts/backend  -n dialog -f values-staging.yaml
+#   helm install dialog-web charts/frontend -n dialog -f values-staging.yaml
+#
+# It is intentionally split into a backend section and a frontend section.
+# Each chart only reads the keys it knows about, so unrelated keys are ignored.
+#
+# IMPORTANT: no secrets live here. Provider/DB/S3 credentials are created
+# out-of-band (see docs/deployment.md) or supplied via *.existingSecret.
+
+# ── Shared: pin the image tag for reproducible deploys ──────────
+# Both images are built together in CI and share the same tag. Each chart
+# keeps its own image.repository default (dialog-api / dialog-frontend), so
+# only the tag is overridden here. Replace with a real published tag.
+image:
+  tag: "sha-REPLACE_ME"        # e.g. sha-1a2b3c4 or v0.1.0
+
+# ════════════════════════════════════════════════════════════════
+# BACKEND chart (charts/backend)  — release name: dialog
+# ════════════════════════════════════════════════════════════════
+
+# In-cluster stateful dependencies enabled for staging.
+postgres:
+  enabled: true
+  cluster:
+    instances: 1
+  auth:
+    database: dialog
+    username: dialog
+    # Password is read from an out-of-band Secret in real deployments; the
+    # chart default is only used when postgres.enabled=true here. For a
+    # hardened staging run, template the CNPG bootstrap to an existingSecret.
+    password: dialog
+  pgvector:
+    enabled: true          # requires PG18 + K8s 1.33+ + CNPG 1.29+ (see step-05)
+  persistence:
+    size: 5Gi
+
+redis:
+  enabled: true
+  persistence:
+    enabled: false         # transient job queue — acceptable for staging
+
+minio:
+  enabled: true
+  bucket: uploads
+  # Reuse a pre-created Secret with keys root-user / root-password instead of
+  # the chart defaults for anything beyond throwaway staging:
+  # existingSecret: dialog-s3
+  persistence:
+    size: 10Gi
+
+# LLM provider. Credentials come from an existingSecret (worker + gateway).
+llm:
+  provider: ollama
+  ollama:
+    baseUrl: "https://ollama.com"
+  # Create out-of-band, then reference it (keys: ollama-api-key,
+  # azure-openai-api-key). Leave empty to let the chart create an empty Secret.
+  existingSecret: dialog-llm
+
+gateway:
+  enabled: true
+
+worker:
+  enabled: true
+  replicaCount: 1
+  autoscaling:
+    enabled: false         # enable once metrics-server is confirmed present
+
+# ════════════════════════════════════════════════════════════════
+# FRONTEND chart (charts/frontend)  — release name: dialog-web
+# ════════════════════════════════════════════════════════════════
+
+# The backend Service name is <backend-release>-dialog-backend. With the
+# backend installed as release "dialog", that resolves to "dialog-dialog-backend".
+# The frontend must point at that exact name (this is the #1 cross-cutting
+# gotcha the Step 11 verification catches).
+backend:
+  host: dialog-dialog-backend
+  port: 8000
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    # Large course-module (D2L zip) uploads must pass through untouched.
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+  hosts:
+    - host: dialog.staging.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+    # - hosts: ["dialog.staging.example.com"]
+    #   secretName: dialog-web-tls

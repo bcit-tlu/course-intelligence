@@ -1,0 +1,50 @@
+server {
+    listen 80;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Allow large course-module uploads (D2L zips can be hundreds of MB).
+    client_max_body_size 5g;
+
+    # Proxy API calls to the FastAPI service. The /api prefix is stripped
+    # so /api/jobs -> ${BACKEND_URL}/jobs (matches the Vite dev proxy).
+    #
+    # BACKEND_URL is injected at container start by the nginx image's
+    # envsubst entrypoint (docker-entrypoint.d/20-envsubst-on-templates.sh).
+    # A `resolver` + variable `proxy_pass` makes nginx re-resolve the
+    # backend Service DNS at request time, so it survives backend pod
+    # restarts / re-scheduling in Kubernetes.
+    location /api/ {
+        resolver ${NGINX_DNS_RESOLVER} valid=10s;
+        set $backend "${BACKEND_URL}";
+
+        # Strip the /api prefix before proxying (backend serves at root).
+        rewrite ^/api/(.*)$ /$1 break;
+        proxy_pass $backend;
+
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Large uploads / long-running processing: don't cut off early.
+        proxy_request_buffering off;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+    }
+
+    # SPA fallback: serve index.html for client-side routes
+    # (e.g. a page refresh on /jobs/{id}).
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Cache hashed static assets aggressively.
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+}

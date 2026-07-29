@@ -32,8 +32,6 @@ spec:
             # explicit override, otherwise the cluster-internal Service FQDN.
             - name: BACKEND_URL
               value: {{ include "dialog-frontend.backendUrl" . | quote }}
-            - name: NGINX_DNS_RESOLVER
-              value: {{ .Values.env.NGINX_DNS_RESOLVER | quote }}
           volumeMounts:
             # Shadow the image's baked-in template with the ConfigMap so the
             # upstream can change without an image rebuild.

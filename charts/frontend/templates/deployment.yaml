@@ -32,6 +32,12 @@ spec:
             # explicit override, otherwise the cluster-internal Service FQDN.
             - name: BACKEND_URL
               value: {{ include "dialog-frontend.backendUrl" . | quote }}
+            # Opt-in flag for the nginx image's 15-local-resolvers.envsh,
+            # which exports NGINX_LOCAL_RESOLVERS from /etc/resolv.conf.
+            # Without it the variable is unset and the template's
+            # `resolver ${NGINX_LOCAL_RESOLVERS}` crashes nginx at startup.
+            - name: NGINX_ENTRYPOINT_LOCAL_RESOLVERS
+              value: "true"
           volumeMounts:
             # Shadow the image's baked-in template with the ConfigMap so the
             # upstream can change without an image rebuild.

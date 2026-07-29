@@ -170,7 +170,7 @@ export default function UploadPage() {
             </label>
             <Textarea
               id="objectives"
-              placeholder={"Describe trauma systems\nExplain primary assessment"}
+              placeholder={"e.g. Describe the key principles of…\nExplain how to…\nDemonstrate…"}
               rows={4}
               value={objectives}
               disabled={uploading}

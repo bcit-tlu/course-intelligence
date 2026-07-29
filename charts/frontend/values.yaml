@@ -26,9 +26,6 @@ env:
   # Explicit override for the nginx upstream. Leave empty to auto-build
   # the backend Service FQDN (see dialog-frontend.backendUrl helper).
   BACKEND_URL: ""
-  # nginx DNS resolver used for runtime re-resolution of the backend
-  # Service. Defaults to the Kubernetes cluster DNS service address.
-  NGINX_DNS_RESOLVER: "kube-dns.kube-system.svc.cluster.local"
 
 ingress:
   enabled: false

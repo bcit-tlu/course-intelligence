@@ -59,7 +59,7 @@ llm:
     baseUrl: "https://ollama.com"
   # Create out-of-band, then reference it (keys: ollama-api-key,
   # azure-openai-api-key). Leave empty to let the chart create an empty Secret.
-  existingSecret: dialog-llm
+  existingSecret: llm-credentials
 
 gateway:
   enabled: true

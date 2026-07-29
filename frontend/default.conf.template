@@ -17,7 +17,7 @@ server {
     # backend Service DNS at request time, so it survives backend pod
     # restarts / re-scheduling in Kubernetes.
     location /api/ {
-        resolver ${NGINX_DNS_RESOLVER} valid=10s;
+        resolver ${NGINX_LOCAL_RESOLVERS} valid=10s;
         set $backend "${BACKEND_URL}";
 
         # Strip the /api prefix before proxying (backend serves at root).

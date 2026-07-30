@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.0](https://github.com/bcit-tlu/dialog/compare/frontend-v0.1.2...frontend-v0.2.0) (2026-07-30)
+
+
+### Features
+
+* add job listing endpoint with tenant filtering and history UI ([3178f19](https://github.com/bcit-tlu/dialog/commit/3178f19344a90801b983fec4cb3f9d0714d51e56))
+* add job listing endpoint with tenant filtering and history UI ([48d6749](https://github.com/bcit-tlu/dialog/commit/48d6749bcdccb4795f7ea9eb97295fcd33677674))
+* Merge pull request [#55](https://github.com/bcit-tlu/dialog/issues/55) from bcit-tlu/54-job-discovery-reconnection ([3178f19](https://github.com/bcit-tlu/dialog/commit/3178f19344a90801b983fec4cb3f9d0714d51e56))
+
 ## [0.1.2](https://github.com/bcit-tlu/dialog/compare/frontend-v0.1.1...frontend-v0.1.2) (2026-07-29)
 
 

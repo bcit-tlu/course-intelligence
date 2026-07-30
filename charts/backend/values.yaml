@@ -84,7 +84,7 @@ postgres:
     version: "0.8.5"
   persistence:
     storageClass: ""
-    size: 5Gi
+    size: 10Gi
 
 # ── Redis (Step 6) ──────────────────────────────────────────
 redis:
@@ -115,7 +115,7 @@ minio:
   # Used when minio.enabled=false (external S3).
   endpointUrl: ""
   persistence:
-    size: 10Gi
+    size: 30Gi
     storageClass: ""
 
 # ── Probes ──────────────────────────────────────────────────

@@ -64,6 +64,13 @@ export async function createJob(
   });
 }
 
+export async function listJobs(): Promise<Job[]> {
+  const res = await fetch(`${BASE}/jobs`);
+  if (!res.ok) return parseError(res);
+  const body = await res.json();
+  return body.jobs;
+}
+
 export async function getJob(jobId: string): Promise<Job> {
   const res = await fetch(`${BASE}/jobs/${jobId}`);
   if (!res.ok) return parseError(res);

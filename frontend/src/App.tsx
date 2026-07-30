@@ -1,7 +1,8 @@
 import { Link, Route, Routes } from "react-router-dom";
-import { GraduationCap } from "lucide-react";
+import { GraduationCap, History } from "lucide-react";
 
 import JobPage from "@/pages/JobPage";
+import JobsListPage from "@/pages/JobsListPage";
 import UploadPage from "@/pages/UploadPage";
 
 export default function App() {
@@ -16,12 +17,20 @@ export default function App() {
               Course Processor
             </span>
           </Link>
+          <Link
+            to="/jobs"
+            className="ml-auto flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <History className="h-4 w-4" />
+            History
+          </Link>
         </div>
       </header>
 
       <main className="container py-10">
         <Routes>
           <Route path="/" element={<UploadPage />} />
+          <Route path="/jobs" element={<JobsListPage />} />
           <Route path="/jobs/:id" element={<JobPage />} />
         </Routes>
       </main>

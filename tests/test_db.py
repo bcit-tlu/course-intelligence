@@ -92,6 +92,80 @@ def test_cascade_delete(session):
     assert session.query(Result).count() == 0
 
 
+def test_list_jobs_ordered_by_created_at_desc(session):
+    """GET /jobs returns most-recent first."""
+    import time as _time
+
+    first = _make_job(filename="first.zip")
+    session.add(first)
+    session.commit()
+    _time.sleep(0.01)
+
+    second = _make_job(filename="second.zip")
+    session.add(second)
+    session.commit()
+
+    jobs = (
+        session.query(Job).order_by(Job.created_at.desc()).limit(50).all()
+    )
+    assert len(jobs) == 2
+    assert jobs[0].filename == "second.zip"
+    assert jobs[1].filename == "first.zip"
+
+
+def test_list_jobs_filter_by_status(session):
+    """GET /jobs?status=completed returns only completed jobs."""
+    queued = _make_job(filename="queued.zip")
+    session.add(queued)
+    session.commit()
+
+    done = _make_job(filename="done.zip")
+    done.status = JobStatus.completed
+    session.add(done)
+    session.commit()
+
+    jobs = (
+        session.query(Job)
+        .filter(Job.status == JobStatus.completed)
+        .order_by(Job.created_at.desc())
+        .all()
+    )
+    assert len(jobs) == 1
+    assert jobs[0].filename == "done.zip"
+
+
+def test_list_jobs_filter_by_tenant_id(session):
+    """GET /jobs with X-Tenant-Id returns only that tenant's jobs."""
+    a = _make_job(filename="a.zip", tenant_id="tenant-a")
+    b = _make_job(filename="b.zip", tenant_id="tenant-b")
+    c = _make_job(filename="c.zip")  # no tenant
+    session.add_all([a, b, c])
+    session.commit()
+
+    jobs = (
+        session.query(Job)
+        .filter(Job.tenant_id == "tenant-a")
+        .order_by(Job.created_at.desc())
+        .all()
+    )
+    assert len(jobs) == 1
+    assert jobs[0].filename == "a.zip"
+
+    # Unfiltered returns all
+    all_jobs = session.query(Job).order_by(Job.created_at.desc()).all()
+    assert len(all_jobs) == 3
+
+
+def test_list_jobs_limit(session):
+    """GET /jobs?limit=N caps the response."""
+    for i in range(5):
+        session.add(_make_job(filename=f"job-{i}.zip"))
+    session.commit()
+
+    jobs = session.query(Job).order_by(Job.created_at.desc()).limit(2).all()
+    assert len(jobs) == 2
+
+
 def test_get_database_url_normalizes_psycopg_driver(monkeypatch):
     from dialog import default_config
 

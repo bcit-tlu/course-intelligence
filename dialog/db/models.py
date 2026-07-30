@@ -43,6 +43,7 @@ class Job(Base):
     filename: Mapped[str] = mapped_column(Text, nullable=False)
     storage_key: Mapped[str] = mapped_column(Text, nullable=False)
     learning_objectives: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    tenant_id: Mapped[str | None] = mapped_column(Text, nullable=True, index=True)
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=_utcnow

@@ -9,6 +9,7 @@ export interface Job {
   created_at: string;
   updated_at: string;
   error: string | null;
+  tenant_id: string | null;
 }
 
 export interface CreateJobResponse {

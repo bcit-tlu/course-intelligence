@@ -66,6 +66,21 @@ spec:
           reference: {{ .Values.postgres.pgvector.image }}
   {{- end }}
 
+  {{- if or .Values.postgres.nodeSelector .Values.postgres.tolerations .Values.postgres.affinity }}
+  affinity:
+    {{- with .Values.postgres.nodeSelector }}
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.postgres.tolerations }}
+    tolerations:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.postgres.affinity }}
+    additionalPodAffinity:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  {{- end }}
   storage:
     {{- with .Values.postgres.persistence.storageClass }}
     storageClass: {{ . }}

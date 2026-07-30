@@ -85,6 +85,10 @@ postgres:
   persistence:
     storageClass: ""
     size: 10Gi
+  # Scheduling constraints for CNPG pods (maps to Cluster.spec.affinity).
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
 
 # ── Redis (Step 6) ──────────────────────────────────────────
 redis:
@@ -96,6 +100,9 @@ redis:
     enabled: false
     size: 1Gi
     storageClass: ""
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
 
 # ── MinIO object storage (Step 7) ───────────────────────────
 minio:
@@ -117,6 +124,9 @@ minio:
   persistence:
     size: 30Gi
     storageClass: ""
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
 
 # ── Probes ──────────────────────────────────────────────────
 probes:

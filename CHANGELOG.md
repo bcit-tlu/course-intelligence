@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/bcit-tlu/dialog/compare/backend-v0.2.0...backend-v0.3.0) (2026-07-30)
+
+
+### Features
+
+* add nodeSelector, tolerations, and affinity support for postgres, redis, and minio deployments ([056909d](https://github.com/bcit-tlu/dialog/commit/056909db095d6b85c4cf7ada47ecb1094085f54c))
+
 ## [0.2.0](https://github.com/bcit-tlu/dialog/compare/backend-v0.1.3...backend-v0.2.0) (2026-07-30)
 
 

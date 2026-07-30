@@ -11,7 +11,7 @@ import logging
 from pathlib import Path
 
 import redis as redis_lib
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 from dialog import storage
@@ -57,6 +57,7 @@ def _job_to_dict(job: Job) -> dict:
         "created_at": job.created_at.isoformat(),
         "updated_at": job.updated_at.isoformat(),
         "error": job.error,
+        "tenant_id": job.tenant_id,
     }
 
 
@@ -108,6 +109,26 @@ def create_job(
         session.rollback()
         logger.error("Job creation failed: %s", e, exc_info=True)
         raise HTTPException(500, f"Job creation failed: {e}")
+    finally:
+        session.close()
+
+
+@app.get("/jobs")
+def list_jobs(
+    limit: int = 50,
+    status: JobStatus | None = None,
+    x_tenant_id: str | None = Header(default=None),
+):
+    """List jobs, optionally filtered by status and/or tenant."""
+    session = get_session()
+    try:
+        query = session.query(Job).order_by(Job.created_at.desc())
+        if status is not None:
+            query = query.filter(Job.status == status)
+        if x_tenant_id is not None:
+            query = query.filter(Job.tenant_id == x_tenant_id)
+        jobs = query.limit(limit).all()
+        return {"jobs": [_job_to_dict(j) for j in jobs]}
     finally:
         session.close()
 

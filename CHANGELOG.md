@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/bcit-tlu/dialog/compare/backend-v0.1.2...backend-v0.1.3) (2026-07-29)
+
+
+### Bug Fixes
+
+* opt in to nginx local resolvers entrypoint in frontend chart ([84f3305](https://github.com/bcit-tlu/dialog/commit/84f330559d0be411cb3697e20dabb7700321aa91))
+
 ## [0.1.2](https://github.com/bcit-tlu/dialog/compare/backend-v0.1.1...backend-v0.1.2) (2026-07-29)
 
 

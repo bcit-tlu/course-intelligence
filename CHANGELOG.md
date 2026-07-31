@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/bcit-tlu/dialog/compare/backend-v0.3.0...backend-v0.4.0) (2026-07-31)
+
+
+### Features
+
+* add 120 second timeout to minio bucket creation job ([bf00b41](https://github.com/bcit-tlu/dialog/commit/bf00b4136ebcf1ca13ccd0bd0a317436864db49c))
+
 ## [0.3.0](https://github.com/bcit-tlu/dialog/compare/backend-v0.2.0...backend-v0.3.0) (2026-07-30)
 
 

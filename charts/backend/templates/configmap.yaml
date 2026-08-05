@@ -11,6 +11,7 @@ data:
   LLM_GATEWAY_URL: {{ .Values.llm.gatewayUrl | default (printf "http://%s-gateway:%d" $fullname (.Values.gateway.port | int)) | quote }}
   # Ollama (non-secret) settings.
   OLLAMA_BASE_URL: {{ .Values.llm.ollama.baseUrl | quote }}
+  OLLAMA_MODEL: {{ .Values.llm.ollama.model | quote }}
   # Azure OpenAI (non-secret) settings — used when LLM_PROVIDER=azure.
   AZURE_OPENAI_ENDPOINT: {{ .Values.llm.azure.endpoint | quote }}
   AZURE_OPENAI_API_VERSION: {{ .Values.llm.azure.apiVersion | quote }}

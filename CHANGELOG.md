@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.5.0](https://github.com/bcit-tlu/dialog/compare/backend-v0.4.0...backend-v0.5.0) (2026-08-05)
+
+
+### Features
+
+* add OLLAMA_MODEL config and configmap checksum annotations ([4e86a42](https://github.com/bcit-tlu/dialog/commit/4e86a4279226b2fe0e30c2ff15274de77d7f91b1))
+* add OLLAMA_MODEL config and configmap checksum annotations to force pod restarts on config changes ([a839669](https://github.com/bcit-tlu/dialog/commit/a839669a7733195756a38d0313e15a720521fb20))
+* Merge pull request [#62](https://github.com/bcit-tlu/dialog/issues/62) from bcit-tlu/61-llm-provider-integration-plan ([4e86a42](https://github.com/bcit-tlu/dialog/commit/4e86a4279226b2fe0e30c2ff15274de77d7f91b1))
+
 ## [0.4.0](https://github.com/bcit-tlu/dialog/compare/backend-v0.3.0...backend-v0.4.0) (2026-07-31)
 
 

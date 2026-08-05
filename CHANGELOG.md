@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/bcit-tlu/dialog/compare/backend-v0.5.0...backend-v0.5.1) (2026-08-05)
+
+
+### Bug Fixes
+
+* add LLM_MAX_TOKENS config to prevent truncated JSON responses ([b0e04e6](https://github.com/bcit-tlu/dialog/commit/b0e04e65dd9626ca966f41b376545de7284ccb30))
+
 ## [0.5.0](https://github.com/bcit-tlu/dialog/compare/backend-v0.4.0...backend-v0.5.0) (2026-08-05)
 
 

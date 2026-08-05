@@ -26,6 +26,7 @@ llm:
   gatewayUrl: ""            # defaults to the in-cluster gateway service
   ollama:
     baseUrl: "https://ollama.com"
+    model: "gemma4:31b-cloud"
     apiKey: ""              # -> Secret key `ollama-api-key` / env OLLAMA_API_KEY
   azure:
     endpoint: ""

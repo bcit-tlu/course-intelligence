@@ -37,6 +37,7 @@ _ENV_OVERRIDES = {
     "MOCK_LLM":           "mock_llm",
     "MAX_CHUNK_TOKENS":   "max_chunk_tokens",
     "MIN_CHUNK_TOKENS":   "min_chunk_tokens",
+    "LLM_MAX_TOKENS":     "llm_max_tokens",
 
     # API server
     "API_HOST":           "api_host",
@@ -96,6 +97,9 @@ DEFAULT_CONFIG = _apply_env_overrides({
     # Processing defaults
     "max_chunk_tokens": 800,
     "min_chunk_tokens": 100,
+
+    # LLM output token limit — prevents truncated JSON responses
+    "llm_max_tokens": 8192,
 
     # Mock mode — run the graph without real LLM calls
     "mock_llm": False,

@@ -19,6 +19,7 @@ class OpenAIClient(BaseLLMClient):
             api_key=self.kwargs.get("api_key", ""),
             model=self.model,
             temperature=self.kwargs.get("temperature", 0),
+            max_tokens=self.kwargs.get("max_tokens", 8192),
         )
 
     def validate_model(self) -> bool:

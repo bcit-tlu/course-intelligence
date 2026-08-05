@@ -39,6 +39,8 @@ class CourseProcessorGraph:
         provider = self.config.get("llm_provider", "ollama")
         mock = self.config.get("mock_llm", False)
 
+        max_tokens = self.config.get("llm_max_tokens", 8192)
+
         if provider == "azure" and not mock:
             client = create_llm_client(
                 provider="azure",
@@ -46,6 +48,7 @@ class CourseProcessorGraph:
                 base_url=self.config.get("azure_openai_endpoint"),
                 api_key=self.config.get("azure_openai_api_key", ""),
                 api_version=self.config.get("azure_openai_api_version", "2024-06-01"),
+                max_tokens=max_tokens,
             )
         else:
             client = create_llm_client(
@@ -54,6 +57,7 @@ class CourseProcessorGraph:
                 base_url=self.config.get("ollama_base_url"),
                 mock=mock,
                 api_key=self.config.get("ollama_api_key", ""),
+                max_tokens=max_tokens,
             )
         self.llm = client.get_llm()
 

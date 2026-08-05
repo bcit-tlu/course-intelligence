@@ -20,6 +20,7 @@ class AzureOpenAIClient(BaseLLMClient):
             api_version=self.kwargs.get("api_version", "2024-06-01"),
             azure_deployment=self.model,
             temperature=self.kwargs.get("temperature", 0),
+            max_tokens=self.kwargs.get("max_tokens", 8192),
         )
 
     def validate_model(self) -> bool:

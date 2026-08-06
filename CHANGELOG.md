@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.2](https://github.com/bcit-tlu/dialog/compare/backend-v0.8.1...backend-v0.8.2) (2026-08-06)
+
+
+### Documentation
+
+* update deployment guide to reflect Flux GitOps workflow ([336535c](https://github.com/bcit-tlu/dialog/commit/336535c22e4d6a0fbc83df7817b6bfa345578b7c))
+
 ## [0.8.1](https://github.com/bcit-tlu/dialog/compare/backend-v0.8.0...backend-v0.8.1) (2026-08-06)
 
 

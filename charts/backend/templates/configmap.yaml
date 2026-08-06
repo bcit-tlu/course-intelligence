@@ -20,3 +20,5 @@ data:
   # Object storage (non-secret) settings.
   S3_ENDPOINT_URL: {{ include "dialog-backend.s3EndpointUrl" . | quote }}
   S3_BUCKET: {{ .Values.minio.bucket | quote }}
+  # Upload retention — number of recent job uploads to keep in S3.
+  RETENTION_COUNT: {{ .Values.retentionCount | default 10 | quote }}

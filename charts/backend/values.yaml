@@ -129,6 +129,12 @@ minio:
   tolerations: []
   affinity: {}
 
+# ── Upload retention ────────────────────────────────────────
+# Number of recent job uploads to retain in S3. Older uploads are
+# purged from MinIO after each job completes; Job + Result rows in
+# Postgres are always preserved.
+retentionCount: 10
+
 # ── Probes ──────────────────────────────────────────────────
 probes:
   liveness:

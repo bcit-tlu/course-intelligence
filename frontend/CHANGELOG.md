@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/bcit-tlu/dialog/compare/frontend-v0.2.0...frontend-v0.3.0) (2026-08-06)
+
+
+### Features
+
+* add per-node progress tracking with current_step field ([5f12ea1](https://github.com/bcit-tlu/dialog/commit/5f12ea17f7f3c1584ade23d11049cd73f7fb4c27))
+* add per-node progress tracking with current_step field ([2d68c78](https://github.com/bcit-tlu/dialog/commit/2d68c78e1e1c48185d64647ebbd177f0515bdfdb))
+
 ## [0.2.0](https://github.com/bcit-tlu/dialog/compare/frontend-v0.1.2...frontend-v0.2.0) (2026-07-30)
 
 

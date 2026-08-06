@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.0](https://github.com/bcit-tlu/dialog/compare/backend-v0.5.1...backend-v0.6.0) (2026-08-06)
+
+
+### Features
+
+* add generic directory parser with natural sorting and nested D2… ([04947c1](https://github.com/bcit-tlu/dialog/commit/04947c11771c8c9dff50793d58be498982f63c4c))
+* add generic directory parser with natural sorting and nested D2L ToC support ([5c44e67](https://github.com/bcit-tlu/dialog/commit/5c44e672f650ca13df5facd7388e7bc72677efb2))
+
 ## [0.5.1](https://github.com/bcit-tlu/dialog/compare/backend-v0.5.0...backend-v0.5.1) (2026-08-05)
 
 

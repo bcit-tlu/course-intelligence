@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/bcit-tlu/dialog/compare/backend-v0.8.0...backend-v0.8.1) (2026-08-06)
+
+
+### Bug Fixes
+
+* delete old jobs entirely instead of blanking storage_key ([150437a](https://github.com/bcit-tlu/dialog/commit/150437aa378a89370df419a6a27bc608bb1d675e))
+
 ## [0.8.0](https://github.com/bcit-tlu/dialog/compare/backend-v0.7.0...backend-v0.8.0) (2026-08-06)
 
 

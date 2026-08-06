@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/bcit-tlu/dialog/compare/backend-v0.7.0...backend-v0.8.0) (2026-08-06)
+
+
+### Features
+
+* add Helm chart configuration for upload retention count ([c097e21](https://github.com/bcit-tlu/dialog/commit/c097e2133999c5cca1ecdeeb893860e2fd3421e3))
+
 ## [0.7.0](https://github.com/bcit-tlu/dialog/compare/backend-v0.6.0...backend-v0.7.0) (2026-08-06)
 
 

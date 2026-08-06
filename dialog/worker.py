@@ -23,6 +23,7 @@ from dialog import storage
 from dialog.db import Job, JobStatus, Result, get_session
 from dialog.default_config import DEFAULT_CONFIG
 from dialog.graph import CourseProcessorGraph
+from dialog.graph.steps import NODE_TO_STEP
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,18 @@ def _set_status(job_id: str, status: JobStatus, error: str | None = None) -> Non
         session.close()
 
 
+def _set_step(job_id: str, step: str | None) -> None:
+    session = get_session()
+    try:
+        job = session.get(Job, job_id)
+        if job is None:
+            return
+        job.current_step = step
+        session.commit()
+    finally:
+        session.close()
+
+
 def process_job(job_id: str, graph: CourseProcessorGraph) -> None:
     """Process a single job: download, run pipeline, save results."""
     session = get_session()
@@ -77,7 +90,13 @@ def process_job(job_id: str, graph: CourseProcessorGraph) -> None:
         local_path = str(Path(tmp_dir) / filename)
         storage.download_file(storage_key, local_path)
 
-        result = graph.process(local_path, learning_objectives)
+        result = graph.process_with_progress(
+            local_path,
+            learning_objectives,
+            on_step=lambda node: _set_step(
+                job_id, NODE_TO_STEP.get(node, node)
+            ),
+        )
 
     error = result.get("error")
     knowledge_map = result.get("knowledge_map", [])

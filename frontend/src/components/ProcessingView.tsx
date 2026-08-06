@@ -25,12 +25,20 @@ function useElapsed(startIso: string): string {
   return m > 0 ? `${m}m ${s}s` : `${s}s`;
 }
 
-const STEPS = ["queued", "processing", "completed"] as const;
+// Pipeline steps — mirrors STEP_ORDER in dialog/graph/steps.py (backend).
+const STEPS = [
+  { key: "extracting", label: "Extracting content" },
+  { key: "chunking", label: "Chunking into topics" },
+  { key: "classifying", label: "Classifying (Bloom's)" },
+] as const;
 
 export default function ProcessingView({ job }: { job: Job }) {
   const elapsed = useElapsed(job.created_at);
 
   if (job.status === "failed") {
+    const failedStepIndex = job.current_step
+      ? STEPS.findIndex((s) => s.key === job.current_step)
+      : -1;
     return (
       <div className="mx-auto max-w-2xl">
         <Card className="border-destructive/40">
@@ -42,6 +50,11 @@ export default function ProcessingView({ job }: { job: Job }) {
             <CardDescription>{job.filename}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {failedStepIndex >= 0 && (
+              <p className="text-xs text-muted-foreground">
+                Failed during: {STEPS[failedStepIndex].label}
+              </p>
+            )}
             <p className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
               {job.error ?? "An unknown error occurred."}
             </p>
@@ -54,7 +67,10 @@ export default function ProcessingView({ job }: { job: Job }) {
     );
   }
 
-  const currentIndex = STEPS.indexOf(job.status as (typeof STEPS)[number]);
+  const currentIndex = job.current_step
+    ? STEPS.findIndex((s) => s.key === job.current_step)
+    : -1;
+  const isQueued = job.status === "queued";
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -69,12 +85,17 @@ export default function ProcessingView({ job }: { job: Job }) {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {isQueued && (
+            <p className="mb-4 text-sm text-muted-foreground">
+              Queued for processing…
+            </p>
+          )}
           <ol className="space-y-4">
-            {STEPS.slice(0, 2).map((step, i) => {
+            {STEPS.map((step, i) => {
               const done = i < currentIndex;
               const active = i === currentIndex;
               return (
-                <li key={step} className="flex items-center gap-3">
+                <li key={step.key} className="flex items-center gap-3">
                   <span
                     className={cn(
                       "flex h-7 w-7 items-center justify-center rounded-full border text-xs",
@@ -93,11 +114,11 @@ export default function ProcessingView({ job }: { job: Job }) {
                   </span>
                   <span
                     className={cn(
-                      "text-sm capitalize",
+                      "text-sm",
                       active ? "font-medium" : "text-muted-foreground",
                     )}
                   >
-                    {step === "queued" ? "Queued for processing" : "Extracting & classifying"}
+                    {step.label}
                   </span>
                 </li>
               );

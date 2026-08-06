@@ -57,6 +57,7 @@ def _job_to_dict(job: Job) -> dict:
         "created_at": job.created_at.isoformat(),
         "updated_at": job.updated_at.isoformat(),
         "error": job.error,
+        "current_step": job.current_step,
         "tenant_id": job.tenant_id,
     }
 

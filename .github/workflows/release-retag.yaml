@@ -1,12 +1,6 @@
 name: release-images
 
 on:
-  # Fire automatically when a GitHub Release is published (release-please
-  # publishes one per component tag, e.g. frontend-v1.2.3). The retag job
-  # reads github.event.release.tag_name and skips non-matching components.
-  release:
-    types: [published]
-  # Manual fallback for re-running against a specific existing tag.
   workflow_dispatch:
     inputs:
       tag_name:

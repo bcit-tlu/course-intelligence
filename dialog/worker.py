@@ -117,6 +117,36 @@ def process_job(job_id: str, graph: CourseProcessorGraph) -> None:
         f" (partial: {error})" if error else "",
     )
 
+    cleanup_old_uploads()
+
+
+def cleanup_old_uploads() -> None:
+    """Delete S3 uploads beyond the retention count.
+
+    Keeps uploads for the N most recent completed+failed jobs.
+    Older jobs have their S3 object deleted and storage_key blanked.
+    Job and Result rows are preserved in Postgres.
+    """
+    keep = DEFAULT_CONFIG.get("retention_count", 10)
+    session = get_session()
+    try:
+        old_jobs = (
+            session.query(Job)
+            .filter(Job.status.in_([JobStatus.completed, JobStatus.failed]))
+            .filter(Job.storage_key != "")
+            .order_by(Job.created_at.desc())
+            .offset(keep)
+            .all()
+        )
+        for job in old_jobs:
+            storage.delete_object(job.storage_key)
+            job.storage_key = ""
+        if old_jobs:
+            session.commit()
+            logger.info("Purged %d old upload(s)", len(old_jobs))
+    finally:
+        session.close()
+
 
 def _reclaim_stale_jobs(redis_client) -> None:
     """Requeue jobs left in the processing list by a crashed worker run.

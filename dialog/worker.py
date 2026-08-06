@@ -140,7 +140,7 @@ def cleanup_old_uploads() -> None:
         )
         for job in old_jobs:
             storage.delete_object(job.storage_key)
-            job.storage_key = ""
+            session.delete(job)
         if old_jobs:
             session.commit()
             logger.info("Purged %d old upload(s)", len(old_jobs))

@@ -9,7 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 import dialog.worker as worker_mod
-from dialog.db.models import Base, Job, JobStatus
+from dialog.db.models import Base, Job, JobStatus, Result
 
 
 @pytest.fixture()
@@ -68,11 +68,10 @@ def test_purges_beyond_retention_count(session, monkeypatch):
     worker_mod.cleanup_old_uploads()
 
     assert len(deleted_keys) == 2
-    # The 2 oldest completed jobs should be purged (done-0, done-1)
+    # The 2 oldest completed jobs should be deleted (done-0, done-1)
     remaining = (
         session.query(Job)
         .filter(Job.status == JobStatus.completed)
-        .filter(Job.storage_key != "")
         .order_by(Job.created_at.desc())
         .all()
     )
@@ -128,35 +127,21 @@ def test_failed_jobs_counted(session, monkeypatch):
     assert len(deleted_keys) == 3
 
 
-def test_already_purged_not_re_deleted(session, monkeypatch):
-    """Jobs with blanked storage_key are not re-attempted."""
+def test_results_cascade_deleted_with_job(session, monkeypatch):
+    """Deleting a Job cascades to its Result rows."""
     _seed_jobs(session, n_completed=5)
 
-    # Blank the oldest 2 storage_keys manually (simulate prior purge)
-    jobs = (
+    # Add results to the 2 oldest jobs (done-0, done-1)
+    oldest = (
         session.query(Job)
         .filter(Job.status == JobStatus.completed)
         .order_by(Job.created_at.asc())
+        .limit(2)
         .all()
     )
-    jobs[0].storage_key = ""
-    jobs[1].storage_key = ""
+    for job in oldest:
+        session.add(Result(job_id=job.id, topic=f"Topic-{job.filename}", content="..."))
     session.commit()
-
-    deleted_keys: list[str] = []
-    monkeypatch.setattr(worker_mod.storage, "delete_object", lambda key: deleted_keys.append(key))
-    monkeypatch.setattr(worker_mod, "get_session", lambda: session)
-    monkeypatch.setitem(worker_mod.DEFAULT_CONFIG, "retention_count", 3)
-
-    worker_mod.cleanup_old_uploads()
-
-    # 5 completed, 2 already blanked (excluded by filter), 3 have keys, keep 3 → 0 purged
-    assert len(deleted_keys) == 0
-
-
-def test_storage_key_blanked_after_purge(session, monkeypatch):
-    """Purged jobs have storage_key set to empty string."""
-    _seed_jobs(session, n_completed=5)
 
     monkeypatch.setattr(worker_mod.storage, "delete_object", lambda key: None)
     monkeypatch.setattr(worker_mod, "get_session", lambda: session)
@@ -164,10 +149,6 @@ def test_storage_key_blanked_after_purge(session, monkeypatch):
 
     worker_mod.cleanup_old_uploads()
 
-    purged = (
-        session.query(Job)
-        .filter(Job.status == JobStatus.completed)
-        .filter(Job.storage_key == "")
-        .all()
-    )
-    assert len(purged) == 2
+    # Jobs deleted → Results cascade-deleted too
+    assert session.query(Job).filter(Job.status == JobStatus.completed).count() == 3
+    assert session.query(Result).count() == 0

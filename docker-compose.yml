@@ -24,6 +24,7 @@ services:
       S3_SECRET_KEY: minioadmin
       S3_BUCKET: uploads
       LLM_GATEWAY_URL: http://llm-gateway:8100
+      RETENTION_COUNT: "10"
     depends_on:
       redis:
         condition: service_started
@@ -44,6 +45,7 @@ services:
       S3_SECRET_KEY: minioadmin
       S3_BUCKET: uploads
       LLM_GATEWAY_URL: http://llm-gateway:8100
+      RETENTION_COUNT: "10"
     depends_on:
       redis:
         condition: service_started

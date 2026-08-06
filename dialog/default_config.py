@@ -39,6 +39,9 @@ _ENV_OVERRIDES = {
     "MIN_CHUNK_TOKENS":   "min_chunk_tokens",
     "LLM_MAX_TOKENS":     "llm_max_tokens",
 
+    # Upload retention
+    "RETENTION_COUNT":    "retention_count",
+
     # API server
     "API_HOST":           "api_host",
     "API_PORT":           "api_port",
@@ -107,6 +110,9 @@ DEFAULT_CONFIG = _apply_env_overrides({
     # API server
     "api_host": "0.0.0.0",
     "api_port": 8000,
+
+    # Upload retention — number of recent job uploads to keep in S3
+    "retention_count": 10,
 
     # Enable uvicorn auto-reload (dev only). Must stay False in production/containers.
     "dev_reload": False,

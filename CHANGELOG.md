@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.0](https://github.com/bcit-tlu/dialog/compare/backend-v0.6.0...backend-v0.7.0) (2026-08-06)
+
+
+### Features
+
+* add configurable upload retention with automatic S3 cleanup ([5fb5ea1](https://github.com/bcit-tlu/dialog/commit/5fb5ea1edc037fd50bd97e1937409ffdd7c55053))
+* add configurable upload retention with automatic S3 cleanup ([250ff6e](https://github.com/bcit-tlu/dialog/commit/250ff6ec507341e03f46cf4129f13f68d0204eab))
+
 ## [0.6.0](https://github.com/bcit-tlu/dialog/compare/backend-v0.5.1...backend-v0.6.0) (2026-08-06)
 
 

@@ -14,7 +14,7 @@ export default function App() {
             <GraduationCap className="h-6 w-6 text-primary" />
             <span>Dialog</span>
             <span className="text-muted-foreground font-normal">
-              Course Processor
+              Knowledge Processor
             </span>
           </Link>
           <Link

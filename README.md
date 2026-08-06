@@ -57,8 +57,10 @@ http://localhost:5173), see `frontend/README.md`.
 
 For deploying to a cluster with Helm (charts in `charts/`), see
 [`docs/deployment.md`](docs/deployment.md) — install prerequisites (CNPG, ingress,
-metrics-server), secrets, the `helm install` flow, verification, and upgrade/rollback.
-A ready-to-edit `values-staging.yaml` is provided at the repo root.
+metrics-server), secrets, the Flux GitOps deploy flow, verification, and upgrade/rollback.
+Cluster-specific values live in the
+[`flux-fleet`](https://github.com/bcit-tlu/flux-fleet) repo
+(`apps/overlays/latest/dialog/`).
 
 ### Tests
 

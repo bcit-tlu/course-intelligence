@@ -38,8 +38,9 @@ CI (`.github/workflows/build-images.yml`) builds and pushes on every `main` push
 - `ghcr.io/bcit-tlu/dialog/dialog-api`
 - `ghcr.io/bcit-tlu/dialog/dialog-frontend`
 
-Tags: `sha-<shortsha>` on every build; `vX.Y.Z` + `latest` on git tags. **Pin an immutable
-tag** (`image.tag`) for reproducible deploys — see `values-staging.yaml`.
+Tags: `sha-<shortsha>` on every build; `vX.Y.Z` + `latest` on git tags. The Flux fleet
+overlay pins chart versions via `OCIRepository` semver constraints (see the
+`flux-fleet` repo, `apps/overlays/latest/dialog/`).
 
 ## Secrets (out-of-band, pre-Vault)
 
@@ -62,31 +63,38 @@ kubectl -n dialog create secret generic dialog-llm \
 #   --from-literal=root-user=... --from-literal=root-password=...
 ```
 
-Then reference them in values: `llm.existingSecret: dialog-llm` (already set in
-`values-staging.yaml`), and `minio.existingSecret: dialog-s3` for the external-S3 path.
+Then reference them in the Flux fleet overlay: `llm.existingSecret: dialog-llm`
+(already set in `flux-fleet/apps/overlays/latest/dialog/backend/values-latest.yaml`),
+and `minio.existingSecret: dialog-s3` for the external-S3 path.
 
-## Install (staging)
+## Deploy (via Flux)
 
-Both charts share `values-staging.yaml`; each reads only the keys it knows.
+Dialog is deployed to the cluster by [Flux](https://fluxcd.io) using `HelmRelease` and
+`OCIRepository` manifests in the
+[`flux-fleet`](https://github.com/bcit-tlu/flux-fleet) repo:
 
-```sh
-# 1. Set a real image tag first (replace sha-REPLACE_ME in values-staging.yaml).
-
-# 2. Backend (release "dialog") — brings up api/worker/gateway + Postgres/Redis/MinIO.
-helm install dialog charts/backend \
-  -n dialog --create-namespace \
-  -f values-staging.yaml
-
-# 3. Frontend (release "dialog-web") — SPA + Ingress.
-helm install dialog-web charts/frontend \
-  -n dialog \
-  -f values-staging.yaml
+```
+flux-fleet/apps/overlays/latest/dialog/
+├── kustomization.yaml
+├── backend/values-latest.yaml    # HelmRelease + OCIRepository for the backend chart
+└── frontend/values-latest.yaml   # HelmRelease + OCIRepository for the frontend chart
 ```
 
-> **Naming gotcha (important):** the backend Service is `<release>-dialog-backend`. With the
-> backend release named `dialog`, that is **`dialog-dialog-backend`**. The frontend must point
-> at that exact name — `values-staging.yaml` sets `backend.host: dialog-dialog-backend`. If you
-> rename the backend release, update `backend.host` to match, or the `/api` proxy 502s.
+Flux watches the OCI chart repository at
+`oci://ghcr.io/bcit-tlu/dialog/charts/<release>-backend` (and `-frontend`), pulls the
+latest semver-matching version, and applies the values from the overlay.
+
+### Making changes
+
+1. **Values changes** — edit the overlay in `flux-fleet` and push. Flux reconciles
+   automatically on the next sync interval.
+2. **New image** — CI builds and publishes the chart on every `main` push and git tag.
+   Flux picks up the new chart version via the `OCIRepository` semver constraint
+   (`>= 0.0.0-0` for `latest`).
+
+> **Service names:** the overlays set `fullnameOverride: dialog-backend` and
+> `dialog-frontend`, so the Service names are `dialog-backend` and `dialog-frontend`
+> respectively (no release-name prefix).
 
 ## Verify
 
@@ -95,27 +103,27 @@ helm install dialog-web charts/frontend \
 kubectl -n dialog get pods
 
 # Migration ran: the api pod's `migrate` initContainer applied Alembic head.
-kubectl -n dialog logs deploy/dialog-dialog-backend -c migrate
+kubectl -n dialog logs deploy/dialog-backend -c migrate
 
 # pgvector enabled in the app DB.
-kubectl -n dialog exec -it dialog-dialog-backend-db-1 -- psql -U dialog -d dialog -c '\dx'
+kubectl -n dialog exec -it dialog-backend-db-1 -- psql -U dialog -d dialog -c '\dx'
 #   → the `vector` extension is listed.
 
 # uploads bucket created by the post-install Job.
 kubectl -n dialog get job -l app.kubernetes.io/component=minio-init
 
 # API health through the Service.
-kubectl -n dialog port-forward svc/dialog-dialog-backend 8000:8000 &
+kubectl -n dialog port-forward svc/dialog-backend 8000:8000 &
 curl -s localhost:8000/health   # → {"status":"ok",...}
 ```
 
 ## End-to-end smoke test
 
-Reach the app via the Ingress host (or `kubectl port-forward svc/dialog-web-dialog-frontend
+Reach the app via the Ingress host (or `kubectl port-forward svc/dialog-frontend
 8080:80`), then exercise the async flow (`dialog/api.py`):
 
 ```sh
-BASE=https://dialog.staging.example.com
+BASE=https://dialog.<env>.ltc.bcit.ca   # e.g. dialog.staging.ltc.bcit.ca
 
 # 1. Enqueue a job (multipart upload + optional objectives).
 JOB=$(curl -s -X POST "$BASE/api/jobs" \
@@ -130,28 +138,32 @@ curl -s "$BASE/api/jobs/$JOB/results" | jq '.elements[] | {topic, blooms_level}'
 ```
 
 Confirm in the UI: topics render with Bloom's badges. Then restart pods
-(`kubectl -n dialog rollout restart deploy/dialog-dialog-backend`) to prove migrations are
+(`kubectl -n dialog rollout restart deploy/dialog-backend`) to prove migrations are
 idempotent and no secret is baked into the image.
 
 ## Upgrade
 
+Push changes to the `flux-fleet` overlay. Flux reconciles on the next sync interval,
+or force a reconciliation:
+
 ```sh
-# Bump the pinned tag (or values), then upgrade each release.
-helm upgrade dialog     charts/backend  -n dialog -f values-staging.yaml
-helm upgrade dialog-web charts/frontend -n dialog -f values-staging.yaml
+flux reconcile helmrelease dialog-backend -n dialog
+flux reconcile helmrelease dialog-frontend -n dialog
 ```
 
 - The api `migrate` initContainer re-runs `alembic upgrade head` on every rollout — idempotent.
 - Changing the frontend nginx template rolls the pods automatically (a `checksum/config`
   annotation on the Deployment changes with the ConfigMap).
-- Always deploy an immutable `image.tag`; never rely on `latest` in staging/prod.
 
 ## Rollback
 
+Revert the commit in the `flux-fleet` repo — Flux will reconcile back to the previous
+chart version. For immediate rollback without waiting for Git:
+
 ```sh
-helm history dialog -n dialog
-helm rollback dialog <REVISION> -n dialog
-helm rollback dialog-web <REVISION> -n dialog
+flux suspend helmrelease dialog-backend -n dialog
+helm rollback dialog-backend <REVISION> -n dialog
+flux resume helmrelease dialog-backend -n dialog
 ```
 
 > **Schema note:** `helm rollback` reverts Kubernetes objects, not database schema. If a

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import tempfile
 import zipfile
 from pathlib import Path
@@ -26,6 +27,8 @@ from dialog.agents.utils.agent_states import (
 
 
 SUPPORTED_EXTENSIONS = {".zip", ".pdf", ".docx", ".txt", ".md"}
+
+_SUPPORTED_CONTENT_EXTENSIONS = {".html", ".htm", ".pdf", ".txt", ".md", ".docx"}
 
 
 def parse_document(state: AgentState) -> dict:
@@ -95,15 +98,88 @@ def dispatch(source: str) -> CourseModule:
 
 
 def _dispatch_directory(path: Path) -> CourseModule:
-    """Handle directory input — check for D2L structure."""
-    toc = path / "Table of Contents.html"
-    if toc.exists():
+    """Handle directory input — D2L structure or generic content collection.
+
+    Tier 1: Search for D2L 'Table of Contents.html' anywhere in the tree.
+    Tier 2: Fall back to generic directory parsing (collect all supported files).
+    """
+    toc_files = list(path.rglob("Table of Contents.html"))
+    if toc_files:
         from .d2l_parser import parse_d2l_folder
-        return parse_d2l_folder(str(path))
-    else:
+        return parse_d2l_folder(str(toc_files[0].parent))
+
+    return _parse_generic_directory(path)
+
+
+def _natural_sort_key(path: Path, root: Path) -> list:
+    """Sort key that handles numeric prefixes naturally.
+
+    Ensures 01_intro.html comes before 10_conclusion.html
+    rather than 01 before 10 alphabetically (which would put 10 first).
+    """
+    rel = str(path.relative_to(root))
+    return [
+        int(part) if part.isdigit() else part.lower()
+        for part in re.split(r'(\d+)', rel)
+    ]
+
+
+def _parse_generic_directory(path: Path) -> CourseModule:
+    """Parse a directory of content files without a Table of Contents.
+
+    Recursively finds all supported files and builds a CourseModule
+    with one page per file, sorted by relative path (natural sort).
+    """
+    files = sorted(
+        (
+            f for f in path.rglob("*")
+            if f.is_file() and f.suffix.lower() in _SUPPORTED_CONTENT_EXTENSIONS
+        ),
+        key=lambda f: _natural_sort_key(f, path),
+    )
+
+    if not files:
         raise ValueError(
-            f"Unsupported directory layout: no 'Table of Contents.html' found in {path}"
+            f"No supported content files found in {path}. "
+            f"Supported: {', '.join(sorted(_SUPPORTED_CONTENT_EXTENSIONS))}"
         )
+
+    pages: list[ContentPage] = []
+    for i, f in enumerate(files, 1):
+        rel = str(f.relative_to(path))
+        ext = f.suffix.lower()
+
+        if ext in (".html", ".htm"):
+            from .html_parser import extract_html
+            text = extract_html(str(f))
+            content_type = "html_page"
+        elif ext == ".pdf":
+            from .pdf_parser import extract_pdf
+            text = extract_pdf(str(f))
+            content_type = "pdf"
+        elif ext == ".docx":
+            from .docx_parser import extract_docx
+            text = extract_docx(str(f))
+            content_type = "docx"
+        else:
+            from .text_parser import extract_text
+            text = extract_text(str(f))
+            content_type = "text"
+
+        pages.append(ContentPage(
+            page_number=i,
+            title=f.stem,
+            source_file=rel,
+            content_type=content_type,
+            text=text,
+        ))
+
+    return CourseModule(
+        course_name=path.name,
+        module_id="generic",
+        source_folder=str(path),
+        pages=pages,
+    )
 
 
 def _dispatch_zip(path: Path) -> CourseModule:

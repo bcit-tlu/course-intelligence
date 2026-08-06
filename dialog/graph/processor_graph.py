@@ -8,7 +8,7 @@ LangGraph directly.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 from dialog.default_config import DEFAULT_CONFIG
 from dialog.llm_clients import create_llm_client
@@ -81,8 +81,7 @@ class CourseProcessorGraph:
             learning_objectives: Instructor-provided objectives string.
 
         Returns:
-            Final graph state dict with knowledge_map, question_bank,
-            audit_flags, and review_status.
+            Final graph state dict with knowledge_map and error.
         """
         initial_state = self.propagator.create_initial_state(
             source_path, learning_objectives
@@ -94,3 +93,38 @@ class CourseProcessorGraph:
             return chunk  # last chunk is the final state
         else:
             return self.graph.invoke(initial_state)
+
+    def process_with_progress(
+        self,
+        source_path: str,
+        learning_objectives: str = "",
+        on_step: Optional[Callable[[str], None]] = None,
+    ) -> Dict[str, Any]:
+        """Process a document, calling *on_step* after each graph node.
+
+        Uses LangGraph dual-mode streaming (updates + values) to get both
+        the node name (for progress tracking) and the full final state.
+
+        Args:
+            source_path: Path to the uploaded file or directory.
+            learning_objectives: Instructor-provided objectives string.
+            on_step: Optional callback invoked with the node name after
+                each node completes (e.g. ``on_step("extract")``).
+
+        Returns:
+            Final graph state dict — same shape as ``process()``.
+        """
+        initial_state = self.propagator.create_initial_state(
+            source_path, learning_objectives
+        )
+        final_state = None
+        for mode, chunk in self.graph.stream(
+            initial_state, stream_mode=["updates", "values"]
+        ):
+            if mode == "updates":
+                for node_name in chunk:
+                    if not node_name.startswith("__") and on_step is not None:
+                        on_step(node_name)
+            elif mode == "values":
+                final_state = chunk
+        return final_state if final_state is not None else initial_state

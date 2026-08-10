@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/bcit-tlu/dialog/compare/frontend-v0.3.0...frontend-v0.4.0) (2026-08-10)
+
+
+### Features
+
+* 82 add user manual documentation page to the react frontend ([70104ed](https://github.com/bcit-tlu/dialog/commit/70104ed8e2a67bc3ace00a659be08ea0f6051fdf))
+
 ## [0.3.0](https://github.com/bcit-tlu/dialog/compare/frontend-v0.2.0...frontend-v0.3.0) (2026-08-06)
 
 

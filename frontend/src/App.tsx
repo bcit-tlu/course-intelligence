@@ -1,6 +1,7 @@
 import { Link, Route, Routes } from "react-router-dom";
-import { GraduationCap, History } from "lucide-react";
+import { BookOpen, GraduationCap, History } from "lucide-react";
 
+import DocsPage from "@/pages/DocsPage";
 import JobPage from "@/pages/JobPage";
 import JobsListPage from "@/pages/JobsListPage";
 import UploadPage from "@/pages/UploadPage";
@@ -18,8 +19,15 @@ export default function App() {
             </span>
           </Link>
           <Link
-            to="/jobs"
+            to="/docs"
             className="ml-auto flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <BookOpen className="h-4 w-4" />
+            Docs
+          </Link>
+          <Link
+            to="/jobs"
+            className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <History className="h-4 w-4" />
             History
@@ -30,6 +38,7 @@ export default function App() {
       <main className="container py-10">
         <Routes>
           <Route path="/" element={<UploadPage />} />
+          <Route path="/docs" element={<DocsPage />} />
           <Route path="/jobs" element={<JobsListPage />} />
           <Route path="/jobs/:id" element={<JobPage />} />
         </Routes>

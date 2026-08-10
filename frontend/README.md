@@ -30,9 +30,10 @@ npm run preview    # preview the production build locally
 
 ```text
 src/
-├── App.tsx              # routes: / (upload), /jobs, /jobs/:id
+├── App.tsx              # routes: / (upload), /docs, /jobs, /jobs/:id
 ├── main.tsx            # entry point (router + toaster)
 ├── types.ts            # types mirroring the API schemas
+├── vite-env.d.ts       # Vite client types (?raw imports)
 ├── api/client.ts       # typed fetch/XHR wrappers (createJob, getJob, getResults)
 ├── hooks/
 │   └── useJob.ts       # polling hook for job status
@@ -45,9 +46,15 @@ src/
 │   ├── ProcessingView.tsx  # processing progress indicator
 │   ├── ResultsView.tsx     # results layout with filtering
 │   └── ResultsSkeleton.tsx # loading skeleton for results
+├── docs/               # user manual markdown pages (bundled at build time)
+│   ├── overview.md         # what Dialog does, pipeline overview
+│   ├── uploading.md        # how to upload a module
+│   ├── results.md          # how to read results + Bloom's badges
+│   └── job-status.md       # job lifecycle and polling
 ├── lib/utils.ts        # cn() + formatBytes()
 └── pages/
     ├── UploadPage.tsx  # drag-drop upload + learning objectives
+    ├── DocsPage.tsx    # user manual with sidebar nav + markdown rendering
     ├── JobsListPage.tsx # job history with status filtering
     └── JobPage.tsx     # job status + results with Bloom's badges
 ```
@@ -56,6 +63,15 @@ src/
 
 - `/` — upload a module (drag-drop or picker), enter learning objectives,
   submit to create a job.
+- `/docs` — user manual documentation (markdown pages rendered in-app).
 - `/jobs` — job history list with status filtering.
 - `/jobs/:id` — job status with live progress, results with Bloom's badges
   and level filtering.
+
+## Dependencies
+
+Core UI dependencies include React, React Router, Tailwind CSS, and Lucide
+icons. The docs page additionally uses:
+
+- `react-markdown` — renders markdown as React components
+- `remark-gfm` — GitHub-flavored markdown (tables, strikethrough, task lists)

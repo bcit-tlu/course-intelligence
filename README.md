@@ -1,8 +1,8 @@
 # Dialog — Diagnostic Interactive Assessment of Learning through Open Grading
 
-Emergency Nursing Course Processor — transforms raw nursing course material
-(PDF/text/DOCX/HTML/zip) into categorized knowledge chunks with Bloom's
-taxonomy classification via a LangGraph pipeline.
+A web-based knowledge processor — transforms raw course content
+(PDF/DOCX/TXT/MD/zip, including D2L exports) into categorized knowledge
+chunks tagged with Bloom's taxonomy via an async LangGraph pipeline.
 
 ## Quick Start
 
@@ -17,6 +17,7 @@ This brings up the whole stack. Once it's running:
 |---------|-----|-------------|
 | **Web UI** | **http://localhost:3000** | Upload modules, watch processing, browse results |
 | API | http://localhost:8000 | FastAPI job API |
+| LLM Gateway | http://localhost:8100 | LLM proxy (centralizes calls, logs tokens) |
 | MinIO console | http://localhost:9001 | Object storage (uploads) |
 
 The database schema is migrated automatically by the one-shot `migrate`
@@ -50,7 +51,7 @@ Other entrypoints:
 ```bash
 uv run python main.py worker                  # Background job worker
 uv run python main.py gateway                 # LLM gateway proxy (:8100)
-uv run python main.py docs/nursing_sepsis_learning_module.pdf  # Process a single file
+uv run python main.py <file.pdf|docx|txt|md|zip>  # Process a single file
 ```
 
 For frontend development against the running API (hot reload on
@@ -95,7 +96,7 @@ dialog/                          # repo root
 ├── alembic/                     # database migrations
 ├── alembic.ini
 ├── charts/                      # Helm charts (backend + frontend)
-├── docs/                        # sample course material + deployment guide
+├── docs/                        # architecture + deployment guides
 ├── frontend/                    # React + Vite + TailwindCSS SPA
 ├── tests/                       # all tests
 │
@@ -138,7 +139,9 @@ dialog/                          # repo root
 
 ## Environment Variables
 
-See [`.env.example`](.env.example) for all options with inline comments.
+LLM and dev/testing options are in [`.env.example`](.env.example).
+Infrastructure vars (database, Redis, S3, gateway) are set in
+`docker-compose.yml`.
 
 | Variable | Default | Description |
 |----------|---------|-------------|

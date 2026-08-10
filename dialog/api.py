@@ -28,7 +28,7 @@ JOB_QUEUE = "dialog:jobs"
 _LOCAL_DEV_REDIS = "redis://localhost:6379/0"
 
 app = FastAPI(
-    title="Course Processor",
+    title="Knowledge Processor",
     version="0.2.0",
 )
 

@@ -8,14 +8,6 @@
 * add per-node progress tracking with current_step field ([5f12ea1](https://github.com/bcit-tlu/dialog/commit/5f12ea17f7f3c1584ade23d11049cd73f7fb4c27))
 * add per-node progress tracking with current_step field ([2d68c78](https://github.com/bcit-tlu/dialog/commit/2d68c78e1e1c48185d64647ebbd177f0515bdfdb))
 
-## [0.9.0](https://github.com/bcit-tlu/dialog/compare/backend-v0.8.2...backend-v0.9.0) (2026-08-06)
-
-
-### Features
-
-* add per-node progress tracking with current_step field ([5f12ea1](https://github.com/bcit-tlu/dialog/commit/5f12ea17f7f3c1584ade23d11049cd73f7fb4c27))
-* add per-node progress tracking with current_step field ([2d68c78](https://github.com/bcit-tlu/dialog/commit/2d68c78e1e1c48185d64647ebbd177f0515bdfdb))
-
 ## [0.8.2](https://github.com/bcit-tlu/dialog/compare/backend-v0.8.1...backend-v0.8.2) (2026-08-06)
 
 
@@ -82,15 +74,6 @@
 ### Features
 
 * add nodeSelector, tolerations, and affinity support for postgres, redis, and minio deployments ([056909d](https://github.com/bcit-tlu/dialog/commit/056909db095d6b85c4cf7ada47ecb1094085f54c))
-
-## [0.2.0](https://github.com/bcit-tlu/dialog/compare/backend-v0.1.3...backend-v0.2.0) (2026-07-30)
-
-
-### Features
-
-* add job listing endpoint with tenant filtering and history UI ([3178f19](https://github.com/bcit-tlu/dialog/commit/3178f19344a90801b983fec4cb3f9d0714d51e56))
-* add job listing endpoint with tenant filtering and history UI ([48d6749](https://github.com/bcit-tlu/dialog/commit/48d6749bcdccb4795f7ea9eb97295fcd33677674))
-* Merge pull request [#55](https://github.com/bcit-tlu/dialog/issues/55) from bcit-tlu/54-job-discovery-reconnection ([3178f19](https://github.com/bcit-tlu/dialog/commit/3178f19344a90801b983fec4cb3f9d0714d51e56))
 
 ## [0.2.0](https://github.com/bcit-tlu/dialog/compare/backend-v0.1.3...backend-v0.2.0) (2026-07-30)
 

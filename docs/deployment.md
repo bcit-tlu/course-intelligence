@@ -24,8 +24,7 @@ Cluster-admin, once per cluster:
 - **CloudNative-PG (CNPG) operator** ≥ 1.29 — required for the Postgres `Cluster`.
   - pgvector via image-volume extensions additionally needs **PostgreSQL 18+** and
     **Kubernetes 1.33+** with the `ImageVolume` feature. On older clusters set
-    `postgres.pgvector.enabled=false` and use a custom operand image (see
-    `plans/step-05-postgres-cnpg.md`).
+    `postgres.pgvector.enabled=false` and use a custom operand image.
 - **Ingress controller** (e.g. ingress-nginx) — for the frontend Ingress.
 - **metrics-server** — only if you enable the worker HPA (`worker.autoscaling.enabled=true`).
 
@@ -180,4 +179,4 @@ flux resume helmrelease dialog-backend -n dialog
   `redis.enabled=false` + `redis.url`, and/or `minio.enabled=false` + `minio.endpointUrl`
   to use managed Postgres/Redis/S3 instead of the in-cluster deployments.
 - **LLM gateway routing (Option B):** route all LLM calls through the gateway so only the
-  gateway holds credentials (see `plans/step-08-secrets-config.md`).
+  gateway holds credentials.

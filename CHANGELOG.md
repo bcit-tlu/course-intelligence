@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.1](https://github.com/bcit-tlu/dialog/compare/backend-v0.9.0...backend-v0.9.1) (2026-08-10)
+
+
+### Documentation
+
+* remove duplicate changelog entries and expand architecture docu… ([e1a5c04](https://github.com/bcit-tlu/dialog/commit/e1a5c043c37bb51ce4ea658d4a7ec6ed1026b1d5))
+* remove duplicate changelog entries and expand architecture documentation ([5d77dc8](https://github.com/bcit-tlu/dialog/commit/5d77dc8a02a953e27f46637f36d5c19c38f13402))
+
 ## [0.9.0](https://github.com/bcit-tlu/dialog/compare/backend-v0.8.2...backend-v0.9.0) (2026-08-06)
 
 

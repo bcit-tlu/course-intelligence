@@ -1,7 +1,7 @@
 [project]
 name = "dialog"
 version = "0.9.1"
-description = "Dialog — Emergency Nursing Course Processor (LangGraph pipeline)"
+description = "Dialog — Course material processor (LangGraph pipeline)"
 requires-python = ">=3.12"
 dependencies = [
     "langchain>=0.3",

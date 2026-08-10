@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.10.0](https://github.com/bcit-tlu/dialog/compare/backend-v0.9.1...backend-v0.10.0) (2026-08-10)
+
+
+### Features
+
+* 82 add user manual documentation page to the react frontend ([70104ed](https://github.com/bcit-tlu/dialog/commit/70104ed8e2a67bc3ace00a659be08ea0f6051fdf))
+
+
+### Documentation
+
+* add in-app user manual with markdown rendering ([ed4989e](https://github.com/bcit-tlu/dialog/commit/ed4989e0476ebe564272df9267d8422e68e15013))
+* update project descriptions to reflect broader course processing scope ([41bfbfc](https://github.com/bcit-tlu/dialog/commit/41bfbfce870706f98ba59a584110a9d616d2525f))
+
 ## [0.9.1](https://github.com/bcit-tlu/dialog/compare/backend-v0.9.0...backend-v0.9.1) (2026-08-10)
 
 

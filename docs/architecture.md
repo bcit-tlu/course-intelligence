@@ -1,8 +1,126 @@
-# Dialog — Architecture Reference
+# Course Intelligence — Architecture Reference
 
-This document covers the internal architecture of Dialog's backend subsystems.
-For deployment instructions see [deployment.md](deployment.md); for the project
-tree and quick start see the root [README](../README.md).
+This document covers the product architecture and the internal architecture of
+the Course Intelligence backend subsystems. For deployment instructions see
+[deployment.md](deployment.md); for the project tree and quick start see the
+root [README](../README.md).
+
+> **Naming transition.** The product was previously called *Dialog*. The
+> component names below are authoritative going forward; some code paths,
+> infrastructure identifiers, and image names still use `dialog` and are being
+> migrated in phases. See [rebranding-plan/](rebranding-plan/README.md).
+
+---
+
+## Product Components
+
+Course Intelligence is a platform, not a single application. It has one
+processing core with multiple interfaces in front of it.
+
+| Component | Role | Current implementation |
+|---|---|---|
+| **Course Intelligence** | The overall product | — |
+| **Course Intelligence Studio** | Standalone web interface for users | `frontend/` (React + Vite + TailwindCSS) |
+| **Course Intelligence API** | Programmatic interface for applications | `dialog/api.py` (FastAPI) |
+| **Course Intelligence Engine** | Core instructional-content analysis layer | `dialog/agents/`, `dialog/graph/`, `dialog/dataflows/` |
+| **LLM Gateway** | Centralized interface to configured LLM providers | `dialog/gateway.py` + `dialog/llm_clients/` |
+| **Course Intelligence MCP Server** | Future interface for AI applications and agents | Not implemented — intentionally deferred |
+
+### Component Architecture
+
+```text
+                        Course Intelligence
+                                │
+              ┌─────────────────┼─────────────────┐
+              │                 │                 │
+            Studio             API          MCP Server
+                                               (future)
+              │                 │                 │
+              └─────────────────┼─────────────────┘
+                                │
+                              Engine
+                                │
+                 ┌──────────────┼──────────────┐
+                 │              │              │
+             Extraction     Learning       Bloom's
+                            Elements     Classification
+```
+
+The three Engine capabilities map to the LangGraph nodes documented under
+[Pipeline](#pipeline): `extract`, `chunk`, and `classify`.
+
+---
+
+## Dependency Rules
+
+These are design constraints, enforced at code review:
+
+- Studio communicates with Course Intelligence **through the API** — never
+  directly with the Engine.
+- External applications communicate **through the API**.
+- Future AI applications may communicate through an **MCP Server**.
+- The API invokes the Course Intelligence Engine.
+- The Engine **must not** depend on the Studio.
+- The Engine **must remain independent of transport mechanisms** — no FastAPI
+  routing, no HTTP request/response objects, no MCP types. It accepts Python
+  inputs/state and returns structured results.
+- A future MCP layer **must call the API or an application service layer**
+  rather than duplicating processing logic.
+
+The Engine's only permitted dependencies are LangGraph/LangChain, the LLM client
+abstraction, and pure-Python parsing libraries. `CourseProcessorGraph` is the
+single public entry point into the Engine.
+
+---
+
+## Naming Conventions
+
+### Product vs. code names
+
+Product names are title-cased prose ("Course Intelligence Engine"). Code uses
+ordinary Python module naming (`engine`, `llm`, `api`). Product names are not
+embedded in identifiers.
+
+### User-facing vs. internal terminology
+
+The user-facing term is **Learning Elements**. The internal representation keeps
+its existing name:
+
+| Layer | Term |
+|---|---|
+| Studio / API docs / user messaging | Learning Element |
+| Python, database, JSON payloads | `KnowledgeChunk`, `knowledge_map`, `chunk_id` |
+
+Renaming the internal type would touch the database schema, the API response
+contract, and the Studio's TypeScript types. That is deliberately **out of
+scope** — the internal name is retained, and only presentation strings change.
+Avoid introducing further synonyms ("Semantic Chunk", "Knowledge Element") in
+either layer.
+
+### LLM Gateway
+
+The service that talks to Ollama, Azure OpenAI, and future providers is the
+**LLM Gateway** — never an "MCP Gateway" or "AI Gateway". This keeps it clearly
+distinct from a future MCP Server, which serves a different purpose (exposing
+Course Intelligence *to* AI agents, rather than consuming LLMs).
+
+### Retired name
+
+The former acronym *"Diagnostic Interactive Assessment of Learning through Open
+Grading"* is retired. It describes assessment and grading capabilities that the
+system does not implement — the pipeline is `extract → chunk → classify`, and
+question generation, auditing, and grading are not present. Any such
+capabilities belong in a roadmap, not in product naming.
+
+### Legacy identifiers
+
+Some `dialog` identifiers are retained deliberately because renaming them
+carries operational risk with no functional benefit: the PostgreSQL database
+name/user, object-storage buckets, Kubernetes resource names and selectors, and
+published container image names. These are reviewed — not automatically
+renamed — during the deployment phase.
+
+---
 
 ## Pipeline
 

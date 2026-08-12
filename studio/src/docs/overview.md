@@ -2,10 +2,10 @@
 
 ## What is Course Intelligence?
 
-Course Intelligence is a course material processor. It takes raw course
-modules — PDFs, Word documents, text files, or D2L export zips — and transforms
-them into structured **learning elements**, each tagged with a **Bloom's taxonomy
-level**.
+Course Intelligence transforms instructional content into structured educational
+information. It takes raw course modules — PDFs, Word documents, text files, or
+D2L export zips — and turns them into structured **learning elements**, each
+tagged with a **Bloom's taxonomy level**.
 
 ## Who is it for?
 

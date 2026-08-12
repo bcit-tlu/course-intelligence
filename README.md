@@ -1,8 +1,57 @@
-# Dialog — Diagnostic Interactive Assessment of Learning through Open Grading
+# Course Intelligence
 
-A web-based knowledge processor — transforms raw course content
-(PDF/DOCX/TXT/MD/zip, including D2L exports) into categorized knowledge
-chunks tagged with Bloom's taxonomy via an async LangGraph pipeline.
+Course Intelligence is an AI-assisted platform for transforming instructional
+content into structured educational information. It can be used through
+**Course Intelligence Studio** or integrated into other applications through the
+**Course Intelligence API**.
+
+Uploaded course material is analysed into **learning elements** — self-contained
+knowledge units, each classified against **Bloom's taxonomy** — by an
+asynchronous LangGraph pipeline.
+
+## Components
+
+| Component | Role | Implementation |
+|---|---|---|
+| **Course Intelligence Studio** | Standalone web interface for users | `studio/` |
+| **Course Intelligence API** | Programmatic interface for applications | `course_intelligence/api.py` |
+| **Course Intelligence Engine** | Core instructional-content analysis layer | `course_intelligence/engine/` |
+| **LLM Gateway** | Centralized interface to configured LLM providers | `course_intelligence/llm/gateway.py` |
+| **Course Intelligence MCP Server** | Potential future interface for AI applications and agents | Not implemented |
+
+The LLM Gateway selects its provider via `LLM_PROVIDER` — Ollama for development,
+Azure OpenAI for pilot/production, and a deterministic mock for tests.
+
+See [`docs/architecture.md`](docs/architecture.md) for dependency rules, naming
+conventions, and subsystem internals.
+
+## Pipeline
+
+```text
+Course Content
+      │
+      ▼
+Content Extraction                (engine/agents/extractor — pure Python, no LLM)
+      │
+      ▼
+Learning Element Identification   (engine/agents/chunker — LLM-powered)
+      │
+      ▼
+Bloom's Taxonomy Classification   (engine/agents/classifier — LLM-powered)
+      │
+      ▼
+Structured Course Intelligence
+```
+
+Supported inputs: `.zip` (including D2L exports), `.pdf`, `.docx`, `.txt`, `.md`.
+
+Each learning element carries a topic, its content, a Bloom's level with a
+rationale, and a source page reference where the parser can determine one.
+
+> **Not implemented.** Course Intelligence does not generate questions or
+> assessments, map content to learning objectives automatically, or perform
+> grading. The implemented pipeline is extraction, learning-element
+> identification, and Bloom's classification.
 
 ## Quick Start
 
@@ -15,8 +64,8 @@ This brings up the whole stack. Once it's running:
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| **Web UI** | **http://localhost:3000** | Upload modules, watch processing, browse results |
-| API | http://localhost:8000 | FastAPI job API |
+| **Studio** | **http://localhost:3000** | Upload modules, watch processing, browse results |
+| API | http://localhost:8000 | Course Intelligence API (FastAPI job API) |
 | LLM Gateway | http://localhost:8100 | LLM proxy (centralizes calls, logs tokens) |
 | MinIO console | http://localhost:9001 | Object storage (uploads) |
 
@@ -105,7 +154,6 @@ course-intelligence/             # repo root
     ├── default_config.py        # config dict + env-var overlay
     ├── api.py                   # FastAPI endpoints (async job API)
     ├── worker.py                # background worker (Redis queue, reliable pattern)
-    ├── gateway.py               # LLM gateway proxy (centralizes LLM calls)
     ├── storage.py               # S3/MinIO object storage wrapper
     ├── engine/                  # transport-independent processing core
     │   ├── agents/              # agent factories grouped by role

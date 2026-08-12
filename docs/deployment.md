@@ -1,20 +1,26 @@
-# Dialog — Kubernetes Deployment Runbook
+# Course Intelligence — Kubernetes Deployment Runbook
 
-This document covers installing, verifying, upgrading, and rolling back Dialog on a
-Kubernetes cluster using the Helm charts in `charts/`. For local development use
-`docker compose up` instead.
+This document covers installing, verifying, upgrading, and rolling back Course
+Intelligence on a Kubernetes cluster using the Helm charts in `charts/`. For local
+development use `docker compose up` instead.
+
+> **Legacy identifiers.** Chart directories, image names (`dialog-api`,
+> `dialog-frontend`), Kubernetes resource names, and the `dialog` namespace are
+> retained deliberately — renaming them forces resource recreation with no
+> functional benefit. See [architecture.md](architecture.md#legacy-identifiers).
 
 ## Architecture
 
 One backend image (`dialog-api`) backs three Deployments — **api**, **worker**, and
 **gateway** — each overriding the container `command` (`main.py {api,worker,gateway}`).
-The **frontend** (nginx) serves the SPA and reverse-proxies `/api` to the backend Service,
-with `BACKEND_URL` injected at container start via `envsubst`.
+The Studio workload (nginx, deployed as `dialog-frontend`) serves the SPA and
+reverse-proxies `/api` to the backend Service, with `BACKEND_URL` injected at
+container start via `envsubst`.
 
 ```text
-Ingress → frontend (nginx) → api (:8000) → Postgres (CNPG + pgvector)
-                                 │  └─ enqueue → Redis → worker → llm-gateway (:8100)
-                                 └─ uploads → MinIO (S3)
+Ingress → studio (nginx) → api (:8000) → Postgres (CNPG + pgvector)
+                               │  └─ enqueue → Redis → worker → llm-gateway (:8100)
+                               └─ uploads → MinIO (S3)
 ```
 
 ## Prerequisites
@@ -32,7 +38,7 @@ Tooling: `helm` ≥ 3.12, `kubectl` matching the cluster.
 
 ## Published images
 
-CI (`.github/workflows/build-images.yml`) builds and pushes on every `main` push and git tag:
+CI (`.github/workflows/ci.yaml`) builds and pushes on every `main` push and git tag:
 
 - `ghcr.io/bcit-tlu/course-intelligence/dialog-api`
 - `ghcr.io/bcit-tlu/course-intelligence/dialog-frontend`

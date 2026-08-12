@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.2](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.10.1...backend-v0.10.2) (2026-08-12)
+
+
+### Documentation
+
+* update code references from dialog to course_intelligence in documentation and comments ([23a1ccc](https://github.com/bcit-tlu/course-intelligence/commit/23a1cccaaedfe50c406589e8b4c9c7060ec28c44))
+
 ## [0.10.1](https://github.com/bcit-tlu/dialog/compare/backend-v0.10.0...backend-v0.10.1) (2026-08-12)
 
 

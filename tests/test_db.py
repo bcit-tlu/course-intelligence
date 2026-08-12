@@ -1,4 +1,4 @@
-"""Tests for the dialog.db package: models, session URL handling, and
+"""Tests for the course_intelligence.db package: models, session URL handling, and
 an optional integration test against the real Postgres.
 """
 

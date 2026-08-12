@@ -1,7 +1,7 @@
 [project]
 name = "course-intelligence"
 version = "0.10.2"
-description = "Course Intelligence — Course material processor (LangGraph pipeline)"
+description = "Course Intelligence — transforms instructional content into structured learning elements (LangGraph pipeline)"
 requires-python = ">=3.12"
 dependencies = [
     "langchain>=0.3",

@@ -1,4 +1,5 @@
-"""Dialog — Diagnostic Interactive Assessment of Learning through Open Grading."""
+"""Course Intelligence — transforms instructional content into structured
+learning elements classified against Bloom's taxonomy."""
 
 try:
     from dotenv import find_dotenv, load_dotenv

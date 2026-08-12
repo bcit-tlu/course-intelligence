@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.4](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.10.3...backend-v0.10.4) (2026-08-12)
+
+
+### Documentation
+
+* clarify Helm release names vs workload names in deployment guide ([fc4d6a0](https://github.com/bcit-tlu/course-intelligence/commit/fc4d6a05991370dace2d8ff79306ccd805bead4b))
+
 ## [0.10.3](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.10.2...backend-v0.10.3) (2026-08-12)
 
 

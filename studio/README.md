@@ -1,6 +1,6 @@
-# Dialog Frontend
+# Course Intelligence Studio
 
-Vite + React + TypeScript + Tailwind CSS UI for the Dialog course processor.
+Vite + React + TypeScript + Tailwind CSS UI for the Course Intelligence platform.
 
 ## Prerequisites
 
@@ -47,7 +47,7 @@ src/
 │   ├── ResultsView.tsx     # results layout with filtering
 │   └── ResultsSkeleton.tsx # loading skeleton for results
 ├── docs/               # user manual markdown pages (bundled at build time)
-│   ├── overview.md         # what Dialog does, pipeline overview
+│   ├── overview.md         # what Course Intelligence does, pipeline overview
 │   ├── uploading.md        # how to upload a module
 │   ├── results.md          # how to read results + Bloom's badges
 │   └── job-status.md       # job lifecycle and polling

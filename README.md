@@ -54,8 +54,8 @@ uv run python main.py gateway                 # LLM gateway proxy (:8100)
 uv run python main.py <file.pdf|docx|txt|md|zip>  # Process a single file
 ```
 
-For frontend development against the running API (hot reload on
-http://localhost:5173), see `frontend/README.md`.
+For Studio development against the running API (hot reload on
+http://localhost:5173), see `studio/README.md`.
 
 ### Kubernetes Deployment
 
@@ -97,7 +97,7 @@ course-intelligence/             # repo root
 ├── alembic.ini
 ├── charts/                      # Helm charts (backend + frontend)
 ├── docs/                        # architecture + deployment guides
-├── frontend/                    # React + Vite + TailwindCSS SPA
+├── studio/                      # Course Intelligence Studio (React + Vite + TailwindCSS SPA)
 ├── tests/                       # all tests
 │
 └── course_intelligence/         # installable package

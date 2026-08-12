@@ -49,7 +49,7 @@ jobs:
         # must not block PRs. release-please routes commits to changelogs by
         # file path, so a scope label that does not match changed files yields
         # a misleading changelog entry. Backend lives at the repo root, so only
-        # the `frontend/` subtree is checked here.
+        # the `studio/` subtree is checked here.
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -71,8 +71,8 @@ jobs:
             exit 0
           fi
 
-          # Only frontend is a distinct subtree; everything else is backend (root).
-          components=("frontend")
+          # Only studio is a distinct subtree; everything else is backend (root).
+          components=("studio")
 
           files=$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" \
             --paginate --jq '.[].filename')

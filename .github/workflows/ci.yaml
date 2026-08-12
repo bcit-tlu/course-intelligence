@@ -39,11 +39,11 @@ jobs:
       - name: Run pytest
         run: uv run pytest
 
-  frontend-checks:
+  studio-checks:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: frontend
+        working-directory: studio
     steps:
       - uses: actions/checkout@v6
 
@@ -51,7 +51,7 @@ jobs:
         with:
           node-version: '20'
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: studio/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -125,8 +125,8 @@ jobs:
       context: .
     secrets: inherit
 
-  build-frontend:
-    needs: [frontend-checks]
+  build-studio:
+    needs: [studio-checks]
     uses: bcit-tlu/.github/.github/workflows/oci-build.yaml@main
     permissions:
       contents: read
@@ -135,9 +135,9 @@ jobs:
       security-events: write
       actions: read
     with:
-      component: frontend
+      component: studio
       image_name: dialog-frontend
-      context: ./frontend
+      context: ./studio
     secrets: inherit
 
   # ── Helm chart publish (main push only) ────────────────────
@@ -146,7 +146,7 @@ jobs:
   # (stable) chart publishing is handled by helm-publish.yaml.
 
   helm-publish:
-    needs: [helm-lint, build-backend, build-frontend]
+    needs: [helm-lint, build-backend, build-studio]
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
@@ -188,7 +188,7 @@ jobs:
         shell: bash
         env:
           BACKEND_VERSION: ${{ needs.build-backend.outputs.rc_version }}
-          FRONTEND_VERSION: ${{ needs.build-frontend.outputs.rc_version }}
+          STUDIO_VERSION: ${{ needs.build-studio.outputs.rc_version }}
           OCI_BASE: oci://${{ env.REGISTRY }}/${{ github.repository }}/charts
           IMAGE_BASE: ${{ env.REGISTRY }}/${{ github.repository }}/charts
         run: |
@@ -196,17 +196,22 @@ jobs:
 
           declare -A VERSIONS=(
             [backend]="${BACKEND_VERSION}"
-            [frontend]="${FRONTEND_VERSION}"
+            [studio]="${STUDIO_VERSION}"
           )
 
-          for component in backend frontend; do
+          declare -A CHART_DIRS=(
+            [backend]="charts/backend"
+            [studio]="charts/frontend"
+          )
+
+          for component in backend studio; do
             VERSION="${VERSIONS[$component]}"
             if [[ -z "${VERSION}" ]]; then
               echo "No RC version for ${component} (no changes); skipping."
               continue
             fi
 
-            CHART_DIR="charts/${component}"
+            CHART_DIR="${CHART_DIRS[$component]}"
             CHART_NAME=$(yq '.name' "${CHART_DIR}/Chart.yaml")
             DEST_DIR="/tmp/charts"
             mkdir -p "${DEST_DIR}"

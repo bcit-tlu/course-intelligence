@@ -119,7 +119,7 @@ curl -s localhost:8000/health   # → {"status":"ok",...}
 ## End-to-end smoke test
 
 Reach the app via the Ingress host (or `kubectl port-forward svc/dialog-frontend
-8080:80`), then exercise the async flow (`dialog/api.py`):
+8080:80`), then exercise the async flow (`course_intelligence/api.py`):
 
 ```sh
 BASE=https://dialog.<env>.ltc.bcit.ca   # e.g. dialog.staging.ltc.bcit.ca

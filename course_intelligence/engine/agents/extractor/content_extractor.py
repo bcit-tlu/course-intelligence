@@ -6,7 +6,7 @@ parsers and normalises the result into raw_text on the graph state.
 
 from __future__ import annotations
 
-from course_intelligence.agents.utils.agent_states import AgentState
+from course_intelligence.engine.agents.utils.agent_states import AgentState
 
 
 def create_content_extractor():
@@ -18,7 +18,7 @@ def create_content_extractor():
 
     def content_extractor_node(state: AgentState) -> dict:
         """Extract text from the source file and store it in raw_text."""
-        from course_intelligence.dataflows import parse_document
+        from course_intelligence.engine.dataflows import parse_document
 
         return parse_document(state)
 

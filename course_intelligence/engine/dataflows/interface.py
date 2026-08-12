@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # Everything else (images, video, audio) is skipped to save disk space.
 _EXTRACTABLE_EXTENSIONS = {".html", ".htm", ".pdf"}
 
-from course_intelligence.agents.utils.agent_states import (
+from course_intelligence.engine.agents.utils.agent_states import (
     AgentState,
     ContentPage,
     CourseModule,

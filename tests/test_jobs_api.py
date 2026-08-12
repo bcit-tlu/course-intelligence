@@ -87,7 +87,7 @@ def _drain_worker(queue):
     """
     from course_intelligence.db import JobStatus
     from course_intelligence.default_config import DEFAULT_CONFIG
-    from course_intelligence.graph import CourseProcessorGraph
+    from course_intelligence.engine import CourseProcessorGraph
     from course_intelligence.worker import _set_status, process_job
 
     graph = CourseProcessorGraph(config={**DEFAULT_CONFIG, "mock_llm": True})

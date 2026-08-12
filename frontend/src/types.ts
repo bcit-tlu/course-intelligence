@@ -1,4 +1,4 @@
-// Shared types mirroring the FastAPI response schemas (dialog/api.py).
+// Shared types mirroring the FastAPI response schemas (course_intelligence/api.py).
 
 export type JobStatus = "queued" | "processing" | "completed" | "failed";
 
@@ -35,5 +35,5 @@ export interface JobResults {
 }
 
 // Accepted upload extensions — mirrors SUPPORTED_EXTENSIONS in the backend
-// (dialog/dataflows/interface.py).
+// (course_intelligence/dataflows/interface.py).
 export const SUPPORTED_EXTENSIONS = [".zip", ".pdf", ".docx", ".txt", ".md"];

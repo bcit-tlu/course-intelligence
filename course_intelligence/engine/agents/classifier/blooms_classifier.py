@@ -10,8 +10,8 @@ from __future__ import annotations
 import json
 import logging
 
-from course_intelligence.agents.utils.agent_states import AgentState, KnowledgeChunk
-from course_intelligence.agents.utils.json_parsing import parse_llm_json
+from course_intelligence.engine.agents.utils.agent_states import AgentState, KnowledgeChunk
+from course_intelligence.engine.agents.utils.json_parsing import parse_llm_json
 
 logger = logging.getLogger(__name__)
 

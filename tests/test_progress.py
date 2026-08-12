@@ -41,7 +41,7 @@ def _run_with_progress(text: str):
         tmp_path = f.name
 
     try:
-        from course_intelligence.graph import CourseProcessorGraph
+        from course_intelligence.engine import CourseProcessorGraph
 
         graph = CourseProcessorGraph(config=_config)
         steps: list[str] = []
@@ -85,7 +85,7 @@ def test_process_with_progress_without_callback():
         tmp_path = f.name
 
     try:
-        from course_intelligence.graph import CourseProcessorGraph
+        from course_intelligence.engine import CourseProcessorGraph
 
         graph = CourseProcessorGraph(config=_config)
         result = graph.process_with_progress(tmp_path)
@@ -155,7 +155,7 @@ def client(monkeypatch):
 def _drain_worker(queue):
     """Process every queued job synchronously with the mock LLM."""
     from course_intelligence.db import JobStatus
-    from course_intelligence.graph import CourseProcessorGraph
+    from course_intelligence.engine import CourseProcessorGraph
     from course_intelligence.worker import _set_status, process_job
 
     graph = CourseProcessorGraph(config=_config)

@@ -6,9 +6,10 @@ the Course Intelligence backend subsystems. For deployment instructions see
 root [README](../README.md).
 
 > **Naming transition.** The product was previously called *Dialog*. The
-> component names below are authoritative going forward; some code paths,
-> infrastructure identifiers, and image names still use `dialog` and are being
-> migrated in phases. See [rebranding-plan/](rebranding-plan/README.md).
+> component names below are authoritative. A small set of infrastructure
+> identifiers (the database, namespace, and Secret names) intentionally still use
+> `dialog` — see [Legacy identifiers](#legacy-identifiers) for the rationale and
+> the full decision record.
 
 ---
 
@@ -114,11 +115,42 @@ capabilities belong in a roadmap, not in product naming.
 
 ### Legacy identifiers
 
-Some `dialog` identifiers are retained deliberately because renaming them
-carries operational risk with no functional benefit: the PostgreSQL database
-name/user, object-storage buckets, Kubernetes resource names and selectors, and
-published container image names. These are reviewed — not automatically
-renamed — during the deployment phase.
+Deployment identifiers were reviewed individually rather than renamed by a
+blanket find-and-replace. Each decision below is deliberate.
+
+| Identifier | Decision | Reason |
+|---|---|---|
+| Chart `dialog-backend` → `course-intelligence-backend` | **Renamed** | Done while no production cluster was running, so selector recreation cost nothing |
+| Chart `dialog-frontend` → `course-intelligence-studio` | **Renamed** | Same window; also aligns the chart with the `studio` component name |
+| Chart dir `charts/frontend` → `charts/studio` | **Renamed** | Makes the directory match both the component and the chart name, so CI can derive `charts/<component>` |
+| Image `dialog-api` → `course-intelligence-api` | **Renamed** | New GHCR repository; old tags remain readable under the old name |
+| Image `dialog-frontend` → `course-intelligence-studio` | **Renamed** | As above |
+| PostgreSQL database, username, password (`dialog`) | **Retained permanently** | Renaming requires a data migration for a cosmetic gain |
+| Kubernetes namespace (`dialog`) | **Retained permanently** | Namespaces are immutable; renaming means recreating every namespaced resource |
+| Secret names (`dialog-llm`, `dialog-s3`) | **Retained permanently** | Created out-of-band by operators; renaming breaks existing clusters for no benefit |
+| Ingress hostnames (`dialog.<env>.ltc.bcit.ca`) | **Deferred** | Requires DNS and certificate changes coordinated outside this repo |
+| `flux-fleet` overlay path (`apps/overlays/latest/dialog/`) | **Deferred** | Lives in a separate repository, on its own release cadence |
+
+The chart rename is a **breaking deployment change**: `app.kubernetes.io/name`
+feeds each Deployment's immutable `spec.selector`, so upgrades require deleting
+and recreating the Deployments, and the `flux-fleet` overlays must set the new
+`fullnameOverride` values in the same change. See
+[deployment.md](deployment.md) for the migration procedure.
+
+### Observability identifiers
+
+No observability configuration (OpenTelemetry, Prometheus, Grafana, Loki, Tempo)
+exists in the repository yet. When it is added, service names should follow the
+component naming rather than the legacy image names:
+
+```text
+course-intelligence-api
+course-intelligence-worker
+course-intelligence-llm-gateway
+```
+
+Any dashboards or queries introduced later must be updated together with the
+identifiers they reference.
 
 ---
 

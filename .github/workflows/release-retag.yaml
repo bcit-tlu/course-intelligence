@@ -24,11 +24,12 @@ jobs:
       matrix:
         include:
           # Component name (used in the release tag) -> published image name.
-          # Backend's image is historically `dialog-api`, not `dialog-backend`.
+          # The backend image is named `-api` because one image backs the api,
+          # worker, and gateway roles; the role is chosen by the container command.
           - component: backend
-            image: dialog-api
+            image: course-intelligence-api
           - component: studio
-            image: dialog-frontend
+            image: course-intelligence-studio
 
     steps:
       - name: Parse release tag

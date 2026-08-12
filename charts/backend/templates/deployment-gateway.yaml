@@ -1,35 +1,35 @@
 {{- if .Values.gateway.enabled }}
-{{- $fullname := include "dialog-backend.fullname" . -}}
+{{- $fullname := include "course-intelligence-backend.fullname" . -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ $fullname }}-gateway
   labels:
-    {{- include "dialog-backend.labels" . | nindent 4 }}
+    {{- include "course-intelligence-backend.labels" . | nindent 4 }}
     app.kubernetes.io/component: gateway
 spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "dialog-backend.selectorLabels" . | nindent 6 }}
+      {{- include "course-intelligence-backend.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: gateway
   template:
     metadata:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
       labels:
-        {{- include "dialog-backend.selectorLabels" . | nindent 8 }}
+        {{- include "course-intelligence-backend.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: gateway
     spec:
       containers:
         - name: gateway
-          image: {{ include "dialog-backend.image" . }}
+          image: {{ include "course-intelligence-backend.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["uv", "run", "python", "main.py", "gateway"]
           env:
             - name: GATEWAY_PORT
               value: {{ .Values.gateway.port | quote }}
-            {{- include "dialog-backend.llmCredsEnv" . | nindent 12 }}
+            {{- include "course-intelligence-backend.llmCredsEnv" . | nindent 12 }}
           envFrom:
             # Provider selection + Ollama/Azure non-secret settings.
             - configMapRef:

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: course-intelligence-studio
+description: Course Intelligence Studio — React SPA served by nginx, reverse-proxying /api to the backend
+type: application
+version: 0.1.0 # x-release-please-version
+appVersion: "0.1.0" # x-release-please-version

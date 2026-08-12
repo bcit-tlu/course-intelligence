@@ -1,5 +1,5 @@
 {{- if .Values.worker.enabled }}
-{{- $fullname := include "dialog-backend.fullname" . -}}
+{{- $fullname := include "course-intelligence-backend.fullname" . -}}
 {{- /* Fail-fast: the worker consumes jobs from Redis, so a Redis endpoint must exist. */ -}}
 {{- if and (not .Values.redis.enabled) (not .Values.redis.url) }}
 {{- fail "worker.enabled=true requires either redis.enabled=true or an external redis.url" }}
@@ -9,7 +9,7 @@ kind: Deployment
 metadata:
   name: {{ $fullname }}-worker
   labels:
-    {{- include "dialog-backend.labels" . | nindent 4 }}
+    {{- include "course-intelligence-backend.labels" . | nindent 4 }}
     app.kubernetes.io/component: worker
 spec:
   {{- if not .Values.worker.autoscaling.enabled }}
@@ -17,27 +17,27 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "dialog-backend.selectorLabels" . | nindent 6 }}
+      {{- include "course-intelligence-backend.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: worker
   template:
     metadata:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
       labels:
-        {{- include "dialog-backend.selectorLabels" . | nindent 8 }}
+        {{- include "course-intelligence-backend.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: worker
     spec:
       containers:
         - name: worker
-          image: {{ include "dialog-backend.image" . }}
+          image: {{ include "course-intelligence-backend.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["uv", "run", "python", "main.py", "worker"]
           envFrom:
             - configMapRef:
                 name: {{ $fullname }}-config
           env:
-            {{- include "dialog-backend.coreEnv" . | nindent 12 }}
-            {{- include "dialog-backend.llmCredsEnv" . | nindent 12 }}
+            {{- include "course-intelligence-backend.coreEnv" . | nindent 12 }}
+            {{- include "course-intelligence-backend.llmCredsEnv" . | nindent 12 }}
           resources:
             {{- toYaml .Values.worker.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

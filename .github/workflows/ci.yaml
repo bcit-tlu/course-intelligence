@@ -121,7 +121,7 @@ jobs:
       actions: read
     with:
       component: backend
-      image_name: dialog-api
+      image_name: course-intelligence-api
       context: .
     secrets: inherit
 
@@ -136,7 +136,7 @@ jobs:
       actions: read
     with:
       component: studio
-      image_name: dialog-frontend
+      image_name: course-intelligence-studio
       context: ./studio
     secrets: inherit
 
@@ -199,11 +199,6 @@ jobs:
             [studio]="${STUDIO_VERSION}"
           )
 
-          declare -A CHART_DIRS=(
-            [backend]="charts/backend"
-            [studio]="charts/frontend"
-          )
-
           for component in backend studio; do
             VERSION="${VERSIONS[$component]}"
             if [[ -z "${VERSION}" ]]; then
@@ -211,7 +206,7 @@ jobs:
               continue
             fi
 
-            CHART_DIR="${CHART_DIRS[$component]}"
+            CHART_DIR="charts/${component}"
             CHART_NAME=$(yq '.name' "${CHART_DIR}/Chart.yaml")
             DEST_DIR="/tmp/charts"
             mkdir -p "${DEST_DIR}"

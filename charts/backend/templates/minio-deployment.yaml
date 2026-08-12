@@ -1,7 +1,7 @@
 {{- if .Values.minio.enabled }}
-{{- $fullname := include "dialog-backend.fullname" . -}}
+{{- $fullname := include "course-intelligence-backend.fullname" . -}}
 {{- $name := printf "%s-minio" $fullname -}}
-{{- $secretName := include "dialog-backend.minioSecretName" . -}}
+{{- $secretName := include "course-intelligence-backend.minioSecretName" . -}}
 ---
 {{- if not .Values.minio.existingSecret }}
 apiVersion: v1
@@ -9,7 +9,7 @@ kind: Secret
 metadata:
   name: {{ $name }}
   labels:
-    {{- include "dialog-backend.labels" . | nindent 4 }}
+    {{- include "course-intelligence-backend.labels" . | nindent 4 }}
     app.kubernetes.io/component: minio
 type: Opaque
 stringData:
@@ -22,7 +22,7 @@ kind: Deployment
 metadata:
   name: {{ $name }}
   labels:
-    {{- include "dialog-backend.labels" . | nindent 4 }}
+    {{- include "course-intelligence-backend.labels" . | nindent 4 }}
     app.kubernetes.io/component: minio
 spec:
   replicas: 1
@@ -31,12 +31,12 @@ spec:
     type: Recreate
   selector:
     matchLabels:
-      {{- include "dialog-backend.selectorLabels" . | nindent 6 }}
+      {{- include "course-intelligence-backend.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: minio
   template:
     metadata:
       labels:
-        {{- include "dialog-backend.selectorLabels" . | nindent 8 }}
+        {{- include "course-intelligence-backend.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: minio
     spec:
       containers:

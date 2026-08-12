@@ -1,4 +1,4 @@
-# Default values for the dialog-backend chart.
+# Default values for the course-intelligence-backend chart.
 # One image backs three roles (api / worker / gateway) — the role is
 # selected by each Deployment's container command.
 
@@ -8,7 +8,7 @@ fullnameOverride: ""
 replicaCount: 1
 
 image:
-  repository: ghcr.io/bcit-tlu/course-intelligence/dialog-api
+  repository: ghcr.io/bcit-tlu/course-intelligence/course-intelligence-api
   # Defaults to .Chart.AppVersion; pin to a released tag for reproducible deploys.
   tag: ""
   pullPolicy: IfNotPresent
@@ -65,6 +65,9 @@ worker:
 # On older clusters, set pgvector.enabled=false and point cluster.image at a
 # custom operand image that already bundles postgresql-<major>-pgvector,
 # then add `CREATE EXTENSION vector` to a postInitTemplateSQL of your own.
+# The `dialog` database name, username, and password below are legacy
+# identifiers retained deliberately: renaming them requires a data migration
+# with no functional benefit. See docs/architecture.md#legacy-identifiers.
 postgres:
   enabled: false
   # Used when postgres.enabled=false (external DB).
@@ -95,7 +98,7 @@ postgres:
 redis:
   enabled: false
   # Used when redis.enabled=false (external Redis).
-  url: "redis://dialog-redis:6379/0"
+  url: "redis://course-intelligence-backend-redis:6379/0"
   image: redis:7-alpine
   persistence:
     enabled: false

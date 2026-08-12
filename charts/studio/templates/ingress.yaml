@@ -1,12 +1,12 @@
 {{- if .Values.ingress.enabled }}
-{{- $fullname := include "dialog-frontend.fullname" . -}}
+{{- $fullname := include "course-intelligence-studio.fullname" . -}}
 {{- $svcPort := .Values.service.port -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ $fullname }}
   labels:
-    {{- include "dialog-frontend.labels" . | nindent 4 }}
+    {{- include "course-intelligence-studio.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}

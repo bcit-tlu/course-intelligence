@@ -1,4 +1,4 @@
-# Default values for the dialog-frontend chart.
+# Default values for the course-intelligence-studio chart.
 
 nameOverride: ""
 fullnameOverride: ""
@@ -6,7 +6,7 @@ fullnameOverride: ""
 replicaCount: 1
 
 image:
-  repository: ghcr.io/bcit-tlu/course-intelligence/dialog-frontend
+  repository: ghcr.io/bcit-tlu/course-intelligence/course-intelligence-studio
   tag: ""
   pullPolicy: IfNotPresent
 
@@ -18,13 +18,13 @@ service:
 # (<host>.<namespace>.svc.cluster.local:<port>) unless env.BACKEND_URL
 # overrides it entirely.
 backend:
-  host: dialog-backend
+  host: course-intelligence-backend
   port: 8000
   namespace: ""
 
 env:
   # Explicit override for the nginx upstream. Leave empty to auto-build
-  # the backend Service FQDN (see dialog-frontend.backendUrl helper).
+  # the backend Service FQDN (see course-intelligence-studio.backendUrl helper).
   BACKEND_URL: ""
 
 ingress:

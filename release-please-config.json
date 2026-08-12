@@ -10,7 +10,7 @@
       "extra-files": [
         {
           "type": "generic",
-          "path": "charts/frontend/Chart.yaml",
+          "path": "charts/studio/Chart.yaml",
           "glob": true
         }
       ]

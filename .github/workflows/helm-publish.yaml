@@ -22,11 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        include:
-          - component: studio
-            chart_dir: charts/frontend
-          - component: backend
-            chart_dir: charts/backend
+        component: [studio, backend]
 
     steps:
       - name: Parse release tag
@@ -82,7 +78,7 @@ jobs:
         shell: bash
         env:
           VERSION: ${{ steps.parse.outputs.version }}
-          CHART_DIR: ${{ matrix.chart_dir }}
+          CHART_DIR: charts/${{ matrix.component }}
           OCI_REPO: oci://${{ env.REGISTRY }}/${{ github.repository }}/charts
         run: |
           set -euo pipefail

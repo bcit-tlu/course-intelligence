@@ -1,19 +1,19 @@
-{{- $fullname := include "dialog-frontend.fullname" . -}}
+{{- $fullname := include "course-intelligence-studio.fullname" . -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ $fullname }}
   labels:
-    {{- include "dialog-frontend.labels" . | nindent 4 }}
+    {{- include "course-intelligence-studio.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "dialog-frontend.selectorLabels" . | nindent 6 }}
+      {{- include "course-intelligence-studio.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "dialog-frontend.selectorLabels" . | nindent 8 }}
+        {{- include "course-intelligence-studio.selectorLabels" . | nindent 8 }}
       annotations:
         # Roll the pods when the nginx template changes so envsubst re-runs
         # against the new upstream config (hriv pattern).
@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: {{ include "dialog-frontend.image" . }}
+          image: {{ include "course-intelligence-studio.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
@@ -31,7 +31,7 @@ spec:
             # Backend upstream for the nginx envsubst template. Prefers an
             # explicit override, otherwise the cluster-internal Service FQDN.
             - name: BACKEND_URL
-              value: {{ include "dialog-frontend.backendUrl" . | quote }}
+              value: {{ include "course-intelligence-studio.backendUrl" . | quote }}
             # Opt-in flag for the nginx image's 15-local-resolvers.envsh,
             # which exports NGINX_LOCAL_RESOLVERS from /etc/resolv.conf.
             # Without it the variable is unset and the template's

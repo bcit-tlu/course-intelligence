@@ -4,18 +4,38 @@ This document covers installing, verifying, upgrading, and rolling back Course
 Intelligence on a Kubernetes cluster using the Helm charts in `charts/`. For local
 development use `docker compose up` instead.
 
-> **Legacy identifiers.** Chart directories, image names (`dialog-api`,
-> `dialog-frontend`), Kubernetes resource names, and the `dialog` namespace are
-> retained deliberately — renaming them forces resource recreation with no
-> functional benefit. See [architecture.md](architecture.md#legacy-identifiers).
+> ### ⚠️ Breaking change — charts and images were renamed
+>
+> Charts, image names, and Kubernetes resource names moved from `dialog-*` to
+> `course-intelligence-*`. Because `app.kubernetes.io/name` is part of each
+> Deployment's **immutable** `spec.selector`, an in-place `helm upgrade` will
+> **fail** — the existing Deployments must be deleted and recreated.
+>
+> Two changes must land together, or Studio cannot reach the API:
+>
+> 1. **This repo** — chart directory `charts/frontend` → `charts/studio`; charts
+>    renamed to `course-intelligence-backend` / `course-intelligence-studio`;
+>    images renamed to `course-intelligence-api` / `course-intelligence-studio`.
+> 2. **`flux-fleet`** — the overlays must set
+>    `fullnameOverride: course-intelligence-backend` and
+>    `course-intelligence-studio`, and point `OCIRepository` at the renamed
+>    charts. The studio chart's default `backend.host` is
+>    `course-intelligence-backend`, which only resolves if the backend release's
+>    Service carries that exact name.
+>
+> Migration: suspend both HelmReleases, `helm uninstall` them (PersistentVolumes
+> and the CNPG cluster survive if `postgres.enabled`/`minio.enabled` keep their
+> existing PVCs), merge the `flux-fleet` overlay change, then resume. The
+> namespace, database, and Secret names are unchanged, so no data migration is
+> required. See [architecture.md](architecture.md#legacy-identifiers) for the
+> identifiers that were deliberately retained.
 
 ## Architecture
 
-One backend image (`dialog-api`) backs three Deployments — **api**, **worker**, and
+One backend image (`course-intelligence-api`) backs three Deployments — **api**, **worker**, and
 **gateway** — each overriding the container `command` (`main.py {api,worker,gateway}`).
-The Studio workload (nginx, deployed as `dialog-frontend`) serves the SPA and
-reverse-proxies `/api` to the backend Service, with `BACKEND_URL` injected at
-container start via `envsubst`.
+The Studio workload (nginx) serves the SPA and reverse-proxies `/api` to the
+backend Service, with `BACKEND_URL` injected at container start via `envsubst`.
 
 ```text
 Ingress → studio (nginx) → api (:8000) → Postgres (CNPG + pgvector)
@@ -31,7 +51,7 @@ Cluster-admin, once per cluster:
   - pgvector via image-volume extensions additionally needs **PostgreSQL 18+** and
     **Kubernetes 1.33+** with the `ImageVolume` feature. On older clusters set
     `postgres.pgvector.enabled=false` and use a custom operand image.
-- **Ingress controller** (e.g. ingress-nginx) — for the frontend Ingress.
+- **Ingress controller** (e.g. ingress-nginx) — for the Studio Ingress.
 - **metrics-server** — only if you enable the worker HPA (`worker.autoscaling.enabled=true`).
 
 Tooling: `helm` ≥ 3.12, `kubectl` matching the cluster.
@@ -40,8 +60,8 @@ Tooling: `helm` ≥ 3.12, `kubectl` matching the cluster.
 
 CI (`.github/workflows/ci.yaml`) builds and pushes on every `main` push and git tag:
 
-- `ghcr.io/bcit-tlu/course-intelligence/dialog-api`
-- `ghcr.io/bcit-tlu/course-intelligence/dialog-frontend`
+- `ghcr.io/bcit-tlu/course-intelligence/course-intelligence-api`
+- `ghcr.io/bcit-tlu/course-intelligence/course-intelligence-studio`
 
 Tags: `sha-<shortsha>` on every build; `vX.Y.Z` + `latest` on git tags. The Flux fleet
 overlay pins chart versions via `OCIRepository` semver constraints (see the
@@ -74,7 +94,7 @@ and `minio.existingSecret: dialog-s3` for the external-S3 path.
 
 ## Deploy (via Flux)
 
-Dialog is deployed to the cluster by [Flux](https://fluxcd.io) using `HelmRelease` and
+Course Intelligence is deployed to the cluster by [Flux](https://fluxcd.io) using `HelmRelease` and
 `OCIRepository` manifests in the
 [`flux-fleet`](https://github.com/bcit-tlu/flux-fleet) repo:
 
@@ -82,11 +102,11 @@ Dialog is deployed to the cluster by [Flux](https://fluxcd.io) using `HelmReleas
 flux-fleet/apps/overlays/latest/dialog/
 ├── kustomization.yaml
 ├── backend/values-latest.yaml    # HelmRelease + OCIRepository for the backend chart
-└── frontend/values-latest.yaml   # HelmRelease + OCIRepository for the frontend chart
+└── studio/values-latest.yaml     # HelmRelease + OCIRepository for the studio chart
 ```
 
 Flux watches the OCI chart repository at
-`oci://ghcr.io/bcit-tlu/course-intelligence/charts/<release>-backend` (and `-frontend`), pulls the
+`oci://ghcr.io/bcit-tlu/course-intelligence/charts/<release>-backend` (and `-studio`), pulls the
 latest semver-matching version, and applies the values from the overlay.
 
 ### Making changes
@@ -97,34 +117,34 @@ latest semver-matching version, and applies the values from the overlay.
    Flux picks up the new chart version via the `OCIRepository` semver constraint
    (`>= 0.0.0-0` for `latest`).
 
-> **Service names:** the overlays set `fullnameOverride: dialog-backend` and
-> `dialog-frontend`, so the Service names are `dialog-backend` and `dialog-frontend`
+> **Service names:** the overlays set `fullnameOverride: course-intelligence-backend` and
+> `course-intelligence-studio`, so the Service names are `course-intelligence-backend` and `course-intelligence-studio`
 > respectively (no release-name prefix).
 
 ## Verify
 
 ```sh
-# All pods Ready (api, worker, gateway, redis, minio, postgres, frontend).
+# All pods Ready (api, worker, gateway, redis, minio, postgres, studio).
 kubectl -n dialog get pods
 
 # Migration ran: the api pod's `migrate` initContainer applied Alembic head.
-kubectl -n dialog logs deploy/dialog-backend -c migrate
+kubectl -n dialog logs deploy/course-intelligence-backend -c migrate
 
 # pgvector enabled in the app DB.
-kubectl -n dialog exec -it dialog-backend-db-1 -- psql -U dialog -d dialog -c '\dx'
+kubectl -n dialog exec -it course-intelligence-backend-db-1 -- psql -U dialog -d dialog -c '\dx'
 #   → the `vector` extension is listed.
 
 # uploads bucket created by the post-install Job.
 kubectl -n dialog get job -l app.kubernetes.io/component=minio-init
 
 # API health through the Service.
-kubectl -n dialog port-forward svc/dialog-backend 8000:8000 &
+kubectl -n dialog port-forward svc/course-intelligence-backend 8000:8000 &
 curl -s localhost:8000/health   # → {"status":"ok",...}
 ```
 
 ## End-to-end smoke test
 
-Reach the app via the Ingress host (or `kubectl port-forward svc/dialog-frontend
+Reach the app via the Ingress host (or `kubectl port-forward svc/course-intelligence-studio
 8080:80`), then exercise the async flow (`course_intelligence/api.py`):
 
 ```sh
@@ -143,7 +163,7 @@ curl -s "$BASE/api/jobs/$JOB/results" | jq '.elements[] | {topic, blooms_level}'
 ```
 
 Confirm in the UI: topics render with Bloom's badges. Then restart pods
-(`kubectl -n dialog rollout restart deploy/dialog-backend`) to prove migrations are
+(`kubectl -n dialog rollout restart deploy/course-intelligence-backend`) to prove migrations are
 idempotent and no secret is baked into the image.
 
 ## Upgrade
@@ -152,12 +172,12 @@ Push changes to the `flux-fleet` overlay. Flux reconciles on the next sync inter
 or force a reconciliation:
 
 ```sh
-flux reconcile helmrelease dialog-backend -n dialog
-flux reconcile helmrelease dialog-frontend -n dialog
+flux reconcile helmrelease course-intelligence-backend -n dialog
+flux reconcile helmrelease course-intelligence-studio -n dialog
 ```
 
 - The api `migrate` initContainer re-runs `alembic upgrade head` on every rollout — idempotent.
-- Changing the frontend nginx template rolls the pods automatically (a `checksum/config`
+- Changing the Studio nginx template rolls the pods automatically (a `checksum/config`
   annotation on the Deployment changes with the ConfigMap).
 
 ## Rollback
@@ -166,9 +186,9 @@ Revert the commit in the `flux-fleet` repo — Flux will reconcile back to the p
 chart version. For immediate rollback without waiting for Git:
 
 ```sh
-flux suspend helmrelease dialog-backend -n dialog
-helm rollback dialog-backend <REVISION> -n dialog
-flux resume helmrelease dialog-backend -n dialog
+flux suspend helmrelease course-intelligence-backend -n dialog
+helm rollback course-intelligence-backend <REVISION> -n dialog
+flux resume helmrelease course-intelligence-backend -n dialog
 ```
 
 > **Schema note:** `helm rollback` reverts Kubernetes objects, not database schema. If a

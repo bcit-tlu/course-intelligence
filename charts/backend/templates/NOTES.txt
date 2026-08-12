@@ -1,12 +1,12 @@
-{{ .Chart.Name }} ({{ include "dialog-backend.fullname" . }}) has been deployed.
+{{ .Chart.Name }} ({{ include "course-intelligence-backend.fullname" . }}) has been deployed.
 
-Roles deployed from image {{ include "dialog-backend.image" . }}:
-  - api     (Service {{ include "dialog-backend.fullname" . }}:{{ .Values.service.port }})
+Roles deployed from image {{ include "course-intelligence-backend.image" . }}:
+  - api     (Service {{ include "course-intelligence-backend.fullname" . }}:{{ .Values.service.port }})
 {{- if .Values.worker.enabled }}
   - worker  (no Service — consumes jobs from Redis)
 {{- end }}
 {{- if .Values.gateway.enabled }}
-  - gateway (Service {{ include "dialog-backend.fullname" . }}-gateway:{{ .Values.gateway.port }})
+  - gateway (Service {{ include "course-intelligence-backend.fullname" . }}-gateway:{{ .Values.gateway.port }})
 {{- end }}
 
 Dependencies:
@@ -16,5 +16,5 @@ Dependencies:
 
 Check the API health from within the cluster:
 
-  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "dialog-backend.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "course-intelligence-backend.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
   curl http://localhost:{{ .Values.service.port }}/health

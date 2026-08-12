@@ -17,7 +17,7 @@ asynchronous LangGraph pipeline.
 | **Course Intelligence API** | Programmatic interface for applications | `course_intelligence/api.py` |
 | **Course Intelligence Engine** | Core instructional-content analysis layer | `course_intelligence/engine/` |
 | **LLM Gateway** | Centralized interface to configured LLM providers | `course_intelligence/llm/gateway.py` |
-| **Course Intelligence MCP Server** | Potential future interface for AI applications and agents | Not implemented |
+| **Course Intelligence MCP Server** | Potential future interface for AI applications and agents | Not implemented — [design](docs/architecture.md#future-mcp-server) |
 
 The LLM Gateway selects its provider via `LLM_PROVIDER` — Ollama for development,
 Azure OpenAI for pilot/production, and a deterministic mock for tests.

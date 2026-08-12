@@ -25,7 +25,7 @@ processing core with multiple interfaces in front of it.
 | **Course Intelligence API** | Programmatic interface for applications | `course_intelligence/api.py` (FastAPI) |
 | **Course Intelligence Engine** | Core instructional-content analysis layer | `course_intelligence/engine/agents/`, `course_intelligence/engine/graph/`, `course_intelligence/engine/dataflows/` |
 | **LLM Gateway** | Centralized interface to configured LLM providers | `course_intelligence/llm/gateway.py` + `course_intelligence/llm/clients/` |
-| **Course Intelligence MCP Server** | Future interface for AI applications and agents | Not implemented — intentionally deferred |
+| **Course Intelligence MCP Server** | Future interface for AI applications and agents | Not implemented — intentionally deferred ([design](#future-mcp-server)) |
 
 ### Component Architecture
 
@@ -71,6 +71,119 @@ These are design constraints, enforced at code review:
 The Engine's only permitted dependencies are LangGraph/LangChain, the LLM client
 abstraction, and pure-Python parsing libraries. `CourseProcessorGraph` is the
 single public entry point into the Engine.
+
+---
+
+## Future MCP Server
+
+> **Nothing in this section is implemented.** There is no MCP server, no MCP
+> dependency, and no MCP code path in this repository. This section records the
+> intended integration direction so that a future implementation does not have to
+> reverse-engineer it — and so that it is not built prematurely.
+
+### Boundary
+
+An MCP server would let AI agents consume Course Intelligence the way Studio
+does today — as a client of the API, not of the Engine:
+
+```text
+AI Agent / AI Application
+          │
+          ▼
+Course Intelligence MCP Server
+          │
+          ▼
+Course Intelligence API
+          │
+          ▼
+Course Intelligence Engine
+```
+
+The MCP Server calls the API (or an application service layer sitting beside it),
+**never the Engine directly**, and never reimplements processing logic. This is
+the same rule Studio follows, and it is what keeps a single processing
+implementation.
+
+The Engine boundary already permits this without modification: the Engine is
+transport-agnostic (no FastAPI types, no HTTP objects), and
+`CourseProcessorGraph` is its only entry point. Adding an MCP transport is
+therefore additive — it does not require touching
+`course_intelligence/engine/`.
+
+### When to build it
+
+Only when a concrete AI consumer requires MCP access. An MCP server added for
+architectural symmetry would be another deployable, another auth surface, and
+another schema to version, with no user. Deferring it is the decision, not an
+oversight.
+
+### Candidate tools
+
+These map onto endpoints that exist today in `course_intelligence/api.py`:
+
+| Candidate tool | Backing endpoint |
+|---|---|
+| `process_course` | `POST /jobs` (202, multipart upload + `learning_objectives`) |
+| `get_processing_status` | `GET /jobs/{job_id}` |
+| `list_jobs` | `GET /jobs` (supports `limit`, `status`, `X-Tenant-Id`) |
+| `get_learning_elements` | `GET /jobs/{job_id}/results` (409 until `completed`) |
+| `get_bloom_classification` | Projection of `GET /jobs/{job_id}/results` |
+
+These would each require **new API capability first** — they are not thin
+wrappers:
+
+| Candidate tool | Missing capability |
+|---|---|
+| `search_learning_elements` | No search/query endpoint; would need vector or text search over `results` |
+| `get_course_summary` | No summary is computed or stored |
+
+Because processing is asynchronous, `process_course` cannot be a blocking call.
+An MCP client must either poll `get_processing_status` or the API must first grow
+a completion notification.
+
+Finally, these have been floated but are **roadmap items, not MCP work** — each
+depends on a product capability the system does not have (see
+[Retired name](#retired-name)). Exposing them over MCP is the last step, not the
+first:
+
+```text
+map_learning_objectives      # requires objective-to-content mapping
+identify_content_gaps        # requires coverage analysis
+generate_knowledge_checks    # requires question generation
+analyze_course_coverage      # requires a course entity + coverage analysis
+```
+
+### Candidate resources
+
+```text
+course://{course_id}
+course://{course_id}/elements
+course://{course_id}/elements/{element_id}
+course://{course_id}/sources/{source_id}
+```
+
+**Prerequisite:** the data model is job-centric, not course-centric — `Job` and
+`Result` (see [Database](#database)), keyed by job UUID, with no course entity
+and no stable `course_id`. These URIs require introducing a course identifier
+first; until then the addressable unit is a job, not a course.
+
+### Placement (undecided)
+
+```text
+mcp/                        # independently deployed service
+course_intelligence/mcp/    # in-package module
+```
+
+Deferred until there is a concrete consumer. The trade-off is independent
+scaling and deployment isolation versus sharing the API's process, config, and
+existing auth. Either satisfies the boundary rules above.
+
+### Naming
+
+The MCP Server exposes Course Intelligence *to* AI agents. The
+[LLM Gateway](#llm-gateway) *consumes* LLM providers. They face opposite
+directions and must not be conflated — see
+[LLM Gateway](#llm-gateway) for why the gateway is never called an "MCP Gateway".
 
 ---
 

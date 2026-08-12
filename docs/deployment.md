@@ -34,8 +34,8 @@ Tooling: `helm` ≥ 3.12, `kubectl` matching the cluster.
 
 CI (`.github/workflows/build-images.yml`) builds and pushes on every `main` push and git tag:
 
-- `ghcr.io/bcit-tlu/dialog/dialog-api`
-- `ghcr.io/bcit-tlu/dialog/dialog-frontend`
+- `ghcr.io/bcit-tlu/course-intelligence/dialog-api`
+- `ghcr.io/bcit-tlu/course-intelligence/dialog-frontend`
 
 Tags: `sha-<shortsha>` on every build; `vX.Y.Z` + `latest` on git tags. The Flux fleet
 overlay pins chart versions via `OCIRepository` semver constraints (see the
@@ -80,7 +80,7 @@ flux-fleet/apps/overlays/latest/dialog/
 ```
 
 Flux watches the OCI chart repository at
-`oci://ghcr.io/bcit-tlu/dialog/charts/<release>-backend` (and `-frontend`), pulls the
+`oci://ghcr.io/bcit-tlu/course-intelligence/charts/<release>-backend` (and `-frontend`), pulls the
 latest semver-matching version, and applies the values from the overlay.
 
 ### Making changes

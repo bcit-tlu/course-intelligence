@@ -99,15 +99,19 @@ Course Intelligence is deployed to the cluster by [Flux](https://fluxcd.io) usin
 [`flux-fleet`](https://github.com/bcit-tlu/flux-fleet) repo:
 
 ```
-flux-fleet/apps/overlays/latest/dialog/
+flux-fleet/apps/overlays/<latest|stable>/dialog/
 ├── kustomization.yaml
-├── backend/values-latest.yaml    # HelmRelease + OCIRepository for the backend chart
-└── studio/values-latest.yaml     # HelmRelease + OCIRepository for the studio chart
+├── backend/values-<env>.yaml    # HelmRelease + OCIRepository for the backend chart
+└── studio/values-<env>.yaml     # HelmRelease + OCIRepository for the studio chart
 ```
 
+There are **two** environments — `latest` and `stable` — and both must be updated
+together for any chart rename.
+
 Flux watches the OCI chart repository at
-`oci://ghcr.io/bcit-tlu/course-intelligence/charts/<release>-backend` (and `-studio`), pulls the
-latest semver-matching version, and applies the values from the overlay.
+`oci://ghcr.io/bcit-tlu/course-intelligence/charts/course-intelligence-backend`
+(and `-studio`), pulls the latest semver-matching version, and applies the values
+from the overlay.
 
 ### Making changes
 
@@ -117,9 +121,15 @@ latest semver-matching version, and applies the values from the overlay.
    Flux picks up the new chart version via the `OCIRepository` semver constraint
    (`>= 0.0.0-0` for `latest`).
 
-> **Service names:** the overlays set `fullnameOverride: course-intelligence-backend` and
-> `course-intelligence-studio`, so the Service names are `course-intelligence-backend` and `course-intelligence-studio`
-> respectively (no release-name prefix).
+> **Two name families — don't confuse them.** The `flux-fleet` overlays set
+> `fullnameOverride`, so **Kubernetes workload names** are
+> `course-intelligence-backend` and `course-intelligence-studio` (no release-name
+> prefix). The **Helm release / `HelmRelease` CR names** are separate: they come
+> from the overlay's `RELEASE_NAME` plus its `nameSuffix`, and remain
+> `dialog-backend` and `dialog-studio`.
+>
+> So: `kubectl logs deploy/course-intelligence-backend` but
+> `flux reconcile helmrelease dialog-backend`.
 
 ## Verify
 
@@ -172,8 +182,8 @@ Push changes to the `flux-fleet` overlay. Flux reconciles on the next sync inter
 or force a reconciliation:
 
 ```sh
-flux reconcile helmrelease course-intelligence-backend -n dialog
-flux reconcile helmrelease course-intelligence-studio -n dialog
+flux reconcile helmrelease dialog-backend -n dialog
+flux reconcile helmrelease dialog-studio -n dialog
 ```
 
 - The api `migrate` initContainer re-runs `alembic upgrade head` on every rollout — idempotent.
@@ -186,9 +196,9 @@ Revert the commit in the `flux-fleet` repo — Flux will reconcile back to the p
 chart version. For immediate rollback without waiting for Git:
 
 ```sh
-flux suspend helmrelease course-intelligence-backend -n dialog
-helm rollback course-intelligence-backend <REVISION> -n dialog
-flux resume helmrelease course-intelligence-backend -n dialog
+flux suspend helmrelease dialog-backend -n dialog
+helm rollback dialog-backend <REVISION> -n dialog
+flux resume helmrelease dialog-backend -n dialog
 ```
 
 > **Schema note:** `helm rollback` reverts Kubernetes objects, not database schema. If a

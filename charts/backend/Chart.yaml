@@ -1,6 +1,6 @@
 apiVersion: v2
-name: dialog-backend
-description: Dialog Backend — FastAPI API, background worker, and LLM gateway for the Emergency Nursing Course Processor
+name: course-intelligence-backend
+description: Course Intelligence Backend — Course Intelligence API, background worker, and LLM Gateway
 type: application
 version: 0.10.3 # x-release-please-version
 appVersion: "0.10.3" # x-release-please-version

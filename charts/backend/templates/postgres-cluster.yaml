@@ -1,5 +1,5 @@
 {{- if .Values.postgres.enabled }}
-{{- $fullname := include "dialog-backend.fullname" . -}}
+{{- $fullname := include "course-intelligence-backend.fullname" . -}}
 {{- $clusterName := printf "%s-db" $fullname -}}
 {{- $auth := .Values.postgres.auth -}}
 ---
@@ -9,7 +9,7 @@ kind: Secret
 metadata:
   name: {{ $fullname }}-db-app
   labels:
-    {{- include "dialog-backend.labels" . | nindent 4 }}
+    {{- include "course-intelligence-backend.labels" . | nindent 4 }}
 type: kubernetes.io/basic-auth
 stringData:
   username: {{ $auth.username | quote }}
@@ -23,7 +23,7 @@ kind: Secret
 metadata:
   name: {{ $fullname }}-db
   labels:
-    {{- include "dialog-backend.labels" . | nindent 4 }}
+    {{- include "course-intelligence-backend.labels" . | nindent 4 }}
 type: Opaque
 stringData:
   uri: {{ printf "postgresql://%s:%s@%s-rw:5432/%s" $auth.username $auth.password $clusterName $auth.database | quote }}
@@ -33,7 +33,7 @@ kind: Cluster
 metadata:
   name: {{ $clusterName }}
   labels:
-    {{- include "dialog-backend.labels" . | nindent 4 }}
+    {{- include "course-intelligence-backend.labels" . | nindent 4 }}
 spec:
   instances: {{ .Values.postgres.cluster.instances }}
   imageName: {{ .Values.postgres.cluster.image }}
@@ -95,7 +95,7 @@ kind: Database
 metadata:
   name: {{ $clusterName }}-vector
   labels:
-    {{- include "dialog-backend.labels" . | nindent 4 }}
+    {{- include "course-intelligence-backend.labels" . | nindent 4 }}
 spec:
   name: {{ $auth.database }}
   owner: {{ $auth.username }}

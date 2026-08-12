@@ -144,7 +144,7 @@ course-intelligence/             # repo root
 ├── docker-compose.yml
 ├── alembic/                     # database migrations
 ├── alembic.ini
-├── charts/                      # Helm charts (backend + frontend)
+├── charts/                      # Helm charts (backend + studio)
 ├── docs/                        # architecture + deployment guides
 ├── studio/                      # Course Intelligence Studio (React + Vite + TailwindCSS SPA)
 ├── tests/                       # all tests

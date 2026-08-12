@@ -6,15 +6,15 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "dialog-backend.fullname" . }}-worker
+  name: {{ include "course-intelligence-backend.fullname" . }}-worker
   labels:
-    {{- include "dialog-backend.labels" . | nindent 4 }}
+    {{- include "course-intelligence-backend.labels" . | nindent 4 }}
     app.kubernetes.io/component: worker
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "dialog-backend.fullname" . }}-worker
+    name: {{ include "course-intelligence-backend.fullname" . }}-worker
   minReplicas: {{ $hpa.minReplicas }}
   maxReplicas: {{ $hpa.maxReplicas }}
   metrics:

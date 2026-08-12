@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "dialog-backend.fullname" . }}-minio
+  name: {{ include "course-intelligence-backend.fullname" . }}-minio
   labels:
-    {{- include "dialog-backend.labels" . | nindent 4 }}
+    {{- include "course-intelligence-backend.labels" . | nindent 4 }}
     app.kubernetes.io/component: minio
 spec:
   type: ClusterIP
@@ -18,6 +18,6 @@ spec:
       protocol: TCP
       name: console
   selector:
-    {{- include "dialog-backend.selectorLabels" . | nindent 4 }}
+    {{- include "course-intelligence-backend.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: minio
 {{- end }}

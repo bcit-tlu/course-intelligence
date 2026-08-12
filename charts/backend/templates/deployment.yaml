@@ -1,30 +1,30 @@
-{{- $fullname := include "dialog-backend.fullname" . -}}
+{{- $fullname := include "course-intelligence-backend.fullname" . -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ $fullname }}
   labels:
-    {{- include "dialog-backend.labels" . | nindent 4 }}
+    {{- include "course-intelligence-backend.labels" . | nindent 4 }}
     app.kubernetes.io/component: api
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "dialog-backend.selectorLabels" . | nindent 6 }}
+      {{- include "course-intelligence-backend.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: api
   template:
     metadata:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
       labels:
-        {{- include "dialog-backend.selectorLabels" . | nindent 8 }}
+        {{- include "course-intelligence-backend.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: api
     spec:
       initContainers:
         # Apply Alembic migrations before the API starts. Idempotent — safe
         # on every rollout. Only needs DATABASE_URL.
         - name: migrate
-          image: {{ include "dialog-backend.image" . }}
+          image: {{ include "course-intelligence-backend.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["uv", "run", "alembic", "upgrade", "head"]
           env:
@@ -39,7 +39,7 @@ spec:
             {{- end }}
       containers:
         - name: api
-          image: {{ include "dialog-backend.image" . }}
+          image: {{ include "course-intelligence-backend.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["uv", "run", "python", "main.py", "api"]
           ports:
@@ -50,7 +50,7 @@ spec:
             - configMapRef:
                 name: {{ $fullname }}-config
           env:
-            {{- include "dialog-backend.coreEnv" . | nindent 12 }}
+            {{- include "course-intelligence-backend.coreEnv" . | nindent 12 }}
           livenessProbe:
             httpGet:
               path: {{ .Values.probes.liveness.path }}

@@ -1,10 +1,10 @@
-{{- $fullname := include "dialog-backend.fullname" . -}}
+{{- $fullname := include "course-intelligence-backend.fullname" . -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ $fullname }}-config
   labels:
-    {{- include "dialog-backend.labels" . | nindent 4 }}
+    {{- include "course-intelligence-backend.labels" . | nindent 4 }}
 data:
   # LLM provider selection and gateway location.
   LLM_PROVIDER: {{ .Values.llm.provider | quote }}
@@ -18,7 +18,7 @@ data:
   AZURE_OPENAI_DEPLOYMENT: {{ .Values.llm.azure.deployment | quote }}
   AZURE_OPENAI_EMBEDDING_DEPLOYMENT: {{ .Values.llm.azure.embeddingDeployment | quote }}
   # Object storage (non-secret) settings.
-  S3_ENDPOINT_URL: {{ include "dialog-backend.s3EndpointUrl" . | quote }}
+  S3_ENDPOINT_URL: {{ include "course-intelligence-backend.s3EndpointUrl" . | quote }}
   S3_BUCKET: {{ .Values.minio.bucket | quote }}
   # Upload retention — number of recent job uploads to keep in S3.
   RETENTION_COUNT: {{ .Values.retentionCount | default 10 | quote }}

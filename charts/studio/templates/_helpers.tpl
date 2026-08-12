@@ -1,8 +1,8 @@
-{{- define "dialog-frontend.name" -}}
+{{- define "course-intelligence-studio.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "dialog-frontend.fullname" -}}
+{{- define "course-intelligence-studio.fullname" -}}
 {{- if .Values.fullnameOverride -}}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -15,20 +15,20 @@
 {{- end -}}
 {{- end -}}
 
-{{- define "dialog-frontend.labels" -}}
+{{- define "course-intelligence-studio.labels" -}}
 helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
-app.kubernetes.io/name: {{ include "dialog-frontend.name" . }}
+app.kubernetes.io/name: {{ include "course-intelligence-studio.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
-{{- define "dialog-frontend.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "dialog-frontend.name" . }}
+{{- define "course-intelligence-studio.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "course-intelligence-studio.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
-{{- define "dialog-frontend.image" -}}
+{{- define "course-intelligence-studio.image" -}}
 {{- printf "%s:%s" .Values.image.repository (.Values.image.tag | default .Chart.AppVersion) -}}
 {{- end -}}
 
@@ -37,7 +37,7 @@ Cluster-internal backend URL. Prefers an explicit override, otherwise
 builds the Service FQDN so kube-dns always resolves it (survives corporate
 firewalls that block non-443 traffic on node IPs).
 */}}
-{{- define "dialog-frontend.backendUrl" -}}
+{{- define "course-intelligence-studio.backendUrl" -}}
 {{- if .Values.env.BACKEND_URL -}}
 {{- .Values.env.BACKEND_URL -}}
 {{- else -}}

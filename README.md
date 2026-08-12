@@ -130,12 +130,14 @@ course-intelligence/             # repo root
     ├── db/                      # database layer
     │   ├── models.py            # Job, Result, JobStatus (SQLAlchemy)
     │   └── session.py           # engine + session factory
-    └── llm_clients/             # LLM provider abstraction
-        ├── base_client.py       # ABC
-        ├── factory.py           # create_llm_client(provider, model, mock, ...)
-        ├── openai_client.py     # Ollama / OpenAI compat
-        ├── azure_client.py      # Azure OpenAI (AzureChatOpenAI)
-        └── mock_client.py       # FakeListChatModel for testing
+    └── llm/                      # LLM layer (clients + gateway)
+        ├── gateway.py            # LLM Gateway proxy (FastAPI, port 8100)
+        └── clients/              # LLM provider abstraction
+            ├── base_client.py    # ABC
+            ├── factory.py        # create_llm_client(provider, model, mock, ...)
+            ├── openai_client.py  # Ollama / OpenAI compat
+            ├── azure_client.py   # Azure OpenAI (AzureChatOpenAI)
+            └── mock_client.py    # FakeListChatModel for testing
 ```
 
 ## Environment Variables

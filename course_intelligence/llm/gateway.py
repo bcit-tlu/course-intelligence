@@ -22,7 +22,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from course_intelligence.default_config import DEFAULT_CONFIG
-from course_intelligence.llm_clients import create_llm_client
+from course_intelligence.llm.clients import create_llm_client
 
 logger = logging.getLogger(__name__)
 

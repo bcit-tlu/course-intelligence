@@ -2,7 +2,7 @@
 
 ## Supported file formats
 
-Dialog accepts the following file types:
+Course Intelligence accepts the following file types:
 
 | Extension | Format | Notes |
 |-----------|--------|-------|

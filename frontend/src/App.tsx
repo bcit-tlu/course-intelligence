@@ -13,9 +13,9 @@ export default function App() {
         <div className="container flex h-16 items-center gap-2">
           <Link to="/" className="flex items-center gap-2 font-semibold">
             <GraduationCap className="h-6 w-6 text-primary" />
-            <span>Dialog</span>
+            <span>Course Intelligence</span>
             <span className="text-muted-foreground font-normal">
-              Knowledge Processor
+              Studio
             </span>
           </Link>
           <Link

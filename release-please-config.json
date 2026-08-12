@@ -3,9 +3,9 @@
   "separate-pull-requests": false,
   "bump-minor-pre-major": true,
   "packages": {
-    "frontend": {
-      "path": "frontend",
-      "component": "frontend",
+    "studio": {
+      "path": "studio",
+      "component": "studio",
       "release-type": "node",
       "extra-files": [
         {

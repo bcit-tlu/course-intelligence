@@ -10,8 +10,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Callable, Dict, Optional
 
-from dialog.default_config import DEFAULT_CONFIG
-from dialog.llm_clients import create_llm_client
+from course_intelligence.default_config import DEFAULT_CONFIG
+from course_intelligence.llm_clients import create_llm_client
 from .propagation import Propagator
 from .setup import GraphSetup
 

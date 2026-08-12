@@ -18,13 +18,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from dialog.db.models import Base
+from course_intelligence.db.models import Base
 
 
 # Force mock mode for tests
 os.environ["MOCK_LLM"] = "true"
 
-from dialog.default_config import DEFAULT_CONFIG
+from course_intelligence.default_config import DEFAULT_CONFIG
 
 _config = {**DEFAULT_CONFIG, "mock_llm": True}
 
@@ -41,7 +41,7 @@ def _run_with_progress(text: str):
         tmp_path = f.name
 
     try:
-        from dialog.graph import CourseProcessorGraph
+        from course_intelligence.graph import CourseProcessorGraph
 
         graph = CourseProcessorGraph(config=_config)
         steps: list[str] = []
@@ -85,7 +85,7 @@ def test_process_with_progress_without_callback():
         tmp_path = f.name
 
     try:
-        from dialog.graph import CourseProcessorGraph
+        from course_intelligence.graph import CourseProcessorGraph
 
         graph = CourseProcessorGraph(config=_config)
         result = graph.process_with_progress(tmp_path)
@@ -124,7 +124,7 @@ class FakeQueue:
 @pytest.fixture()
 def client(monkeypatch):
     """Wire the API + worker to in-memory fakes."""
-    from dialog import api, storage, worker
+    from course_intelligence import api, storage, worker
 
     engine = create_engine(
         "sqlite://",
@@ -154,9 +154,9 @@ def client(monkeypatch):
 
 def _drain_worker(queue):
     """Process every queued job synchronously with the mock LLM."""
-    from dialog.db import JobStatus
-    from dialog.graph import CourseProcessorGraph
-    from dialog.worker import _set_status, process_job
+    from course_intelligence.db import JobStatus
+    from course_intelligence.graph import CourseProcessorGraph
+    from course_intelligence.worker import _set_status, process_job
 
     graph = CourseProcessorGraph(config=_config)
     while queue.items:
@@ -239,9 +239,9 @@ def test_current_step_transitions_during_processing(client):
 
     Uses the client fixture's monkeypatched in-memory SQLite session.
     """
-    from dialog.db import Job
-    from dialog.db.models import JobStatus
-    from dialog.worker import _set_step, get_session
+    from course_intelligence.db import Job
+    from course_intelligence.db.models import JobStatus
+    from course_intelligence.worker import _set_step, get_session
 
     # Create a job directly in the DB
     session = get_session()

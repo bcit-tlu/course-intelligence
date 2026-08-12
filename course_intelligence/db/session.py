@@ -10,7 +10,7 @@ from __future__ import annotations
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from dialog.default_config import DEFAULT_CONFIG
+from course_intelligence.default_config import DEFAULT_CONFIG
 
 # Local dev fallback — matches the docker-compose db service with its
 # published port (5432) on localhost.

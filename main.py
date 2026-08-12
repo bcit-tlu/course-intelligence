@@ -2,8 +2,8 @@
 
 import sys
 
-from dialog.default_config import DEFAULT_CONFIG
-from dialog.graph import CourseProcessorGraph
+from course_intelligence.default_config import DEFAULT_CONFIG
+from course_intelligence.graph import CourseProcessorGraph
 
 
 def run_api():
@@ -11,7 +11,7 @@ def run_api():
     import uvicorn
 
     uvicorn.run(
-        "dialog.api:app",
+        "course_intelligence.api:app",
         host=DEFAULT_CONFIG["api_host"],
         port=DEFAULT_CONFIG["api_port"],
         reload=DEFAULT_CONFIG["dev_reload"],
@@ -20,7 +20,7 @@ def run_api():
 
 def run_worker():
     """Start the background worker that processes jobs from Redis."""
-    from dialog.worker import run
+    from course_intelligence.worker import run
 
     run()
 
@@ -32,7 +32,7 @@ def run_gateway():
 
     port = int(os.environ.get("GATEWAY_PORT", "8100"))
     uvicorn.run(
-        "dialog.gateway:app",
+        "course_intelligence.gateway:app",
         host="0.0.0.0",
         port=port,
         reload=DEFAULT_CONFIG["dev_reload"],

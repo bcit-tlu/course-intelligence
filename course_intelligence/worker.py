@@ -19,11 +19,11 @@ from pathlib import Path
 
 import redis as redis_lib
 
-from dialog import storage
-from dialog.db import Job, JobStatus, Result, get_session
-from dialog.default_config import DEFAULT_CONFIG
-from dialog.graph import CourseProcessorGraph
-from dialog.graph.steps import NODE_TO_STEP
+from course_intelligence import storage
+from course_intelligence.db import Job, JobStatus, Result, get_session
+from course_intelligence.default_config import DEFAULT_CONFIG
+from course_intelligence.graph import CourseProcessorGraph
+from course_intelligence.graph.steps import NODE_TO_STEP
 
 logger = logging.getLogger(__name__)
 

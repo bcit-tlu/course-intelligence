@@ -8,8 +8,8 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-import dialog.worker as worker_mod
-from dialog.db.models import Base, Job, JobStatus, Result
+import course_intelligence.worker as worker_mod
+from course_intelligence.db.models import Base, Job, JobStatus, Result
 
 
 @pytest.fixture()

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import uuid
 
-from dialog.agents.utils.agent_states import AgentState, KnowledgeChunk
-from dialog.agents.utils.json_parsing import parse_llm_json
+from course_intelligence.agents.utils.agent_states import AgentState, KnowledgeChunk
+from course_intelligence.agents.utils.json_parsing import parse_llm_json
 
 SYSTEM_PROMPT = """\
 You are a medical content analyst. Given the full text of a course module,

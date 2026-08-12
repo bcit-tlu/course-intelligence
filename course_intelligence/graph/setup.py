@@ -6,8 +6,8 @@ from typing import Any
 
 from langgraph.graph import StateGraph, END
 
-from dialog.agents.utils.agent_states import AgentState
-from dialog.agents import (
+from course_intelligence.agents.utils.agent_states import AgentState
+from course_intelligence.agents import (
     create_blooms_classifier,
     create_content_extractor,
     create_semantic_chunker,

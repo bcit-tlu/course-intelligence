@@ -3,13 +3,13 @@
 import os
 import tempfile
 
-from dialog.graph import CourseProcessorGraph
+from course_intelligence.graph import CourseProcessorGraph
 
 # Force mock mode for tests
 os.environ["MOCK_LLM"] = "true"
 
 # Re-import config after setting env var so the override takes effect
-from dialog.default_config import DEFAULT_CONFIG
+from course_intelligence.default_config import DEFAULT_CONFIG
 
 _config = {**DEFAULT_CONFIG, "mock_llm": True}
 

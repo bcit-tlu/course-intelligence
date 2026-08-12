@@ -5,8 +5,8 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from dialog.db.models import Base
-from dialog.db.session import get_database_url
+from course_intelligence.db.models import Base
+from course_intelligence.db.session import get_database_url
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

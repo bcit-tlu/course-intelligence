@@ -14,7 +14,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from dialog.db.models import Base
+from course_intelligence.db.models import Base
 
 
 # --- Fakes for the infra the API/worker touch ---
@@ -50,7 +50,7 @@ class FakeQueue:
 def client(monkeypatch):
     """Wire the API + worker to in-memory fakes and yield a test client
     plus the shared fakes so the test can drive the worker."""
-    from dialog import api, storage, worker
+    from course_intelligence import api, storage, worker
 
     # Shared in-memory SQLite across API and worker sessions
     engine = create_engine(
@@ -85,10 +85,10 @@ def _drain_worker(queue):
     Mirrors the worker run() loop's per-job error handling: a failing
     job is marked failed instead of propagating.
     """
-    from dialog.db import JobStatus
-    from dialog.default_config import DEFAULT_CONFIG
-    from dialog.graph import CourseProcessorGraph
-    from dialog.worker import _set_status, process_job
+    from course_intelligence.db import JobStatus
+    from course_intelligence.default_config import DEFAULT_CONFIG
+    from course_intelligence.graph import CourseProcessorGraph
+    from course_intelligence.worker import _set_status, process_job
 
     graph = CourseProcessorGraph(config={**DEFAULT_CONFIG, "mock_llm": True})
     while queue.items:

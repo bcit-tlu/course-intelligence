@@ -12,7 +12,7 @@ from typing import BinaryIO
 import boto3
 from botocore.config import Config as BotoConfig
 
-from dialog.default_config import DEFAULT_CONFIG
+from course_intelligence.default_config import DEFAULT_CONFIG
 
 logger = logging.getLogger(__name__)
 

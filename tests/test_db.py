@@ -8,8 +8,8 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from dialog.db.models import Base, Job, JobStatus, Result
-from dialog.db.session import get_database_url
+from course_intelligence.db.models import Base, Job, JobStatus, Result
+from course_intelligence.db.session import get_database_url
 
 
 # --- Unit tests (SQLite in-memory, no infrastructure needed) ---
@@ -167,7 +167,7 @@ def test_list_jobs_limit(session):
 
 
 def test_get_database_url_normalizes_psycopg_driver(monkeypatch):
-    from dialog import default_config
+    from course_intelligence import default_config
 
     monkeypatch.setitem(
         default_config.DEFAULT_CONFIG,
@@ -192,7 +192,7 @@ def _postgres_available() -> bool:
 @pytest.mark.skipif(not _postgres_available(), reason="Postgres not reachable")
 def test_postgres_round_trip():
     """Insert/query/delete against the real (migrated) Postgres schema."""
-    from dialog.db.session import get_session
+    from course_intelligence.db.session import get_session
 
     session = get_session()
     try:

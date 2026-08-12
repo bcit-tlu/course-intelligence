@@ -12,7 +12,7 @@ from pathlib import Path
 
 from bs4 import BeautifulSoup
 
-from dialog.agents.utils.agent_states import ContentPage, CourseModule
+from course_intelligence.agents.utils.agent_states import ContentPage, CourseModule
 
 
 def parse_d2l_folder(folder_path: str) -> CourseModule:
@@ -131,14 +131,14 @@ def _parse_toc(toc_path: Path) -> list[tuple[str, str]]:
 
 def _extract_page(page_path: Path) -> str:
     """Extract text from a single HTML content page."""
-    from dialog.dataflows.html_parser import extract_html
+    from course_intelligence.dataflows.html_parser import extract_html
 
     return extract_html(str(page_path))
 
 
 def _extract_pdf_assets(folder: Path) -> list[ContentPage]:
     """Find and extract all PDF files in assets/ subdirectories."""
-    from dialog.dataflows.pdf_parser import extract_pdf
+    from course_intelligence.dataflows.pdf_parser import extract_pdf
 
     pdf_pages: list[ContentPage] = []
 

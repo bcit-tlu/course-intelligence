@@ -27,9 +27,9 @@ function useElapsed(startIso: string): string {
 
 // Pipeline steps — mirrors STEP_ORDER in dialog/graph/steps.py (backend).
 const STEPS = [
-  { key: "extracting", label: "Extracting content" },
-  { key: "chunking", label: "Chunking into topics" },
-  { key: "classifying", label: "Classifying (Bloom's)" },
+  { key: "extracting", label: "Extracting course content" },
+  { key: "chunking", label: "Identifying learning elements" },
+  { key: "classifying", label: "Classifying cognitive levels" },
 ] as const;
 
 export default function ProcessingView({ job }: { job: Job }) {

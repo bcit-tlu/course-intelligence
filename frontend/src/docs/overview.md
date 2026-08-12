@@ -1,15 +1,15 @@
 # Overview
 
-## What is Dialog?
+## What is Course Intelligence?
 
-Dialog is a course material processor for nursing education. It takes raw course
+Course Intelligence is a course material processor. It takes raw course
 modules — PDFs, Word documents, text files, or D2L export zips — and transforms
 them into structured **learning elements**, each tagged with a **Bloom's taxonomy
 level**.
 
 ## Who is it for?
 
-Dialog is designed for nursing educators and curriculum designers who need to:
+Course Intelligence is designed for educators and curriculum designers who need to:
 
 - Break down course material into individual knowledge topics
 - See how content is distributed across cognitive levels

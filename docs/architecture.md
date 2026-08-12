@@ -6,10 +6,9 @@ the Course Intelligence backend subsystems. For deployment instructions see
 root [README](../README.md).
 
 > **Naming transition.** The product was previously called *Dialog*. The
-> component names below are authoritative. A small set of infrastructure
-> identifiers (the database, namespace, and Secret names) intentionally still use
-> `dialog` — see [Legacy identifiers](#legacy-identifiers) for the rationale and
-> the full decision record.
+> component names below are authoritative. All `dialog` identifiers have been
+> renamed to `course-intelligence` / `course_intelligence` — see
+> [Legacy identifiers](#legacy-identifiers) for the decision record.
 
 ---
 
@@ -238,18 +237,19 @@ blanket find-and-replace. Each decision below is deliberate.
 | Chart dir `charts/frontend` → `charts/studio` | **Renamed** | Makes the directory match both the component and the chart name, so CI can derive `charts/<component>` |
 | Image `dialog-api` → `course-intelligence-api` | **Renamed** | New GHCR repository; old tags remain readable under the old name |
 | Image `dialog-frontend` → `course-intelligence-studio` | **Renamed** | As above |
-| PostgreSQL database, username, password (`dialog`) | **Retained permanently** | Renaming requires a data migration for a cosmetic gain |
-| Kubernetes namespace (`dialog`) | **Retained permanently** | Namespaces are immutable; renaming means recreating every namespaced resource |
-| Secret names (`dialog-llm`, `dialog-s3`) | **Retained permanently** | Created out-of-band by operators; renaming breaks existing clusters for no benefit |
-| Ingress hostnames (`dialog.<env>.ltc.bcit.ca`) | **Deferred** | Requires DNS and certificate changes coordinated outside this repo |
+| PostgreSQL database, username, password (`dialog` → `course_intelligence`) | **Renamed** | Beta application; clean rebuild chosen over data migration |
+| Kubernetes namespace (`dialog` → `course-intelligence`) | **Renamed** | Beta application; namespace recreated during cutover |
+| Secret names (`dialog-llm`/`dialog-s3` → `course-intelligence-llm`/`course-intelligence-s3`) | **Renamed** | Recreated in the new namespace during cutover |
+| Ingress hostnames (`dialog.<env>.ltc.bcit.ca` → `course-intelligence.<env>.ltc.bcit.ca`) | **Renamed** | DNS records created before cutover; `RELEASE_NAME` change drives the new host |
 | Redis queue names (`dialog:jobs` → `course-intelligence:jobs`) | **Renamed** | Beta application; downtime acceptable — any in-flight jobs are lost on restart anyway |
-| `flux-fleet` overlay path (`apps/overlays/latest/dialog/`) | **Deferred** | Lives in a separate repository, on its own release cadence |
+| `flux-fleet` overlay path (`apps/overlays/latest/dialog/` → `apps/overlays/latest/course-intelligence/`) | **Renamed** | Directory renamed together with `RELEASE_NAME` and `REPO_NAME` |
 
-The chart rename is a **breaking deployment change**: `app.kubernetes.io/name`
-feeds each Deployment's immutable `spec.selector`, so upgrades require deleting
-and recreating the Deployments, and the `flux-fleet` overlays must set the new
-`fullnameOverride` values in the same change. See
-[deployment.md](deployment.md) for the migration procedure.
+The chart and namespace renames are **breaking deployment changes**: `app.kubernetes.io/name`
+feeds each Deployment's immutable `spec.selector`, and the namespace is immutable.
+Both require deleting and recreating resources. Since this is a beta application
+with downtime/data loss acceptable, the cutover is a clean rebuild — delete the
+old namespace, create the new one, recreate secrets, and let Flux reconcile. See
+[deployment.md](deployment.md) and the `flux-fleet-plan.md` for the migration procedure.
 
 ### Observability identifiers
 
@@ -279,17 +279,17 @@ fixed during the audit; all remaining matches are legitimate.
 | `tests/test_db.py` docstring | "dialog.db package" | "course_intelligence.db package" |
 | `studio/src/pages/DocsPage.tsx` CSS class | `prose-dialog` | `prose` |
 
-**Infrastructure identifiers (retain — see table above):**
+**Infrastructure identifiers (renamed — see table above):**
 
 | File(s) | Reference | Notes |
 |---|---|---|
-| `course_intelligence/worker.py`, `api.py` | Redis queues `course-intelligence:jobs`, `course-intelligence:jobs:processing` | Renamed from `dialog:jobs` during Phase 11 |
-| `course_intelligence/db/session.py`, `default_config.py` | Local-dev / example Postgres URL `dialog:dialog@…/dialog` | Matches the retained Postgres credentials |
-| `docker-compose.yml` | `POSTGRES_DB/USER/PASSWORD: dialog`, `DATABASE_URL` | Dev-compose Postgres credentials |
-| `charts/backend/values.yaml` | Postgres URI / database / username / password | Documented in-chart as intentionally retained |
-| `docs/deployment.md` | Namespace `dialog`, secrets `dialog-llm`/`dialog-s3`, ingress hosts, Helm release names, flux-fleet paths | All are live infrastructure identifiers |
-| `docs/architecture.md` | Legacy identifiers table, naming-transition note, queue-flow description | Documentation of the retained identifiers |
-| `README.md` | Flux-fleet overlay path, example `DATABASE_URL` | Real path in external repo; example uses retained credentials |
+| `course_intelligence/worker.py`, `api.py` | Redis queues `course-intelligence:jobs`, `course-intelligence:jobs:processing` | Renamed from `dialog:jobs` |
+| `course_intelligence/db/session.py`, `default_config.py` | Local-dev / example Postgres URL `course_intelligence:course_intelligence@…/course_intelligence` | Renamed from `dialog` credentials |
+| `docker-compose.yml` | `POSTGRES_DB/USER/PASSWORD: course_intelligence`, `DATABASE_URL` | Renamed from `dialog` |
+| `charts/backend/values.yaml` | Postgres URI / database / username / password | Renamed from `dialog` |
+| `docs/deployment.md` | Namespace `course-intelligence`, secrets `course-intelligence-llm`/`course-intelligence-s3`, ingress hosts, Helm release names, flux-fleet paths | All renamed from `dialog` equivalents |
+| `docs/architecture.md` | Legacy identifiers table, naming-transition note, queue-flow description | All updated to reflect renames |
+| `README.md` | Flux-fleet overlay path, example `DATABASE_URL` | Updated to new paths and credentials |
 
 **Historical references (retain — do not edit):**
 

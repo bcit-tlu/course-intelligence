@@ -90,7 +90,7 @@ DEFAULT_CONFIG = _apply_env_overrides({
     "llm_gateway_url": "",             # e.g. http://llm-gateway:8100
 
     # Infrastructure
-    "database_url": "",                # e.g. postgresql://dialog:dialog@db:5432/dialog
+    "database_url": "",                # e.g. postgresql://course_intelligence:course_intelligence@db:5432/course_intelligence
     "redis_url": "",                   # e.g. redis://redis:6379/0
     "s3_endpoint_url": "",             # e.g. http://minio:9000
     "s3_access_key": "",

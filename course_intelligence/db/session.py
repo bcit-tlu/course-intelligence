@@ -14,7 +14,7 @@ from course_intelligence.default_config import DEFAULT_CONFIG
 
 # Local dev fallback — matches the docker-compose db service with its
 # published port (5432) on localhost.
-_LOCAL_DEV_URL = "postgresql+psycopg://dialog:dialog@localhost:5432/dialog"
+_LOCAL_DEV_URL = "postgresql+psycopg://course_intelligence:course_intelligence@localhost:5432/course_intelligence"
 
 
 def get_database_url() -> str:

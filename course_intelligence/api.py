@@ -28,7 +28,7 @@ JOB_QUEUE = "dialog:jobs"
 _LOCAL_DEV_REDIS = "redis://localhost:6379/0"
 
 app = FastAPI(
-    title="Knowledge Processor",
+    title="Course Intelligence API",
     version="0.2.0",
 )
 
@@ -36,7 +36,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",  # Vite dev server
-        "http://localhost:3000",  # containerized frontend
+        "http://localhost:3000",  # containerized studio
     ],
     allow_methods=["*"],
     allow_headers=["*"],

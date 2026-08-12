@@ -32,7 +32,7 @@ def run_gateway():
 
     port = int(os.environ.get("GATEWAY_PORT", "8100"))
     uvicorn.run(
-        "course_intelligence.gateway:app",
+        "course_intelligence.llm.gateway:app",
         host="0.0.0.0",
         port=port,
         reload=DEFAULT_CONFIG["dev_reload"],

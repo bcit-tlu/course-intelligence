@@ -23,7 +23,7 @@ processing core with multiple interfaces in front of it.
 | **Course Intelligence Studio** | Standalone web interface for users | `studio/` (React + Vite + TailwindCSS) |
 | **Course Intelligence API** | Programmatic interface for applications | `course_intelligence/api.py` (FastAPI) |
 | **Course Intelligence Engine** | Core instructional-content analysis layer | `course_intelligence/engine/agents/`, `course_intelligence/engine/graph/`, `course_intelligence/engine/dataflows/` |
-| **LLM Gateway** | Centralized interface to configured LLM providers | `course_intelligence/gateway.py` + `course_intelligence/llm_clients/` |
+| **LLM Gateway** | Centralized interface to configured LLM providers | `course_intelligence/llm/gateway.py` + `course_intelligence/llm/clients/` |
 | **Course Intelligence MCP Server** | Future interface for AI applications and agents | Not implemented — intentionally deferred |
 
 ### Component Architecture
@@ -360,7 +360,7 @@ engine configured from `DATABASE_URL`. Both the API and worker use this.
 
 ## LLM Clients
 
-`llm_clients/` abstracts the LLM provider behind a common interface.
+`llm/clients/` abstracts the LLM provider behind a common interface.
 
 | File | Provider | Class |
 |------|----------|-------|

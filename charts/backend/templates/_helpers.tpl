@@ -58,7 +58,7 @@ root-password). Prefers an existing Secret when provided.
 {{- end -}}
 
 {{/*
-Name of the Secret holding LLM credentials (keys: ollama-api-key,
+Name of the Secret holding LLM credentials (keys: api-key,
 azure-openai-api-key). Prefers an existing Secret when provided.
 */}}
 {{- define "course-intelligence-backend.llmSecretName" -}}
@@ -115,7 +115,7 @@ Option A (see plans/step-08): mounted on the worker and gateway, NOT the api.
   valueFrom:
     secretKeyRef:
       name: {{ include "course-intelligence-backend.llmSecretName" . }}
-      key: ollama-api-key
+      key: api-key
 - name: AZURE_OPENAI_API_KEY
   valueFrom:
     secretKeyRef:

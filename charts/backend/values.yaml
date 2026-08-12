@@ -27,7 +27,7 @@ llm:
   ollama:
     baseUrl: "https://ollama.com"
     model: "gemma4:31b-cloud"
-    apiKey: ""              # -> Secret key `ollama-api-key` / env OLLAMA_API_KEY
+    apiKey: ""              # -> Secret key `api-key` / env OLLAMA_API_KEY
   azure:
     endpoint: ""
     apiVersion: "2024-06-01"
@@ -35,7 +35,7 @@ llm:
     embeddingDeployment: ""
     apiKey: ""              # -> Secret key `azure-openai-api-key` / env AZURE_OPENAI_API_KEY
   # Name of a pre-existing Secret holding LLM credentials (keys:
-  # ollama-api-key, azure-openai-api-key). When set, the chart references it
+  # api-key, azure-openai-api-key). When set, the chart references it
   # instead of creating its own (Vault-ready).
   existingSecret: ""
 

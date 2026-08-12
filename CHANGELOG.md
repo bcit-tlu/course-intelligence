@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.5](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.10.4...backend-v0.10.5) (2026-08-12)
+
+
+### Documentation
+
+* add MCP server design section to architecture documentation ([58b1655](https://github.com/bcit-tlu/course-intelligence/commit/58b16554c85981e8a39a3cccb8ea189a8afae530))
+* add MCP server design section to architecture documentation ([be4f8ae](https://github.com/bcit-tlu/course-intelligence/commit/be4f8aead30a246616f25c425cb3cb604cf3b574))
+
 ## [0.10.4](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.10.3...backend-v0.10.4) (2026-08-12)
 
 

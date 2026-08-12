@@ -3,7 +3,7 @@
 import sys
 
 from course_intelligence.default_config import DEFAULT_CONFIG
-from course_intelligence.graph import CourseProcessorGraph
+from course_intelligence.engine import CourseProcessorGraph
 
 
 def run_api():

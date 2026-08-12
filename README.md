@@ -107,25 +107,26 @@ course-intelligence/             # repo root
     ├── worker.py                # background worker (Redis queue, reliable pattern)
     ├── gateway.py               # LLM gateway proxy (centralizes LLM calls)
     ├── storage.py               # S3/MinIO object storage wrapper
-    ├── agents/                  # agent factories grouped by role
-    │   ├── schemas.py           # Pydantic structured-output models (ChunkOutput)
-    │   ├── extractor/           # create_content_extractor() — pure Python, no LLM
-    │   ├── chunker/             # create_semantic_chunker(llm) — LLM-powered chunking
-    │   ├── classifier/          # create_blooms_classifier(llm) — Bloom's taxonomy tagging
-    │   └── utils/               # AgentState, KnowledgeChunk, shared helpers
-    ├── graph/                   # graph orchestration (no agent logic)
-    │   ├── processor_graph.py   # CourseProcessorGraph orchestrator
-    │   ├── setup.py             # node/edge wiring (extract → chunk → classify → END)
-    │   ├── propagation.py       # initial state creation
-    │   ├── steps.py             # node-to-step progress mapping
-    │   └── conditional_logic.py # routing (placeholder, future human-in-the-loop)
-    ├── dataflows/               # data-source abstraction
-    │   ├── interface.py         # parse_document() dispatcher
-    │   ├── pdf_parser.py        # PyMuPDF
-    │   ├── text_parser.py       # plain text / markdown
-    │   ├── docx_parser.py       # python-docx
-    │   ├── html_parser.py       # BeautifulSoup4
-    │   └── d2l_parser.py        # D2L export (Table of Contents structure)
+    ├── engine/                  # transport-independent processing core
+    │   ├── agents/              # agent factories grouped by role
+    │   │   ├── schemas.py       # Pydantic structured-output models (ChunkOutput)
+    │   │   ├── extractor/       # create_content_extractor() — pure Python, no LLM
+    │   │   ├── chunker/         # create_semantic_chunker(llm) — LLM-powered chunking
+    │   │   ├── classifier/      # create_blooms_classifier(llm) — Bloom's taxonomy tagging
+    │   │   └── utils/           # AgentState, KnowledgeChunk, shared helpers
+    │   ├── graph/               # graph orchestration (no agent logic)
+    │   │   ├── processor_graph.py   # CourseProcessorGraph orchestrator
+    │   │   ├── setup.py             # node/edge wiring (extract → chunk → classify → END)
+    │   │   ├── propagation.py       # initial state creation
+    │   │   ├── steps.py             # node-to-step progress mapping
+    │   │   └── conditional_logic.py # routing (placeholder, future human-in-the-loop)
+    │   └── dataflows/           # data-source abstraction
+    │       ├── interface.py     # parse_document() dispatcher
+    │       ├── pdf_parser.py    # PyMuPDF
+    │       ├── text_parser.py   # plain text / markdown
+    │       ├── docx_parser.py   # python-docx
+    │       ├── html_parser.py   # BeautifulSoup4
+    │       └── d2l_parser.py    # D2L export (Table of Contents structure)
     ├── db/                      # database layer
     │   ├── models.py            # Job, Result, JobStatus (SQLAlchemy)
     │   └── session.py           # engine + session factory

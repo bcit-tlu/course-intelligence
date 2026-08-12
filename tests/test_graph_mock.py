@@ -3,7 +3,7 @@
 import os
 import tempfile
 
-from course_intelligence.graph import CourseProcessorGraph
+from course_intelligence.engine import CourseProcessorGraph
 
 # Force mock mode for tests
 os.environ["MOCK_LLM"] = "true"

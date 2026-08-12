@@ -5,7 +5,7 @@ import json
 
 from langchain_core.language_models.fake_chat_models import FakeListChatModel
 
-from course_intelligence.agents.classifier.blooms_classifier import (
+from course_intelligence.engine.agents.classifier.blooms_classifier import (
     UNCLASSIFIED,
     create_blooms_classifier,
 )

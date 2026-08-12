@@ -15,7 +15,7 @@ from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 from course_intelligence import storage
-from course_intelligence.dataflows import SUPPORTED_EXTENSIONS
+from course_intelligence.engine.dataflows import SUPPORTED_EXTENSIONS
 from course_intelligence.db import Job, JobStatus, get_session
 from course_intelligence.default_config import DEFAULT_CONFIG
 

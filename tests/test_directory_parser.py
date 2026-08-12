@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from course_intelligence.dataflows.interface import (
+from course_intelligence.engine.dataflows.interface import (
     _dispatch_directory,
     _natural_sort_key,
     _parse_generic_directory,

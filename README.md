@@ -88,7 +88,7 @@ Test suite:
 ## Project Structure
 
 ```
-dialog/                          # repo root
+course-intelligence/             # repo root
 ├── pyproject.toml               # single project file
 ├── main.py                      # CLI entry point (api / worker / gateway / file)
 ├── Dockerfile
@@ -100,7 +100,7 @@ dialog/                          # repo root
 ├── frontend/                    # React + Vite + TailwindCSS SPA
 ├── tests/                       # all tests
 │
-└── dialog/                      # installable package
+└── course_intelligence/         # installable package
     ├── __init__.py              # loads .env via dotenv
     ├── default_config.py        # config dict + env-var overlay
     ├── api.py                   # FastAPI endpoints (async job API)

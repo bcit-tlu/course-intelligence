@@ -25,7 +25,7 @@ function useElapsed(startIso: string): string {
   return m > 0 ? `${m}m ${s}s` : `${s}s`;
 }
 
-// Pipeline steps — mirrors STEP_ORDER in dialog/graph/steps.py (backend).
+// Pipeline steps — mirrors STEP_ORDER in course_intelligence/graph/steps.py (backend).
 const STEPS = [
   { key: "extracting", label: "Extracting course content" },
   { key: "chunking", label: "Identifying learning elements" },

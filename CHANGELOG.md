@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.3](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.10.2...backend-v0.10.3) (2026-08-12)
+
+
+### Documentation
+
+* update project description from Dialog to Course Intelligence t… ([08ae342](https://github.com/bcit-tlu/course-intelligence/commit/08ae342a914e0dc3beea1063a4fc5a66009747df))
+* update project description from Dialog to Course Intelligence throughout documentation ([1da1c0c](https://github.com/bcit-tlu/course-intelligence/commit/1da1c0c07bb840321893eb211b39eec67c9f6a4f))
+
 ## [0.10.2](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.10.1...backend-v0.10.2) (2026-08-12)
 
 

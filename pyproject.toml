@@ -1,6 +1,6 @@
 [project]
 name = "course-intelligence"
-version = "0.10.2"
+version = "0.10.3"
 description = "Course Intelligence — transforms instructional content into structured learning elements (LangGraph pipeline)"
 requires-python = ">=3.12"
 dependencies = [

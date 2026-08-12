@@ -242,6 +242,7 @@ blanket find-and-replace. Each decision below is deliberate.
 | Kubernetes namespace (`dialog`) | **Retained permanently** | Namespaces are immutable; renaming means recreating every namespaced resource |
 | Secret names (`dialog-llm`, `dialog-s3`) | **Retained permanently** | Created out-of-band by operators; renaming breaks existing clusters for no benefit |
 | Ingress hostnames (`dialog.<env>.ltc.bcit.ca`) | **Deferred** | Requires DNS and certificate changes coordinated outside this repo |
+| Redis queue names (`dialog:jobs` → `course-intelligence:jobs`) | **Renamed** | Beta application; downtime acceptable — any in-flight jobs are lost on restart anyway |
 | `flux-fleet` overlay path (`apps/overlays/latest/dialog/`) | **Deferred** | Lives in a separate repository, on its own release cadence |
 
 The chart rename is a **breaking deployment change**: `app.kubernetes.io/name`
@@ -264,6 +265,48 @@ course-intelligence-llm-gateway
 
 Any dashboards or queries introduced later must be updated together with the
 identifiers they reference.
+
+### Phase 11 reference audit
+
+A full `grep -Rni "dialog"` was run after Phases 2–10. Every match was
+classified into one of four categories. Two stale references were found and
+fixed during the audit; all remaining matches are legitimate.
+
+**Fixed during audit:**
+
+| File | Was | Now |
+|---|---|---|
+| `tests/test_db.py` docstring | "dialog.db package" | "course_intelligence.db package" |
+| `studio/src/pages/DocsPage.tsx` CSS class | `prose-dialog` | `prose` |
+
+**Infrastructure identifiers (retain — see table above):**
+
+| File(s) | Reference | Notes |
+|---|---|---|
+| `course_intelligence/worker.py`, `api.py` | Redis queues `course-intelligence:jobs`, `course-intelligence:jobs:processing` | Renamed from `dialog:jobs` during Phase 11 |
+| `course_intelligence/db/session.py`, `default_config.py` | Local-dev / example Postgres URL `dialog:dialog@…/dialog` | Matches the retained Postgres credentials |
+| `docker-compose.yml` | `POSTGRES_DB/USER/PASSWORD: dialog`, `DATABASE_URL` | Dev-compose Postgres credentials |
+| `charts/backend/values.yaml` | Postgres URI / database / username / password | Documented in-chart as intentionally retained |
+| `docs/deployment.md` | Namespace `dialog`, secrets `dialog-llm`/`dialog-s3`, ingress hosts, Helm release names, flux-fleet paths | All are live infrastructure identifiers |
+| `docs/architecture.md` | Legacy identifiers table, naming-transition note, queue-flow description | Documentation of the retained identifiers |
+| `README.md` | Flux-fleet overlay path, example `DATABASE_URL` | Real path in external repo; example uses retained credentials |
+
+**Historical references (retain — do not edit):**
+
+| File(s) | Count | Notes |
+|---|---|---|
+| `CHANGELOG.md` | 50 | Past release history |
+| `studio/CHANGELOG.md` | 20 | Past release history |
+| `Course Intelligence Rebranding…Implementation Plan.md` | 22 | Master plan document |
+| `docs/rebranding-plan/*.md` | 40 | Rebranding plan phases |
+| `flux-fleet-plan.md` | 67 | Migration plan for external repo |
+
+**Build artifacts (Phase 12 — regenerate or gitignore):**
+
+| File(s) | Count | Notes |
+|---|---|---|
+| `studio/dist/` | 4 | Committed build output with old branding baked in |
+| `studio/.vite/` | 8 | Vite dependency cache |
 
 ---
 
@@ -420,7 +463,7 @@ by `LLM_PROVIDER` env var.
 
 Uses Redis `BLMOVE` / `LREM` (the reliable queue pattern from Redis docs):
 
-1. `BLMOVE dialog:jobs → dialog:jobs:processing` — atomically claim a job
+1. `BLMOVE course-intelligence:jobs → course-intelligence:jobs:processing` — atomically claim a job
 2. Download the upload from MinIO to a temp directory
 3. Run `CourseProcessorGraph.process_with_progress()` with an `on_step` callback
 4. Save results to Postgres, mark job completed/failed

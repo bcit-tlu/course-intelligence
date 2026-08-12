@@ -88,7 +88,7 @@ export default function DocsPage() {
 
         {/* Content */}
         <article className="min-w-0 flex-1">
-          <div className="prose-dialog max-w-none">
+          <div className="prose max-w-none">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{

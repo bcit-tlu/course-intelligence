@@ -21,7 +21,7 @@ from course_intelligence.default_config import DEFAULT_CONFIG
 
 logger = logging.getLogger(__name__)
 
-JOB_QUEUE = "dialog:jobs"
+JOB_QUEUE = "course-intelligence:jobs"
 
 # Local dev fallback — matches the docker-compose redis service with its
 # published port (6379) on localhost.

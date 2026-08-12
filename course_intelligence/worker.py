@@ -5,7 +5,7 @@ atomically moved to a processing list while being worked on, removed
 (LREM) once done, and reclaimed on startup if a previous worker run
 crashed mid-job.
 
-Loop: BLMOVE dialog:jobs → dialog:jobs:processing → load job from
+Loop: BLMOVE course-intelligence:jobs → course-intelligence:jobs:processing → load job from
 Postgres → download upload from MinIO → run CourseProcessorGraph →
 save results → mark completed/failed → LREM from processing list.
 """
@@ -27,8 +27,8 @@ from course_intelligence.engine.graph.steps import NODE_TO_STEP
 
 logger = logging.getLogger(__name__)
 
-JOB_QUEUE = "dialog:jobs"
-PROCESSING_QUEUE = "dialog:jobs:processing"
+JOB_QUEUE = "course-intelligence:jobs"
+PROCESSING_QUEUE = "course-intelligence:jobs:processing"
 BLOCK_TIMEOUT_S = 5
 
 _LOCAL_DEV_REDIS = "redis://localhost:6379/0"

@@ -65,20 +65,21 @@ worker:
 # On older clusters, set pgvector.enabled=false and point cluster.image at a
 # custom operand image that already bundles postgresql-<major>-pgvector,
 # then add `CREATE EXTENSION vector` to a postInitTemplateSQL of your own.
-# The `dialog` database name, username, and password below are legacy
-# identifiers retained deliberately: renaming them requires a data migration
-# with no functional benefit. See docs/architecture.md#legacy-identifiers.
+# PostgreSQL credentials use `course_intelligence` (database, username,
+# password) — renamed from `dialog` during the full rebrand. Since the
+# application is in beta with downtime/data loss acceptable, a clean rebuild
+# was chosen over a data migration.
 postgres:
   enabled: false
   # Used when postgres.enabled=false (external DB).
-  uri: "postgresql://dialog:dialog@localhost:5432/dialog"
+  uri: "postgresql://course_intelligence:course_intelligence@localhost:5432/course_intelligence"
   cluster:
     instances: 1
     image: ghcr.io/cloudnative-pg/postgresql:18-minimal-trixie
   auth:
-    database: dialog
-    username: dialog
-    password: dialog
+    database: course_intelligence
+    username: course_intelligence
+    password: course_intelligence
   pgvector:
     enabled: true
     # Extension image mounted as a CNPG image volume (must match the

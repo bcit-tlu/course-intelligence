@@ -113,7 +113,7 @@ For deploying to a cluster with Helm (charts in `charts/`), see
 metrics-server), secrets, the Flux GitOps deploy flow, verification, and upgrade/rollback.
 Cluster-specific values live in the
 [`flux-fleet`](https://github.com/bcit-tlu/flux-fleet) repo
-(`apps/overlays/latest/dialog/`).
+(`apps/overlays/latest/course-intelligence/`).
 
 ### Tests
 
@@ -209,7 +209,7 @@ Infrastructure vars (database, Redis, S3, gateway) are set in
 | `MOCK_LLM` | `false` | Run pipeline with deterministic mock responses |
 | `DEV_RELOAD` | `false` | Enable uvicorn auto-reload (dev only) |
 | `RETENTION_COUNT` | `10` | Number of recent job uploads to retain in S3 |
-| `DATABASE_URL` | — | Postgres connection string (e.g. `postgresql://dialog:dialog@db:5432/dialog`) |
+| `DATABASE_URL` | — | Postgres connection string (e.g. `postgresql://course_intelligence:course_intelligence@db:5432/course_intelligence`) |
 | `REDIS_URL` | — | Redis connection string (e.g. `redis://redis:6379/0`) |
 | `S3_ENDPOINT_URL` | — | S3/MinIO endpoint (e.g. `http://minio:9000`) |
 | `S3_ACCESS_KEY` | — | S3 access key |

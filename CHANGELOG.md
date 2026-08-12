@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.1](https://github.com/bcit-tlu/dialog/compare/backend-v0.10.0...backend-v0.10.1) (2026-08-12)
+
+
+### Documentation
+
+* update architecture documentation with product component model … ([b370adb](https://github.com/bcit-tlu/dialog/commit/b370adbbae0e693f6598b8f37680ee753e21031c))
+* update architecture documentation with product component model and naming conventions ([ca5aa59](https://github.com/bcit-tlu/dialog/commit/ca5aa590c255d6a14f1db5ab94135ebb65614a56))
+
 ## [0.10.0](https://github.com/bcit-tlu/dialog/compare/backend-v0.9.1...backend-v0.10.0) (2026-08-10)
 
 

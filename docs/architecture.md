@@ -249,7 +249,7 @@ feeds each Deployment's immutable `spec.selector`, and the namespace is immutabl
 Both require deleting and recreating resources. Since this is a beta application
 with downtime/data loss acceptable, the cutover is a clean rebuild — delete the
 old namespace, create the new one, recreate secrets, and let Flux reconcile. See
-[deployment.md](deployment.md) and the `flux-fleet-plan.md` for the migration procedure.
+[deployment.md](deployment.md) for the migration procedure.
 
 ### Observability identifiers
 
@@ -297,9 +297,6 @@ fixed during the audit; all remaining matches are legitimate.
 |---|---|---|
 | `CHANGELOG.md` | 50 | Past release history |
 | `studio/CHANGELOG.md` | 20 | Past release history |
-| `Course Intelligence Rebranding…Implementation Plan.md` | 22 | Master plan document |
-| `docs/rebranding-plan/*.md` | 40 | Rebranding plan phases |
-| `flux-fleet-plan.md` | 67 | Migration plan for external repo |
 
 **Build artifacts (Phase 12 — regenerate or gitignore):**
 

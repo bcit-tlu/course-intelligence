@@ -66,6 +66,15 @@ azure-openai-api-key). Prefers an existing Secret when provided.
 {{- end -}}
 
 {{/*
+Name of the Secret holding the Postgres connection URI (key: uri).
+Prefers an existing Secret when provided; falls back to the chart-managed
+<fullname>-db Secret created by postgres-cluster.yaml.
+*/}}
+{{- define "course-intelligence-backend.postgresSecretName" -}}
+{{- .Values.postgres.existingSecret | default (printf "%s-db" (include "course-intelligence-backend.fullname" .)) -}}
+{{- end -}}
+
+{{/*
 S3 endpoint URL. Uses the in-cluster MinIO Service when enabled, otherwise
 the externally-provided endpoint.
 */}}
@@ -84,10 +93,10 @@ in-cluster, otherwise from the external postgres.uri value.
 */}}
 {{- define "course-intelligence-backend.coreEnv" -}}
 - name: DATABASE_URL
-{{- if .Values.postgres.enabled }}
+{{- if or .Values.postgres.enabled .Values.postgres.existingSecret }}
   valueFrom:
     secretKeyRef:
-      name: {{ include "course-intelligence-backend.fullname" . }}-db
+      name: {{ include "course-intelligence-backend.postgresSecretName" . }}
       key: uri
 {{- else }}
   value: {{ .Values.postgres.uri | quote }}

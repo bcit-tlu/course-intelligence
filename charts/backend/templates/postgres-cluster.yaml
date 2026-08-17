@@ -14,6 +14,7 @@ type: kubernetes.io/basic-auth
 stringData:
   username: {{ $auth.username | quote }}
   password: {{ $auth.password | quote }}
+{{- if not .Values.postgres.existingSecret }}
 ---
 # Connection URI the backend consumes as DATABASE_URL. Points at the CNPG
 # read-write service (<cluster>-rw). Kept at a stable name so Step 9's
@@ -27,6 +28,7 @@ metadata:
 type: Opaque
 stringData:
   uri: {{ printf "postgresql://%s:%s@%s-rw:5432/%s" $auth.username $auth.password $clusterName $auth.database | quote }}
+{{- end }}
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster

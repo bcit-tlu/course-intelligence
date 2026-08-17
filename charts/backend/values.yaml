@@ -71,8 +71,12 @@ worker:
 # was chosen over a data migration.
 postgres:
   enabled: false
-  # Used when postgres.enabled=false (external DB).
+  # Used when postgres.enabled=false and postgres.existingSecret is empty.
   uri: "postgresql://course_intelligence:course_intelligence@localhost:5432/course_intelligence"
+  # Name of a pre-existing Secret with key `uri` holding the DATABASE_URL.
+  # When set, the chart references it instead of creating its own Secret
+  # (Vault-ready). Works with postgres.enabled=false (external DB).
+  existingSecret: ""
   cluster:
     instances: 1
     image: ghcr.io/cloudnative-pg/postgresql:18-minimal-trixie

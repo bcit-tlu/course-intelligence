@@ -29,10 +29,10 @@ spec:
           command: ["uv", "run", "alembic", "upgrade", "head"]
           env:
             - name: DATABASE_URL
-            {{- if .Values.postgres.enabled }}
+            {{- if or .Values.postgres.enabled .Values.postgres.existingSecret }}
               valueFrom:
                 secretKeyRef:
-                  name: {{ $fullname }}-db
+                  name: {{ include "course-intelligence-backend.postgresSecretName" . }}
                   key: uri
             {{- else }}
               value: {{ .Values.postgres.uri | quote }}

@@ -50,6 +50,14 @@ class CourseProcessorGraph:
                 api_version=self.config.get("azure_openai_api_version", "2024-06-01"),
                 max_tokens=max_tokens,
             )
+        elif provider == "litellm" and not mock:
+            client = create_llm_client(
+                provider="litellm",
+                model=self.config.get("litellm_model", "default-fast"),
+                base_url=self.config.get("litellm_base_url"),
+                api_key=self.config.get("litellm_api_key", ""),
+                max_tokens=max_tokens,
+            )
         else:
             client = create_llm_client(
                 provider=provider,

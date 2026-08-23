@@ -17,6 +17,8 @@ data:
   AZURE_OPENAI_API_VERSION: {{ .Values.llm.azure.apiVersion | quote }}
   AZURE_OPENAI_DEPLOYMENT: {{ .Values.llm.azure.deployment | quote }}
   AZURE_OPENAI_EMBEDDING_DEPLOYMENT: {{ .Values.llm.azure.embeddingDeployment | quote }}
+  # LiteLLM gateway (non-secret) settings — used when LLM_PROVIDER=litellm.
+  LITELLM_MODEL: {{ .Values.llm.litellm.model | quote }}
   # Object storage (non-secret) settings.
   S3_ENDPOINT_URL: {{ include "course-intelligence-backend.s3EndpointUrl" . | quote }}
   S3_BUCKET: {{ .Values.minio.bucket | quote }}

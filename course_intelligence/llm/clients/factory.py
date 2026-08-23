@@ -19,7 +19,7 @@ def create_llm_client(
     """Create an LLM client for the specified provider.
 
     Args:
-        provider: LLM provider name ("ollama", "azure", "openai", "mock")
+        provider: LLM provider name ("ollama", "azure", "openai", "litellm", "mock")
         model: Model name / identifier (or Azure deployment name)
         base_url: Optional base URL for the API endpoint
         mock: If True, return a MockClient regardless of provider
@@ -37,7 +37,7 @@ def create_llm_client(
 
     provider_lower = provider.lower()
 
-    if provider_lower in ("openai", "ollama"):
+    if provider_lower in ("openai", "ollama", "litellm"):
         from .openai_client import OpenAIClient
         return OpenAIClient(model, base_url, **kwargs)
 

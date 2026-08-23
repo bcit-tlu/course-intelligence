@@ -18,7 +18,7 @@ service:
   port: 8000
 
 # ── LLM provider & gateway (Step 8) ─────────────────────────
-# provider: "ollama" (now), "azure" (later), "mock" (testing).
+# provider: "ollama" (dev), "azure" (pilot/prod), "litellm" (gateway), "mock" (testing).
 # Credentials are injected into the worker and gateway pods (the worker runs
 # the graph and calls the LLM provider directly today). See plans/step-08.
 llm:
@@ -34,9 +34,11 @@ llm:
     deployment: ""
     embeddingDeployment: ""
     apiKey: ""              # -> Secret key `azure-openai-api-key` / env AZURE_OPENAI_API_KEY
+  litellm:
+    model: "default-fast"   # LiteLLM model alias (non-secret); API key/base URL come from envFrom
   # Name of a pre-existing Secret holding LLM credentials (keys:
   # api-key, azure-openai-api-key). When set, the chart references it
-  # instead of creating its own (Vault-ready).
+  # instead of creating its own (Vault-ready). Ignored when provider=litellm.
   existingSecret: ""
 
 # ── LLM gateway deployment (Step 9) ─────────────────────────

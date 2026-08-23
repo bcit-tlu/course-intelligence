@@ -118,8 +118,10 @@ in-cluster, otherwise from the external postgres.uri value.
 {{/*
 LLM credential env for the roles that call the provider directly.
 Option A (see plans/step-08): mounted on the worker and gateway, NOT the api.
+Skipped for litellm — credentials come from the llm-gateway Secret via envFrom.
 */}}
 {{- define "course-intelligence-backend.llmCredsEnv" -}}
+{{- if ne .Values.llm.provider "litellm" }}
 - name: OLLAMA_API_KEY
   valueFrom:
     secretKeyRef:
@@ -130,4 +132,5 @@ Option A (see plans/step-08): mounted on the worker and gateway, NOT the api.
     secretKeyRef:
       name: {{ include "course-intelligence-backend.llmSecretName" . }}
       key: azure-openai-api-key
+{{- end }}
 {{- end -}}

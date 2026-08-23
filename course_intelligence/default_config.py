@@ -22,6 +22,11 @@ _ENV_OVERRIDES = {
     "AZURE_OPENAI_DEPLOYMENT":  "azure_openai_deployment",
     "AZURE_OPENAI_EMBEDDING_DEPLOYMENT": "azure_openai_embedding_deployment",
 
+    # LiteLLM gateway (OpenAI-compatible proxy)
+    "LITELLM_API_BASE":  "litellm_base_url",
+    "LITELLM_API_KEY":   "litellm_api_key",
+    "LITELLM_MODEL":     "litellm_model",
+
     # LLM gateway
     "LLM_GATEWAY_URL":   "llm_gateway_url",
 
@@ -85,6 +90,11 @@ DEFAULT_CONFIG = _apply_env_overrides({
     "azure_openai_api_version": "2024-06-01",
     "azure_openai_deployment": "",     # chat model deployment name
     "azure_openai_embedding_deployment": "",  # embedding model deployment name
+
+    # LiteLLM gateway (OpenAI-compatible proxy)
+    "litellm_base_url": "",            # e.g. http://litellm.llm-gateway.svc.cluster.local:4000
+    "litellm_api_key": "",
+    "litellm_model": "default-fast",
 
     # LLM gateway — internal proxy that centralizes all LLM calls
     "llm_gateway_url": "",             # e.g. http://llm-gateway:8100

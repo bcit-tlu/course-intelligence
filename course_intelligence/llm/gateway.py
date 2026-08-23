@@ -82,6 +82,13 @@ def _get_llm():
             api_key=DEFAULT_CONFIG.get("azure_openai_api_key", ""),
             api_version=DEFAULT_CONFIG.get("azure_openai_api_version", "2024-06-01"),
         )
+    elif provider == "litellm" and not mock:
+        client = create_llm_client(
+            provider="litellm",
+            model=DEFAULT_CONFIG.get("litellm_model", "default-fast"),
+            base_url=DEFAULT_CONFIG.get("litellm_base_url"),
+            api_key=DEFAULT_CONFIG.get("litellm_api_key", ""),
+        )
     else:
         client = create_llm_client(
             provider=provider,

@@ -143,8 +143,8 @@ def cleanup_old_uploads() -> None:
     """Delete S3 uploads beyond the retention count.
 
     Keeps uploads for the N most recent completed+failed jobs.
-    Older jobs have their S3 object deleted and storage_key blanked.
-    Job and Result rows are preserved in Postgres.
+    Older jobs have their S3 object deleted and the Job row (with its
+    Result rows via ON DELETE CASCADE) is deleted from Postgres.
     """
     keep = DEFAULT_CONFIG.get("retention_count", 10)
     session = get_session()

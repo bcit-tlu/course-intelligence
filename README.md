@@ -20,7 +20,8 @@ asynchronous LangGraph pipeline.
 | **Course Intelligence MCP Server** | Potential future interface for AI applications and agents | Not implemented — [design](docs/architecture.md#future-mcp-server) |
 
 The LLM Gateway selects its provider via `LLM_PROVIDER` — Ollama for development,
-Azure OpenAI for pilot/production, and a deterministic mock for tests.
+Azure OpenAI for pilot/production, LiteLLM for a self-hosted gateway, and a
+deterministic mock for tests.
 
 See [`docs/architecture.md`](docs/architecture.md) for dependency rules, naming
 conventions, and subsystem internals.
@@ -183,7 +184,7 @@ course-intelligence/             # repo root
         └── clients/              # LLM provider abstraction
             ├── base_client.py    # ABC
             ├── factory.py        # create_llm_client(provider, model, mock, ...)
-            ├── openai_client.py  # Ollama / OpenAI compat
+            ├── openai_client.py  # Ollama / OpenAI / LiteLLM compat
             ├── azure_client.py   # Azure OpenAI (AzureChatOpenAI)
             └── mock_client.py    # FakeListChatModel for testing
 ```
@@ -196,7 +197,7 @@ Infrastructure vars (database, Redis, S3, gateway) are set in
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `LLM_PROVIDER` | `ollama` | LLM provider: `ollama` (dev), `azure` (pilot/prod), `mock` (testing) |
+| `LLM_PROVIDER` | `ollama` | LLM provider: `ollama` (dev), `azure` (pilot/prod), `litellm` (self-hosted gateway), `mock` (testing) |
 | `OLLAMA_API_KEY` | — | API key from [ollama.com/settings/keys](https://ollama.com/settings/keys) |
 | `OLLAMA_BASE_URL` | `https://ollama.com` | Ollama Cloud endpoint |
 | `OLLAMA_MODEL` | `gemma4:31b-cloud` | Chat model |
@@ -205,6 +206,9 @@ Infrastructure vars (database, Redis, S3, gateway) are set in
 | `AZURE_OPENAI_API_VERSION` | `2024-06-01` | Azure OpenAI API version |
 | `AZURE_OPENAI_DEPLOYMENT` | — | Azure chat model deployment name |
 | `AZURE_OPENAI_EMBEDDING_DEPLOYMENT` | — | Azure embedding model deployment name |
+| `LITELLM_API_BASE` | — | LiteLLM gateway base URL (e.g. `http://litellm:4000`) |
+| `LITELLM_API_KEY` | — | LiteLLM gateway API key |
+| `LITELLM_MODEL` | `default-fast` | LiteLLM model alias |
 | `LLM_MAX_TOKENS` | `8192` | Max output tokens per LLM call (prevents truncated JSON) |
 | `MOCK_LLM` | `false` | Run pipeline with deterministic mock responses |
 | `DEV_RELOAD` | `false` | Enable uvicorn auto-reload (dev only) |

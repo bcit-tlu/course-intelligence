@@ -351,7 +351,7 @@ ContentPage:
     page_number: int
     title: str
     source_file: str
-    content_type: str    # "html_page" | "pdf" | "docx" | "text"
+    content_type: str    # "html_page" | "pdf" | "pdf_asset" | "docx" | "text"
     text: str
 ```
 
@@ -372,7 +372,7 @@ KnowledgeChunk:
 
 `CourseProcessorGraph` (`graph/processor_graph.py`) is the single public API:
 
-- Owns LLM creation (routes by `llm_provider`: ollama / azure / mock)
+- Owns LLM creation (routes by `llm_provider`: ollama / azure / litellm / mock)
 - Compiles the LangGraph state machine
 - `process(source_path, learning_objectives)` — single invoke
 - `process_with_progress(source_path, learning_objectives, on_step)` — dual-mode streaming with per-node callback
@@ -440,7 +440,7 @@ shrinks to ~200 MB of extractable content.
 
 ### Purpose
 
-- Centralize Azure OpenAI / Ollama calls in one service
+- Centralize Azure OpenAI / Ollama / LiteLLM calls in one service
 - Manage retries and rate limits
 - Log token usage and estimate cost
 - Keep API keys out of workers (only the gateway needs credentials)
@@ -480,8 +480,9 @@ a reclaimed job doesn't produce duplicate results.
 ### Upload retention
 
 After each job, `cleanup_old_uploads()` deletes S3 objects for jobs beyond
-`RETENTION_COUNT` (default 10). Job and Result rows are preserved in Postgres;
-only the S3 upload is purged and the job row is deleted.
+`RETENTION_COUNT` (default 10). Both the S3 upload and the Job row (with its
+Result rows, via `ON DELETE CASCADE`) are deleted — only the most recent
+`RETENTION_COUNT` completed/failed jobs are retained.
 
 ---
 
@@ -551,13 +552,14 @@ engine configured from `DATABASE_URL`. Both the API and worker use this.
 |------|----------|-------|
 | `base_client.py` | — | `BaseLLMClient` ABC |
 | `factory.py` | — | `create_llm_client(provider, model, mock, ...)` |
-| `openai_client.py` | Ollama / OpenAI | `ChatOpenAI` (langchain_openai) |
+| `openai_client.py` | Ollama / OpenAI / LiteLLM | `ChatOpenAI` (langchain_openai) |
 | `azure_client.py` | Azure OpenAI | `AzureChatOpenAI` (langchain_openai) |
 | `mock_client.py` | Testing | `FakeListChatModel` (langchain_core) |
 
 Provider selection is driven by `LLM_PROVIDER` env var:
 - `ollama` — dev default, uses OpenAI-compatible API against Ollama Cloud
 - `azure` — pilot/prod, uses Azure OpenAI
+- `litellm` — self-hosted gateway, uses OpenAI-compatible API against a LiteLLM proxy
 - `mock` — testing, deterministic responses without API calls
 
 ---

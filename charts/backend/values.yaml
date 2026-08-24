@@ -141,8 +141,8 @@ minio:
 
 # ── Upload retention ────────────────────────────────────────
 # Number of recent job uploads to retain in S3. Older uploads are
-# purged from MinIO after each job completes; Job + Result rows in
-# Postgres are always preserved.
+# purged from MinIO after each job completes; the Job row (and its
+# Result rows via ON DELETE CASCADE) are also deleted from Postgres.
 retentionCount: 10
 
 # ── Probes ──────────────────────────────────────────────────

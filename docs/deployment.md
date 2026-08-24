@@ -58,7 +58,9 @@ Tooling: `helm` ≥ 3.12, `kubectl` matching the cluster.
 
 ## Published images
 
-CI (`.github/workflows/ci.yaml`) builds and pushes on every `main` push and git tag:
+CI (`.github/workflows/ci.yaml`) builds and pushes on every `main` push; release
+images are tagged `vX.Y.Z` + `latest` by `release-please.yaml` → `release-retag.yaml`
+on git tags:
 
 - `ghcr.io/bcit-tlu/course-intelligence/course-intelligence-api`
 - `ghcr.io/bcit-tlu/course-intelligence/course-intelligence-studio`

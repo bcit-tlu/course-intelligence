@@ -51,7 +51,9 @@ src/
 │   ├── uploading.md        # how to upload a module
 │   ├── results.md          # how to read results + Bloom's badges
 │   └── job-status.md       # job lifecycle and polling
-├── lib/utils.ts        # cn() + formatBytes()
+├── lib/
+│   ├── utils.ts        # cn() + formatBytes()
+│   └── blooms.ts       # Bloom's level constants, ordering, and helpers
 └── pages/
     ├── UploadPage.tsx  # drag-drop upload + learning objectives
     ├── DocsPage.tsx    # user manual with sidebar nav + markdown rendering

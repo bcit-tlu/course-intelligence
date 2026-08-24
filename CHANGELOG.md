@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.6](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.10.5...backend-v0.10.6) (2026-08-24)
+
+
+### Documentation
+
+* add LiteLLM provider documentation and clarify retention behavior ([a443d0f](https://github.com/bcit-tlu/course-intelligence/commit/a443d0f7c03a8435eed86604f2f15bc174b98e2c))
+
 ## [0.10.5](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.10.4...backend-v0.10.5) (2026-08-12)
 
 

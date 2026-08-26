@@ -15,9 +15,9 @@ Every uploaded module creates a **job** that moves through the following states:
 
 While a job is in the **Processing** state, it progresses through three stages:
 
-1. **Extracting content** — text is pulled from the uploaded file
-2. **Chunking into topics** — the text is split into individual knowledge elements
-3. **Classifying (Bloom's)** — each element is assigned a cognitive level
+1. **Extracting course content** — text is pulled from the uploaded file
+2. **Identifying learning elements** — the text is split into individual knowledge elements
+3. **Classifying cognitive levels** — each element is assigned a [Bloom's taxonomy](https://en.wikipedia.org/wiki/Bloom%27s_taxonomy) level
 
 The job page shows a live progress indicator with the current step highlighted.
 A timer displays elapsed time since the job was created.

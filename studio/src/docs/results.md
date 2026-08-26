@@ -12,7 +12,7 @@ element** cards. Each card shows:
 
 ## Bloom's taxonomy levels
 
-Each element is classified into one of six Bloom's taxonomy levels, represented
+Each element is classified into one of six [Bloom's taxonomy](https://en.wikipedia.org/wiki/Bloom%27s_taxonomy) levels, represented
 by a colored badge:
 
 | Level | Badge Color | Meaning |
@@ -30,7 +30,7 @@ If an element cannot be classified, it is labeled **Unclassified** with a muted 
 
 Above the results grid, you'll find:
 
-- **Level filter buttons** — click a Bloom's level to show only elements at that level; click again to clear
+- **Level filter buttons** — click a Bloom's level to show only elements at that level; click **All** to clear the filter
 - **Search box** — type to filter elements by topic or content text
 
 Filters combine — you can search within a specific level.

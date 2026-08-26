@@ -3,9 +3,9 @@
 ## What is Course Intelligence?
 
 Course Intelligence transforms instructional content into structured educational
-information. It takes raw course modules — PDFs, Word documents, text files, or
-D2L export zips — and turns them into structured **learning elements**, each
-tagged with a **Bloom's taxonomy level**.
+information. It takes raw course modules — PDFs, Word documents, text files, Markdown
+files, or D2L export zips — and turns them into structured **learning
+elements**, each tagged with a [**Bloom's taxonomy**](https://en.wikipedia.org/wiki/Bloom%27s_taxonomy) level.
 
 ## Who is it for?
 
@@ -36,6 +36,6 @@ Each learning element includes:
 - **Content** — the extracted text for that topic
 - **Bloom's level** — one of Remember, Understand, Apply, Analyze, Evaluate, or Create
 - **Rationale** — a brief explanation of why that level was assigned
-- **Source page** — the page number in the original document (when available)
+- **Source page** — the title or page number of the source location in the original document (when available)
 
 Ready to get started? See [Uploading a Module](#uploading-a-module).

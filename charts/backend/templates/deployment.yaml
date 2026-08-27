@@ -51,6 +51,14 @@ spec:
                 name: {{ $fullname }}-config
           env:
             {{- include "course-intelligence-backend.coreEnv" . | nindent 12 }}
+            {{- if .Values.observability.openTelemetry.enabled }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ .Values.observability.openTelemetry.endpoint | quote }}
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: {{ .Values.observability.openTelemetry.protocol | quote }}
+            - name: OTEL_SERVICE_NAME
+              value: {{ include "course-intelligence-backend.otelServiceName" (dict "ctx" . "component" "api") | quote }}
+            {{- end }}
           livenessProbe:
             httpGet:
               path: {{ .Values.probes.liveness.path }}

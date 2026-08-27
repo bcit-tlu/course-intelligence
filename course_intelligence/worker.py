@@ -18,14 +18,39 @@ import time
 from pathlib import Path
 
 import redis as redis_lib
+from opentelemetry import trace, metrics
 
 from course_intelligence import storage
 from course_intelligence.db import Job, JobStatus, Result, get_session
 from course_intelligence.default_config import DEFAULT_CONFIG
 from course_intelligence.engine import CourseProcessorGraph
 from course_intelligence.engine.graph.steps import NODE_TO_STEP
+from course_intelligence.observability import setup_otel, instrument_shared
 
 logger = logging.getLogger(__name__)
+
+tracer = trace.get_tracer(__name__)
+meter = metrics.get_meter(__name__)
+
+jobs_counter = meter.create_counter(
+    "ci.jobs.total", unit="1", description="Total jobs processed"
+)
+job_duration = meter.create_histogram(
+    "ci.job.duration.seconds", unit="s", description="Job processing duration"
+)
+elements_counter = meter.create_counter(
+    "ci.job.elements.total", unit="1", description="Total learning elements produced"
+)
+step_duration = meter.create_histogram(
+    "ci.pipeline.step.duration.seconds",
+    unit="s",
+    description="Duration per pipeline step",
+)
+classified_counter = meter.create_counter(
+    "ci.classified.chunks.total",
+    unit="1",
+    description="Chunks classified by Bloom's level",
+)
 
 JOB_QUEUE = "course-intelligence:jobs"
 PROCESSING_QUEUE = "course-intelligence:jobs:processing"
@@ -86,55 +111,75 @@ def process_job(job_id: str, graph: CourseProcessorGraph) -> None:
     logger.info("Job %s: processing (%s)", job_id, filename)
     started = time.monotonic()
 
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        local_path = str(Path(tmp_dir) / filename)
-        storage.download_file(storage_key, local_path)
+    with tracer.start_as_current_span(
+        "process_job",
+        attributes={"job.id": job_id, "job.filename": filename},
+    ) as span:
+        step_start = started
 
-        result = graph.process_with_progress(
-            local_path,
-            learning_objectives,
-            on_step=lambda node: _set_step(
-                job_id, NODE_TO_STEP.get(node, node)
-            ),
+        def _on_step(node: str) -> None:
+            nonlocal step_start
+            now = time.monotonic()
+            step_duration.record(
+                now - step_start, {"step": NODE_TO_STEP.get(node, node)}
+            )
+            step_start = now
+            _set_step(job_id, NODE_TO_STEP.get(node, node))
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            local_path = str(Path(tmp_dir) / filename)
+            storage.download_file(storage_key, local_path)
+
+            result = graph.process_with_progress(
+                local_path,
+                learning_objectives,
+                on_step=_on_step,
+            )
+
+        error = result.get("error")
+        knowledge_map = result.get("knowledge_map", [])
+
+        if not knowledge_map:
+            raise RuntimeError(error or "Pipeline produced no results")
+
+        session = get_session()
+        try:
+            # Idempotency: a reclaimed job may have partially saved results
+            # from a crashed run — clear them before re-inserting.
+            session.query(Result).filter_by(job_id=job_id).delete()
+            for chunk in knowledge_map:
+                session.add(
+                    Result(
+                        job_id=job_id,
+                        topic=chunk.get("topic", "Untitled"),
+                        content=chunk.get("content", ""),
+                        blooms_level=chunk.get("blooms_level"),
+                        blooms_rationale=chunk.get("blooms_rationale"),
+                        source_page=chunk.get("source_page"),
+                        page_number=chunk.get("page_number"),
+                    )
+                )
+                blooms = chunk.get("blooms_level")
+                if blooms:
+                    classified_counter.add(1, {"blooms_level": blooms})
+            job = session.get(Job, job_id)
+            job.status = JobStatus.completed
+            # Partial page failures are recorded but don't fail the job
+            job.error = error
+            session.commit()
+        finally:
+            session.close()
+
+        elapsed = time.monotonic() - started
+        logger.info(
+            "Job %s: completed — %d elements in %.1fs%s",
+            job_id, len(knowledge_map), elapsed,
+            f" (partial: {error})" if error else "",
         )
 
-    error = result.get("error")
-    knowledge_map = result.get("knowledge_map", [])
-
-    if not knowledge_map:
-        raise RuntimeError(error or "Pipeline produced no results")
-
-    session = get_session()
-    try:
-        # Idempotency: a reclaimed job may have partially saved results
-        # from a crashed run — clear them before re-inserting.
-        session.query(Result).filter_by(job_id=job_id).delete()
-        for chunk in knowledge_map:
-            session.add(
-                Result(
-                    job_id=job_id,
-                    topic=chunk.get("topic", "Untitled"),
-                    content=chunk.get("content", ""),
-                    blooms_level=chunk.get("blooms_level"),
-                    blooms_rationale=chunk.get("blooms_rationale"),
-                    source_page=chunk.get("source_page"),
-                    page_number=chunk.get("page_number"),
-                )
-            )
-        job = session.get(Job, job_id)
-        job.status = JobStatus.completed
-        # Partial page failures are recorded but don't fail the job
-        job.error = error
-        session.commit()
-    finally:
-        session.close()
-
-    elapsed = time.monotonic() - started
-    logger.info(
-        "Job %s: completed — %d elements in %.1fs%s",
-        job_id, len(knowledge_map), elapsed,
-        f" (partial: {error})" if error else "",
-    )
+        job_duration.record(elapsed)
+        jobs_counter.add(1, {"status": "completed"})
+        elements_counter.add(len(knowledge_map))
 
     cleanup_old_uploads()
 
@@ -186,6 +231,8 @@ def run() -> None:
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
+    setup_otel("course-intelligence-worker")
+    instrument_shared()
     redis_client = _get_redis()
     graph = CourseProcessorGraph(config=DEFAULT_CONFIG)
     _reclaim_stale_jobs(redis_client)
@@ -206,6 +253,7 @@ def run() -> None:
             except Exception as e:
                 logger.error("Job %s: failed — %s", job_id, e, exc_info=True)
                 _set_status(job_id, JobStatus.failed, error=str(e))
+                jobs_counter.add(1, {"status": "failed"})
             finally:
                 # Done (completed or marked failed) — release the claim
                 redis_client.lrem(PROCESSING_QUEUE, 1, job_id)

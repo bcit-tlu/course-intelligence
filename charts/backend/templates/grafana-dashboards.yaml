@@ -1,0 +1,117 @@
+{{- if .Values.observability.grafanaDashboards.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "course-intelligence-backend.fullname" . }}-dashboards
+  labels:
+    {{- include "course-intelligence-backend.labels" . | nindent 4 }}
+    grafana_dashboard: "1"
+data:
+  course-intelligence.json: |-
+    {
+      "title": "Course Intelligence",
+      "schemaVersion": 39,
+      "tags": ["course-intelligence"],
+      "time": { "from": "now-6h", "to": "now" },
+      "panels": [
+        {
+          "title": "Jobs / hour",
+          "type": "stat",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "targets": [{
+            "expr": "sum(rate(ci_jobs_total[1h]))",
+            "legendFormat": "jobs/h"
+          }],
+          "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 }
+        },
+        {
+          "title": "Elements / hour",
+          "type": "stat",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "targets": [{
+            "expr": "sum(rate(ci_job_elements_total[1h]))",
+            "legendFormat": "elements/h"
+          }],
+          "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 }
+        },
+        {
+          "title": "Job duration (p50 / p95 / p99)",
+          "type": "timeseries",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "targets": [
+            { "expr": "histogram_quantile(0.50, rate(ci_job_duration_seconds_bucket[5m]))", "legendFormat": "p50" },
+            { "expr": "histogram_quantile(0.95, rate(ci_job_duration_seconds_bucket[5m]))", "legendFormat": "p95" },
+            { "expr": "histogram_quantile(0.99, rate(ci_job_duration_seconds_bucket[5m]))", "legendFormat": "p99" }
+          ],
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 }
+        },
+        {
+          "title": "Per-step duration",
+          "type": "timeseries",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "targets": [{
+            "expr": "histogram_quantile(0.95, rate(ci_pipeline_step_duration_seconds_bucket[5m])) by (step)",
+            "legendFormat": "{{ "{{step}}" }} p95"
+          }],
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 }
+        },
+        {
+          "title": "LLM tokens / hour",
+          "type": "timeseries",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "targets": [{
+            "expr": "sum(rate(ci_llm_tokens_total[1h])) by (direction, model)",
+            "legendFormat": "{{ "{{model}} {{direction}}" }}"
+          }],
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 }
+        },
+        {
+          "title": "LLM latency (p95)",
+          "type": "timeseries",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "targets": [{
+            "expr": "histogram_quantile(0.95, rate(ci_llm_request_duration_seconds_bucket[5m])) by (model)",
+            "legendFormat": "{{ "{{model}}" }} p95"
+          }],
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 }
+        },
+        {
+          "title": "Job success rate",
+          "type": "stat",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "targets": [{
+            "expr": "sum(rate(ci_jobs_total{status=\"completed\"}[1h])) / sum(rate(ci_jobs_total[1h]))",
+            "legendFormat": "success rate"
+          }],
+          "gridPos": { "h": 4, "w": 6, "x": 0, "y": 20 }
+        },
+        {
+          "title": "LLM errors / hour",
+          "type": "stat",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "targets": [{
+            "expr": "sum(rate(ci_llm_errors_total[1h]))",
+            "legendFormat": "errors/h"
+          }],
+          "gridPos": { "h": 4, "w": 6, "x": 6, "y": 20 }
+        },
+        {
+          "title": "Bloom's level distribution",
+          "type": "piechart",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "targets": [{
+            "expr": "sum(ci_classified_chunks_total) by (blooms_level)",
+            "legendFormat": "{{ "{{blooms_level}}" }}"
+          }],
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 }
+        }
+      ],
+      "templating": {
+        "list": [{
+          "name": "DS_PROMETHEUS",
+          "type": "datasource",
+          "query": "prometheus"
+        }]
+      }
+    }
+{{- end }}

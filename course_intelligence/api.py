@@ -13,13 +13,18 @@ from pathlib import Path
 import redis as redis_lib
 from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from course_intelligence import storage
 from course_intelligence.engine.dataflows import SUPPORTED_EXTENSIONS
 from course_intelligence.db import Job, JobStatus, get_session
+from course_intelligence.db.session import get_engine
 from course_intelligence.default_config import DEFAULT_CONFIG
+from course_intelligence.observability import setup_otel, instrument_shared
 
 logger = logging.getLogger(__name__)
+
+setup_otel("course-intelligence-api")
 
 JOB_QUEUE = "course-intelligence:jobs"
 
@@ -41,6 +46,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+FastAPIInstrumentor.instrument_app(app)
+instrument_shared(engine=get_engine())
 
 
 def _get_redis():

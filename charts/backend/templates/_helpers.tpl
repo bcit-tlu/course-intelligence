@@ -134,3 +134,17 @@ Skipped for litellm — credentials come from the llm-gateway Secret via envFrom
       key: azure-openai-api-key
 {{- end }}
 {{- end -}}
+
+{{/*
+OTel service name per role. Uses the override from observability.serviceName
+when set, otherwise derives from the release fullname and component suffix.
+*/}}
+{{- define "course-intelligence-backend.otelServiceName" -}}
+{{- $ctx := .ctx -}}
+{{- $component := .component -}}
+{{- if $ctx.Values.observability.serviceName -}}
+{{- $ctx.Values.observability.serviceName -}}
+{{- else -}}
+{{- printf "%s-%s" (include "course-intelligence-backend.fullname" $ctx) $component -}}
+{{- end -}}
+{{- end -}}

@@ -15,22 +15,40 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
+from opentelemetry import trace, metrics
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from pydantic import BaseModel
 
 from course_intelligence.default_config import DEFAULT_CONFIG
 from course_intelligence.llm.clients import create_llm_client
+from course_intelligence.observability import setup_otel
 
 logger = logging.getLogger(__name__)
+
+setup_otel("course-intelligence-gateway")
+
+tracer = trace.get_tracer(__name__)
+meter = metrics.get_meter(__name__)
+
+llm_tokens = meter.create_counter(
+    "ci.llm.tokens.total", unit="1", description="LLM tokens consumed"
+)
+llm_latency = meter.create_histogram(
+    "ci.llm.request.duration.seconds", unit="s", description="LLM call latency"
+)
+llm_errors = meter.create_counter(
+    "ci.llm.errors.total", unit="1", description="LLM call failures"
+)
 
 app = FastAPI(
     title="LLM Gateway",
     version="0.1.0",
     description="Internal proxy for LLM calls — centralizes credentials, logging, and retries.",
 )
+
+FastAPIInstrumentor.instrument_app(app)
 
 # --- Request / Response models ---
 
@@ -48,16 +66,6 @@ class CompletionResponse(BaseModel):
     model: str
     usage: dict[str, int]
     latency_ms: int
-
-
-# --- Stats ---
-
-_stats: dict[str, Any] = {
-    "total_requests": 0,
-    "total_input_tokens": 0,
-    "total_output_tokens": 0,
-    "errors": 0,
-}
 
 
 # --- LLM client (initialized lazily on first request) ---
@@ -112,7 +120,6 @@ async def health():
     return {
         "status": "ok",
         "provider": DEFAULT_CONFIG.get("llm_provider", "ollama"),
-        "stats": _stats,
     }
 
 
@@ -123,7 +130,6 @@ async def complete(request: CompletionRequest):
     Workers call this endpoint instead of calling the LLM directly.
     """
     llm = _get_llm()
-    _stats["total_requests"] += 1
 
     start = time.perf_counter()
     try:
@@ -140,37 +146,40 @@ async def complete(request: CompletionRequest):
             else:
                 messages.append(HumanMessage(content=content))
 
-        result = llm.invoke(messages)
-        latency_ms = int((time.perf_counter() - start) * 1000)
-
-        # Extract usage if available
-        usage = {}
-        if hasattr(result, "usage_metadata") and result.usage_metadata:
-            usage = {
-                "input_tokens": result.usage_metadata.get("input_tokens", 0),
-                "output_tokens": result.usage_metadata.get("output_tokens", 0),
-                "total_tokens": result.usage_metadata.get("total_tokens", 0),
-            }
-            _stats["total_input_tokens"] += usage.get("input_tokens", 0)
-            _stats["total_output_tokens"] += usage.get("output_tokens", 0)
-
-        content = result.content if hasattr(result, "content") else str(result)
         model_name = getattr(llm, "model_name", "") or getattr(llm, "model", "unknown")
 
-        return CompletionResponse(
-            content=content,
-            model=model_name,
-            usage=usage,
-            latency_ms=latency_ms,
-        )
+        with tracer.start_as_current_span(
+            "llm.complete",
+            attributes={"llm.model": model_name},
+        ) as span:
+            result = llm.invoke(messages)
+            latency_ms = int((time.perf_counter() - start) * 1000)
+
+            # Extract usage if available
+            usage = {}
+            if hasattr(result, "usage_metadata") and result.usage_metadata:
+                usage = {
+                    "input_tokens": result.usage_metadata.get("input_tokens", 0),
+                    "output_tokens": result.usage_metadata.get("output_tokens", 0),
+                    "total_tokens": result.usage_metadata.get("total_tokens", 0),
+                }
+                llm_tokens.add(usage.get("input_tokens", 0), {"direction": "input", "model": model_name})
+                llm_tokens.add(usage.get("output_tokens", 0), {"direction": "output", "model": model_name})
+                span.set_attribute("llm.input_tokens", usage.get("input_tokens", 0))
+                span.set_attribute("llm.output_tokens", usage.get("output_tokens", 0))
+
+            content = result.content if hasattr(result, "content") else str(result)
+            llm_latency.record(latency_ms / 1000, {"model": model_name})
+
+            return CompletionResponse(
+                content=content,
+                model=model_name,
+                usage=usage,
+                latency_ms=latency_ms,
+            )
 
     except Exception as e:
-        _stats["errors"] += 1
+        model_name = getattr(llm, "model_name", "") or getattr(llm, "model", "unknown")
+        llm_errors.add(1, {"model": model_name})
         logger.error("LLM completion failed: %s", e, exc_info=True)
         raise HTTPException(status_code=502, detail=f"LLM call failed: {e}")
-
-
-@app.get("/v1/stats")
-async def stats():
-    """Return cumulative token usage and request stats."""
-    return _stats

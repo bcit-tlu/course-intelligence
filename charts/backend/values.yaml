@@ -161,3 +161,17 @@ resources: {}
 nodeSelector: {}
 tolerations: []
 affinity: {}
+
+# ── Observability ───────────────────────────────────────────
+observability:
+  openTelemetry:
+    enabled: false
+    # OTLP/HTTP endpoint of the cluster's OTel collector.
+    endpoint: http://opentelemetry-collector.observability.svc.cluster.local:4318
+    protocol: http/protobuf
+  # Per-role service name override. Defaults to <release-name>-<role>.
+  serviceName: ""
+  serviceMonitor:
+    enabled: false
+  grafanaDashboards:
+    enabled: false

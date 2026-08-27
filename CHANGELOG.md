@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.11.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.10.6...backend-v0.11.0) (2026-08-27)
+
+
+### Features
+
+* add OpenTelemetry instrumentation and Grafana dashboards ([4b84a76](https://github.com/bcit-tlu/course-intelligence/commit/4b84a76cbd5ba7f32795d928a3cc9dda0f8866c3))
+* add OpenTelemetry instrumentation and Grafana dashboards ([4ef7dc9](https://github.com/bcit-tlu/course-intelligence/commit/4ef7dc9b4d85e6a60afd1afb80dbec3b13a6db7f))
+
+
+### Bug Fixes
+
+* escape Prometheus template variables in Grafana dashboard JSON ([66285cf](https://github.com/bcit-tlu/course-intelligence/commit/66285cf3cfa8495a43b779dc519ca51d17a007dd))
+
 ## [0.10.6](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.10.5...backend-v0.10.6) (2026-08-24)
 
 

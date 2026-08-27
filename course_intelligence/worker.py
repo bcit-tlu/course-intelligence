@@ -21,6 +21,13 @@ import redis as redis_lib
 from opentelemetry import trace, metrics
 
 from course_intelligence import storage
+from course_intelligence.analytics import (
+    emit_event,
+    elements_produced,
+    job_processing_time,
+    jobs_completed,
+    jobs_failed,
+)
 from course_intelligence.db import Job, JobStatus, Result, get_session
 from course_intelligence.default_config import DEFAULT_CONFIG
 from course_intelligence.engine import CourseProcessorGraph
@@ -167,6 +174,9 @@ def process_job(job_id: str, graph: CourseProcessorGraph) -> None:
             # Partial page failures are recorded but don't fail the job
             job.error = error
             session.commit()
+
+            # Capture tenant_id for analytics before session closes
+            tenant_id = job.tenant_id or "unknown"
         finally:
             session.close()
 
@@ -180,6 +190,26 @@ def process_job(job_id: str, graph: CourseProcessorGraph) -> None:
         job_duration.record(elapsed)
         jobs_counter.add(1, {"status": "completed"})
         elements_counter.add(len(knowledge_map))
+
+        # --- Analytics events ---
+        blooms_counts: dict[str, int] = {}
+        for chunk in knowledge_map:
+            level = chunk.get("blooms_level", "unclassified")
+            blooms_counts[level] = blooms_counts.get(level, 0) + 1
+
+        emit_event("ci.job.completed", {
+            "job.id": job_id,
+            "job.filename": filename,
+            "job.tenant_id": tenant_id,
+            "job.elements_count": len(knowledge_map),
+            "job.blooms_distribution": blooms_counts,
+            "job.processing_time_s": elapsed,
+            "job.has_partial_errors": bool(error),
+        })
+        jobs_completed.add(1, {"tenant_id": tenant_id})
+        job_processing_time.record(elapsed, {"tenant_id": tenant_id})
+        for level, count in blooms_counts.items():
+            elements_produced.add(count, {"blooms_level": level})
 
     cleanup_old_uploads()
 
@@ -254,6 +284,11 @@ def run() -> None:
                 logger.error("Job %s: failed — %s", job_id, e, exc_info=True)
                 _set_status(job_id, JobStatus.failed, error=str(e))
                 jobs_counter.add(1, {"status": "failed"})
+                jobs_failed.add(1, {"tenant_id": "unknown", "stage": "processing"})
+                emit_event("ci.job.failed", {
+                    "job.id": job_id,
+                    "error": str(e),
+                })
             finally:
                 # Done (completed or marked failed) — release the claim
                 redis_client.lrem(PROCESSING_QUEUE, 1, job_id)

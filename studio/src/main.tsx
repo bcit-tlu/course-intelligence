@@ -5,6 +5,9 @@ import { Toaster } from "sonner";
 
 import App from "@/App";
 import "@/index.css";
+import { initAnalytics } from "@/analytics/otel";
+
+initAnalytics();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

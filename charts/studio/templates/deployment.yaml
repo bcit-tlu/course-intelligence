@@ -38,6 +38,11 @@ spec:
             # `resolver ${NGINX_LOCAL_RESOLVERS}` crashes nginx at startup.
             - name: NGINX_ENTRYPOINT_LOCAL_RESOLVERS
               value: "true"
+            # OTel collector endpoint for frontend trace export.
+            # The nginx config template proxies /otel/* to this URL.
+            # Leave empty to disable frontend analytics.
+            - name: OTEL_ENDPOINT
+              value: {{ .Values.otel.endpoint | quote }}
           volumeMounts:
             # Shadow the image's baked-in template with the ConfigMap so the
             # upstream can change without an image rebuild.

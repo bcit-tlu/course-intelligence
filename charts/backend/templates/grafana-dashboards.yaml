@@ -51,7 +51,7 @@ data:
           "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
           "targets": [{
             "expr": "histogram_quantile(0.95, rate(ci_pipeline_step_duration_seconds_bucket[5m])) by (step)",
-            "legendFormat": "{{step}} p95"
+            "legendFormat": "{{ "{{step}}" }} p95"
           }],
           "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 }
         },
@@ -61,7 +61,7 @@ data:
           "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
           "targets": [{
             "expr": "sum(rate(ci_llm_tokens_total[1h])) by (direction, model)",
-            "legendFormat": "{{model}} {{direction}}"
+            "legendFormat": "{{ "{{model}} {{direction}}" }}"
           }],
           "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 }
         },
@@ -71,7 +71,7 @@ data:
           "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
           "targets": [{
             "expr": "histogram_quantile(0.95, rate(ci_llm_request_duration_seconds_bucket[5m])) by (model)",
-            "legendFormat": "{{model}} p95"
+            "legendFormat": "{{ "{{model}}" }} p95"
           }],
           "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 }
         },
@@ -101,7 +101,7 @@ data:
           "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
           "targets": [{
             "expr": "sum(ci_classified_chunks_total) by (blooms_level)",
-            "legendFormat": "{{blooms_level}}"
+            "legendFormat": "{{ "{{blooms_level}}" }}"
           }],
           "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 }
         }

@@ -14,8 +14,7 @@ from __future__ import annotations
 import time
 
 from opentelemetry import metrics
-from opentelemetry._logs import SeverityNumber, get_logger
-from opentelemetry.sdk._logs import LogRecord
+from opentelemetry._logs import LogRecord, SeverityNumber, get_logger
 from opentelemetry.trace import get_current_span
 
 _meter = metrics.get_meter("course-intelligence.analytics")

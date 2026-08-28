@@ -1,6 +1,7 @@
 import { Link, Route, Routes } from "react-router-dom";
-import { BookOpen, GraduationCap, History } from "lucide-react";
+import { BookOpen, Code2, GraduationCap, History } from "lucide-react";
 
+import DevDocsPage from "@/pages/DevDocsPage";
 import DocsPage from "@/pages/DocsPage";
 import JobPage from "@/pages/JobPage";
 import JobsListPage from "@/pages/JobsListPage";
@@ -18,20 +19,29 @@ export default function App() {
               Studio
             </span>
           </Link>
-          <Link
-            to="/docs"
-            className="ml-auto flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <BookOpen className="h-4 w-4" />
-            Docs
-          </Link>
-          <Link
-            to="/jobs"
-            className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <History className="h-4 w-4" />
-            History
-          </Link>
+          <nav className="ml-auto flex items-center gap-6">
+            <Link
+              to="/docs"
+              className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <BookOpen className="h-4 w-4" />
+              Docs
+            </Link>
+            <Link
+              to="/dev-docs"
+              className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <Code2 className="h-4 w-4" />
+              Dev Docs
+            </Link>
+            <Link
+              to="/jobs"
+              className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <History className="h-4 w-4" />
+              History
+            </Link>
+          </nav>
         </div>
       </header>
 
@@ -39,6 +49,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<UploadPage />} />
           <Route path="/docs" element={<DocsPage />} />
+          <Route path="/dev-docs" element={<DevDocsPage />} />
           <Route path="/jobs" element={<JobsListPage />} />
           <Route path="/jobs/:id" element={<JobPage />} />
         </Routes>

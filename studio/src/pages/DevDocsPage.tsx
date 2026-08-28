@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
-import { BookOpen, ChevronRight, Menu, X } from "lucide-react";
+import { ChevronRight, Code2, Menu, X } from "lucide-react";
 
-import overview from "@/docs/overview.md?raw";
-import uploading from "@/docs/uploading.md?raw";
-import results from "@/docs/results.md?raw";
-import jobStatus from "@/docs/job-status.md?raw";
+import architecture from "@/dev-docs/architecture.md?raw";
+import components from "@/dev-docs/components.md?raw";
+import apiReference from "@/dev-docs/api-reference.md?raw";
+import deployment from "@/dev-docs/deployment.md?raw";
 import { analytics } from "@/analytics/events";
 import { cn } from "@/lib/utils";
 
@@ -18,13 +18,13 @@ interface DocPage {
 }
 
 const PAGES: DocPage[] = [
-  { slug: "overview", title: "Overview", content: overview },
-  { slug: "uploading", title: "Uploading a Module", content: uploading },
-  { slug: "results", title: "Reading Results", content: results },
-  { slug: "job-status", title: "Job Status", content: jobStatus },
+  { slug: "architecture", title: "Architecture", content: architecture },
+  { slug: "components", title: "System Components", content: components },
+  { slug: "api-reference", title: "API Reference", content: apiReference },
+  { slug: "deployment", title: "Deployment", content: deployment },
 ];
 
-export default function DocsPage() {
+export default function DevDocsPage() {
   const [activeSlug, setActiveSlug] = useState(PAGES[0].slug);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -44,8 +44,8 @@ export default function DocsPage() {
       {/* Mobile header */}
       <div className="mb-4 flex items-center justify-between lg:hidden">
         <h1 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
-          <BookOpen className="h-5 w-5 text-primary" />
-          Documentation
+          <Code2 className="h-5 w-5 text-primary" />
+          Developer Documentation
         </h1>
         <button
           onClick={() => setSidebarOpen((v) => !v)}
@@ -66,8 +66,8 @@ export default function DocsPage() {
         >
           <nav className="sticky top-24 space-y-1">
             <h2 className="mb-3 hidden items-center gap-2 text-sm font-semibold text-muted-foreground lg:flex">
-              <BookOpen className="h-4 w-4" />
-              Documentation
+              <Code2 className="h-4 w-4" />
+              Developer Docs
             </h2>
             {PAGES.map((page) => (
               <button

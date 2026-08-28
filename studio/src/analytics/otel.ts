@@ -20,7 +20,7 @@ export function initAnalytics() {
   if (!endpoint) return;
 
   const provider = new WebTracerProvider({
-    resource: Resource.create({
+    resource: new Resource({
       "service.name": "course-intelligence-studio",
       "service.namespace": "course-intelligence",
     }),

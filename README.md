@@ -61,11 +61,12 @@ cp .env.example .env          # fill in your Ollama Cloud key
 docker compose up --build
 ```
 
-This brings up the whole stack. Once it's running:
+This brings up the whole stack with the Vite dev server for Studio (HMR on
+http://localhost:5173). Once it's running:
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| **Studio** | **http://localhost:3000** | Upload modules, watch processing, browse results |
+| **Studio** | **http://localhost:5173** | Upload modules, watch processing, browse results (HMR) |
 | API | http://localhost:8000 | Course Intelligence API (FastAPI job API) |
 | LLM Gateway | http://localhost:8100 | LLM proxy (centralizes calls, logs tokens) |
 | MinIO console | http://localhost:9001 | Object storage (uploads) |
@@ -104,7 +105,24 @@ uv run python main.py gateway                 # LLM gateway proxy (:8100)
 uv run python main.py <file.pdf|docx|txt|md|zip>  # Process a single file
 ```
 
-For Studio development against the running API (hot reload on
+### Studio Development with Docker
+
+`docker compose up` automatically merges `docker-compose.yml` with
+`docker-compose.override.yml`, giving you:
+
+- **Vite dev server with HMR** at http://localhost:5173
+- **Live file changes** — edits to `studio/src/` appear instantly in the browser
+- **API proxying** — `/api` calls are proxied to the backend on port 8000
+
+To test the production-like nginx build locally (no HMR, serves static files):
+
+```bash
+docker compose -f docker-compose.yml up --build
+```
+
+This skips the override file. Studio is served at http://localhost:3000.
+
+For standalone Studio development outside Docker (hot reload on
 http://localhost:5173), see `studio/README.md`.
 
 ### Kubernetes Deployment
@@ -143,6 +161,7 @@ course-intelligence/             # repo root
 ├── main.py                      # CLI entry point (api / worker / gateway / file)
 ├── Dockerfile
 ├── docker-compose.yml
+├── docker-compose.override.yml   # dev overrides (Vite HMR for studio)
 ├── alembic/                     # database migrations
 ├── alembic.ini
 ├── charts/                      # Helm charts (backend + studio)
@@ -193,7 +212,8 @@ course-intelligence/             # repo root
 
 LLM and dev/testing options are in [`.env.example`](.env.example).
 Infrastructure vars (database, Redis, S3, gateway) are set in
-`docker-compose.yml`.
+`docker-compose.yml`. Dev-specific overrides (Studio dev server, volume mounts)
+are in `docker-compose.override.yml`.
 
 | Variable | Default | Description |
 |----------|---------|-------------|

@@ -1,0 +1,14 @@
+services:
+  studio:
+    build:
+      context: ./studio
+      dockerfile: Dockerfile.dev
+    ports: !override
+      - "5173:5173"
+    volumes:
+      - ./studio:/app
+      - /app/node_modules
+    environment:
+      BACKEND_URL: http://api:8000
+      NGINX_DNS_RESOLVER: !reset null
+      NGINX_LOCAL_RESOLVERS: !reset null

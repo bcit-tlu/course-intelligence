@@ -11,6 +11,11 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    strictPort: true,
+    host: true,
+    hmr: {
+      clientPort: 5173,
+    },
     proxy: {
       // Proxy API calls to the FastAPI backend in dev (avoids CORS).
       // The /api prefix is stripped so /api/jobs -> http://localhost:8000/jobs

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.5.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v0.4.0...studio-v0.5.0) (2026-08-28)
+
+
+### Features
+
+* add frontend and backend analytics with OpenTelemetry events an… ([82af942](https://github.com/bcit-tlu/course-intelligence/commit/82af9427704ad51d378e9d5714289c81a61fff30))
+* add frontend and backend analytics with OpenTelemetry events and metrics ([cb2e48e](https://github.com/bcit-tlu/course-intelligence/commit/cb2e48e5cf2c61637eeabadee14ddc6a8ac80162))
+* add OpenTelemetry Web SDK dependencies for frontend instrumentation ([40585ce](https://github.com/bcit-tlu/course-intelligence/commit/40585ce9ebe69a9b3bb591ba9c95c0f811e312dd))
+
+
+### Bug Fixes
+
+* update Resource instantiation to use constructor instead of deprecated create method ([4775978](https://github.com/bcit-tlu/course-intelligence/commit/4775978a7637f8d5285e6f90f666f8423854688c))
+
 ## [0.4.0](https://github.com/bcit-tlu/dialog/compare/frontend-v0.3.0...frontend-v0.4.0) (2026-08-10)
 
 

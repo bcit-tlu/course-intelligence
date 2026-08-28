@@ -27,6 +27,11 @@ env:
   # the backend Service FQDN (see course-intelligence-studio.backendUrl helper).
   BACKEND_URL: ""
 
+# OTel collector endpoint for frontend trace export. The nginx config
+# proxies /otel/* to this URL. Leave empty to disable frontend analytics.
+otel:
+  endpoint: ""
+
 ingress:
   enabled: false
   className: ""

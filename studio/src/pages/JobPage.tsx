@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { AlertCircle } from "lucide-react";
 
@@ -13,10 +14,23 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useJob } from "@/hooks/useJob";
+import { analytics } from "@/analytics/events";
 
 export default function JobPage() {
   const { id } = useParams<{ id: string }>();
   const { job, results, loading, error } = useJob(id);
+
+  useEffect(() => {
+    if (job) {
+      analytics.jobViewed(job.job_id, job.status);
+    }
+  }, [job?.job_id, job?.status]);
+
+  useEffect(() => {
+    if (job?.status === "completed" && results) {
+      analytics.resultsViewed(results.job_id, results.elements.length);
+    }
+  }, [job?.status, results]);
 
   // Fatal error (e.g. job not found / network failure)
   if (error) {

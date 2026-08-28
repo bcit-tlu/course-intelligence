@@ -36,6 +36,25 @@ server {
         proxy_send_timeout 3600s;
     }
 
+    # Proxy OTel trace exports to the internal collector. The frontend
+    # sends traces to /otel/v1/traces (same origin, no CORS). envsubst
+    # replaces ${OTEL_ENDPOINT} at container start. If empty, nginx fails
+    # to resolve the upstream and returns 502 — the frontend SDK retries
+    # with backoff and eventually drops spans.
+    location /otel/ {
+        resolver ${NGINX_LOCAL_RESOLVERS} valid=10s;
+        set $otel_endpoint "${OTEL_ENDPOINT}";
+
+        rewrite ^/otel/(.*)$ /$1 break;
+        proxy_pass $otel_endpoint;
+
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
     # SPA fallback: serve index.html for client-side routes
     # (e.g. a page refresh on /jobs/{id}).
     location / {

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { AlertCircle, CheckCircle2, Loader2, Clock } from "lucide-react";
 
 import { ApiError, listJobs } from "@/api/client";
+import { analytics } from "@/analytics/events";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -61,6 +62,7 @@ export default function JobsListPage() {
       setJobs(list);
       setLoading(false);
       setError(null);
+      analytics.jobsListed(list.length);
 
       // Keep polling only if there are non-terminal jobs
       if (!list.some((j) => !TERMINAL.has(j.status))) return;

@@ -4,6 +4,7 @@ import { FileText, Loader2, UploadCloud, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { ApiError, createJob } from "@/api/client";
+import { analytics } from "@/analytics/events";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -57,13 +58,16 @@ export default function UploadPage() {
     if (!file) return;
     setUploading(true);
     setProgress(0);
+    analytics.uploadStarted(file.name, getExtension(file.name), file.size);
     try {
       const { job_id } = await createJob(file, objectives, setProgress);
+      analytics.uploadCompleted(job_id);
       toast.success("Upload complete — processing started");
       navigate(`/jobs/${job_id}`);
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : "Upload failed unexpectedly";
+      analytics.uploadFailed(message);
       toast.error("Upload failed", { description: message });
       setUploading(false);
     }

@@ -16,11 +16,12 @@ from __future__ import annotations
 import logging
 import time
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from opentelemetry import trace, metrics
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from pydantic import BaseModel
 
+from course_intelligence.analytics import emit_event, llm_tokens_by_tenant
 from course_intelligence.default_config import DEFAULT_CONFIG
 from course_intelligence.llm.clients import create_llm_client
 from course_intelligence.observability import setup_otel
@@ -124,7 +125,10 @@ async def health():
 
 
 @app.post("/v1/complete", response_model=CompletionResponse)
-async def complete(request: CompletionRequest):
+async def complete(
+    request: CompletionRequest,
+    x_tenant_id: str | None = Header(default=None),
+):
     """Forward a chat completion request to the configured LLM.
 
     Workers call this endpoint instead of calling the LLM directly.
@@ -167,6 +171,24 @@ async def complete(request: CompletionRequest):
                 llm_tokens.add(usage.get("output_tokens", 0), {"direction": "output", "model": model_name})
                 span.set_attribute("llm.input_tokens", usage.get("input_tokens", 0))
                 span.set_attribute("llm.output_tokens", usage.get("output_tokens", 0))
+
+                # --- Analytics: per-tenant token tracking ---
+                tenant_id = x_tenant_id or "unknown"
+                llm_tokens_by_tenant.add(
+                    usage.get("input_tokens", 0),
+                    {"tenant_id": tenant_id, "direction": "input"},
+                )
+                llm_tokens_by_tenant.add(
+                    usage.get("output_tokens", 0),
+                    {"tenant_id": tenant_id, "direction": "output"},
+                )
+                emit_event("ci.llm.call", {
+                    "llm.model": model_name,
+                    "llm.input_tokens": usage.get("input_tokens", 0),
+                    "llm.output_tokens": usage.get("output_tokens", 0),
+                    "llm.latency_ms": latency_ms,
+                    "llm.tenant_id": tenant_id,
+                })
 
             content = result.content if hasattr(result, "content") else str(result)
             llm_latency.record(latency_ms / 1000, {"model": model_name})

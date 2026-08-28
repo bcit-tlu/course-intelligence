@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { BookOpen, ChevronRight, Menu, X } from "lucide-react";
@@ -7,6 +7,7 @@ import overview from "@/docs/overview.md?raw";
 import uploading from "@/docs/uploading.md?raw";
 import results from "@/docs/results.md?raw";
 import jobStatus from "@/docs/job-status.md?raw";
+import { analytics } from "@/analytics/events";
 import { cn } from "@/lib/utils";
 
 interface DocPage {
@@ -25,6 +26,10 @@ const PAGES: DocPage[] = [
 export default function DocsPage() {
   const [activeSlug, setActiveSlug] = useState(PAGES[0].slug);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    analytics.docsViewed();
+  }, []);
 
   const activePage = PAGES.find((p) => p.slug === activeSlug) ?? PAGES[0];
 

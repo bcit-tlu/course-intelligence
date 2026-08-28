@@ -163,13 +163,18 @@ tolerations: []
 affinity: {}
 
 # ── Observability ───────────────────────────────────────────
+# OTel config is flat: endpoint/protocol are read directly from
+# openTelemetry (not nested under an exporter sub-key). serviceName
+# is a sibling of openTelemetry, not inside it.
 observability:
   openTelemetry:
     enabled: false
     # OTLP/HTTP endpoint of the cluster's OTel collector.
     endpoint: http://opentelemetry-collector.observability.svc.cluster.local:4318
     protocol: http/protobuf
-  # Per-role service name override. Defaults to <release-name>-<role>.
+  # Per-role service name override. When empty, the chart derives
+  # <fullname>-<component> (e.g. course-intelligence-backend-api,
+  # -worker, -gateway) so each role gets a distinct OTel identity.
   serviceName: ""
   serviceMonitor:
     enabled: false

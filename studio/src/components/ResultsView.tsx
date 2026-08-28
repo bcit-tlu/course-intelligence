@@ -5,6 +5,7 @@ import { Plus, SearchX } from "lucide-react";
 import BloomsSummary, { countByLevel } from "@/components/BloomsSummary";
 import ElementCard from "@/components/ElementCard";
 import LevelFilter from "@/components/LevelFilter";
+import { analytics } from "@/analytics/events";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -69,9 +70,15 @@ export default function ResultsView({ results }: { results: JobResults }) {
         levels={levels}
         counts={counts}
         active={activeLevel}
-        onSelectLevel={setActiveLevel}
+        onSelectLevel={(level) => {
+          if (level) analytics.bloomsFilterApplied(level);
+          setActiveLevel(level);
+        }}
         query={query}
-        onQueryChange={setQuery}
+        onQueryChange={(q) => {
+          if (q.trim()) analytics.resultsSearched(q);
+          setQuery(q);
+        }}
       />
 
       {filtered.length === 0 ? (

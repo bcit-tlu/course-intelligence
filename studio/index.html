@@ -7,6 +7,10 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- Runtime config: nginx proxies /otel to the OTel collector (see
+         default.conf.template). If the proxy is not configured, this path
+         returns 404 and frontend analytics is disabled gracefully. -->
+    <script>window.__OTEL_ENDPOINT__ = "/otel";</script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

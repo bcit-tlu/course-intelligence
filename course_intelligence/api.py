@@ -16,6 +16,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from course_intelligence import storage
+from course_intelligence.analytics import (
+    emit_event,
+    file_size_uploaded,
+    jobs_failed,
+    jobs_submitted,
+)
 from course_intelligence.engine.dataflows import SUPPORTED_EXTENSIONS
 from course_intelligence.db import Job, JobStatus, get_session
 from course_intelligence.db.session import get_engine
@@ -79,6 +85,7 @@ async def health():
 def create_job(
     file: UploadFile = File(...),
     learning_objectives: str = Form(""),
+    x_tenant_id: str | None = Header(default=None),
 ):
     """Accept a course upload, store it, and queue it for processing."""
     filename = file.filename or "upload"
@@ -96,6 +103,7 @@ def create_job(
             filename=filename,
             storage_key="",  # set below once we know the job id
             learning_objectives=learning_objectives,
+            tenant_id=x_tenant_id,
         )
         session.add(job)
         session.flush()  # assigns job.id
@@ -110,6 +118,19 @@ def create_job(
         _get_redis().lpush(JOB_QUEUE, job.id)
         logger.info("Job %s queued (%s)", job.id, filename)
 
+        tenant_id = job.tenant_id or "unknown"
+        file_size = file.size or 0
+        emit_event("ci.job.submitted", {
+            "job.id": job.id,
+            "job.filename": filename,
+            "job.file_type": suffix,
+            "job.file_size": file_size,
+            "job.tenant_id": tenant_id,
+            "job.has_learning_objectives": bool(learning_objectives),
+        })
+        jobs_submitted.add(1, {"tenant_id": tenant_id, "file_type": suffix})
+        file_size_uploaded.record(file_size, {"file_type": suffix})
+
         return {"job_id": job.id, "status": job.status.value}
     except HTTPException:
         session.rollback()
@@ -117,6 +138,12 @@ def create_job(
     except Exception as e:
         session.rollback()
         logger.error("Job creation failed: %s", e, exc_info=True)
+        emit_event("ci.job.upload_failed", {
+            "job.filename": filename,
+            "job.file_type": suffix,
+            "error": str(e),
+        })
+        jobs_failed.add(1, {"tenant_id": x_tenant_id or "unknown", "stage": "upload"})
         raise HTTPException(500, f"Job creation failed: {e}")
     finally:
         session.close()
@@ -137,6 +164,11 @@ def list_jobs(
         if x_tenant_id is not None:
             query = query.filter(Job.tenant_id == x_tenant_id)
         jobs = query.limit(limit).all()
+        emit_event("ci.jobs.listed", {
+            "jobs.count": len(jobs),
+            "jobs.filter_status": status.value if status else None,
+            "jobs.tenant_id": x_tenant_id,
+        })
         return {"jobs": [_job_to_dict(j) for j in jobs]}
     finally:
         session.close()
@@ -167,6 +199,11 @@ def get_job_results(job_id: str):
             raise HTTPException(
                 409, f"Job is not completed (status: {job.status.value})"
             )
+        emit_event("ci.results.viewed", {
+            "job.id": job_id,
+            "job.tenant_id": job.tenant_id,
+            "results.count": len(job.results),
+        })
         return {
             "job_id": job.id,
             "filename": job.filename,

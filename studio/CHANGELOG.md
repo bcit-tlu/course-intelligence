@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.8.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v0.7.0...studio-v0.8.0) (2026-08-28)
+
+
+### Features
+
+* display total log count in LevelFilter "All" badge ([a90c5a5](https://github.com/bcit-tlu/course-intelligence/commit/a90c5a5dfedc708eb7651ae2efc86587ab03e93e))
+
+
+### Bug Fixes
+
+* configure Vite dev server for Docker with dynamic backend URL and disable OTel in dev ([7fef26c](https://github.com/bcit-tlu/course-intelligence/commit/7fef26c10c72a8657b4e319951b12a287a5941d9))
+* remove .env.local generation from dev container and auto-detect Docker environment ([e31cf4f](https://github.com/bcit-tlu/course-intelligence/commit/e31cf4fced0bbbf908f06ee5a4d05a1dcba57639))
+
 ## [0.7.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v0.6.0...studio-v0.7.0) (2026-08-28)
 
 

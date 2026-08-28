@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.15.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.14.0...backend-v0.15.0) (2026-08-28)
+
+
+### Features
+
+* display total log count in LevelFilter "All" badge ([a90c5a5](https://github.com/bcit-tlu/course-intelligence/commit/a90c5a5dfedc708eb7651ae2efc86587ab03e93e))
+
+
+### Bug Fixes
+
+* configure Vite dev server for Docker with dynamic backend URL and disable OTel in dev ([7fef26c](https://github.com/bcit-tlu/course-intelligence/commit/7fef26c10c72a8657b4e319951b12a287a5941d9))
+* remove .env.local generation from dev container and auto-detect Docker environment ([e31cf4f](https://github.com/bcit-tlu/course-intelligence/commit/e31cf4fced0bbbf908f06ee5a4d05a1dcba57639))
+
+
+### Documentation
+
+* add Docker Compose development setup with Vite HMR for Studio ([2b93672](https://github.com/bcit-tlu/course-intelligence/commit/2b936721a11be115d120c6de389e0c6ba41c05ab))
+
 ## [0.14.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.13.0...backend-v0.14.0) (2026-08-28)
 
 

@@ -11,7 +11,7 @@ import logging
 from typing import Any, Callable, Dict, Optional
 
 from course_intelligence.default_config import DEFAULT_CONFIG
-from course_intelligence.llm.clients import create_llm_client
+from course_intelligence.llm.clients import build_llm_from_config
 from .propagation import Propagator
 from .setup import GraphSetup
 
@@ -35,39 +35,7 @@ class CourseProcessorGraph:
         self.debug = debug
         self.config = config or DEFAULT_CONFIG
 
-        # Initialize LLM via the client abstraction
-        provider = self.config.get("llm_provider", "ollama")
-        mock = self.config.get("mock_llm", False)
-
-        max_tokens = self.config.get("llm_max_tokens", 8192)
-
-        if provider == "azure" and not mock:
-            client = create_llm_client(
-                provider="azure",
-                model=self.config["azure_openai_deployment"],
-                base_url=self.config.get("azure_openai_endpoint"),
-                api_key=self.config.get("azure_openai_api_key", ""),
-                api_version=self.config.get("azure_openai_api_version", "2024-06-01"),
-                max_tokens=max_tokens,
-            )
-        elif provider == "litellm" and not mock:
-            client = create_llm_client(
-                provider="litellm",
-                model=self.config.get("litellm_model", "default-fast"),
-                base_url=self.config.get("litellm_base_url"),
-                api_key=self.config.get("litellm_api_key", ""),
-                max_tokens=max_tokens,
-            )
-        else:
-            client = create_llm_client(
-                provider=provider,
-                model=self.config.get("ollama_model", "gemma4:31b-cloud"),
-                base_url=self.config.get("ollama_base_url"),
-                mock=mock,
-                api_key=self.config.get("ollama_api_key", ""),
-                max_tokens=max_tokens,
-            )
-        self.llm = client.get_llm()
+        self.llm = build_llm_from_config(self.config)
 
         # Build the graph
         self.graph_setup = GraphSetup(self.llm)

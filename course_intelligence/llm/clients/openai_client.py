@@ -14,8 +14,12 @@ class OpenAIClient(BaseLLMClient):
     def get_llm(self) -> Any:
         from langchain_openai import ChatOpenAI
 
+        base_url = self.base_url
+        if base_url and not base_url.rstrip("/").endswith("/v1"):
+            base_url = f"{base_url.rstrip('/')}/v1"
+
         return ChatOpenAI(
-            base_url=f"{self.base_url}/v1" if self.base_url else None,
+            base_url=base_url or None,
             api_key=self.kwargs.get("api_key", ""),
             model=self.model,
             temperature=self.kwargs.get("temperature", 0),

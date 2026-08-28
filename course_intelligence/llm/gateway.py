@@ -23,7 +23,7 @@ from pydantic import BaseModel
 
 from course_intelligence.analytics import emit_event, llm_tokens_by_tenant
 from course_intelligence.default_config import DEFAULT_CONFIG
-from course_intelligence.llm.clients import create_llm_client
+from course_intelligence.llm.clients import build_llm_from_config
 from course_intelligence.observability import setup_otel
 
 logger = logging.getLogger(__name__)
@@ -80,35 +80,11 @@ def _get_llm():
     if _llm is not None:
         return _llm
 
-    provider = DEFAULT_CONFIG.get("llm_provider", "ollama")
-    mock = DEFAULT_CONFIG.get("mock_llm", False)
-
-    if provider == "azure" and not mock:
-        client = create_llm_client(
-            provider="azure",
-            model=DEFAULT_CONFIG["azure_openai_deployment"],
-            base_url=DEFAULT_CONFIG.get("azure_openai_endpoint"),
-            api_key=DEFAULT_CONFIG.get("azure_openai_api_key", ""),
-            api_version=DEFAULT_CONFIG.get("azure_openai_api_version", "2024-06-01"),
-        )
-    elif provider == "litellm" and not mock:
-        client = create_llm_client(
-            provider="litellm",
-            model=DEFAULT_CONFIG.get("litellm_model", "default-fast"),
-            base_url=DEFAULT_CONFIG.get("litellm_base_url"),
-            api_key=DEFAULT_CONFIG.get("litellm_api_key", ""),
-        )
-    else:
-        client = create_llm_client(
-            provider=provider,
-            model=DEFAULT_CONFIG.get("ollama_model", "gemma4:31b-cloud"),
-            base_url=DEFAULT_CONFIG.get("ollama_base_url"),
-            mock=mock,
-            api_key=DEFAULT_CONFIG.get("ollama_api_key", ""),
-        )
-
-    _llm = client.get_llm()
-    logger.info("LLM Gateway initialized with provider=%s", provider)
+    _llm = build_llm_from_config(DEFAULT_CONFIG)
+    logger.info(
+        "LLM Gateway initialized with provider=%s",
+        DEFAULT_CONFIG.get("llm_provider"),
+    )
     return _llm
 
 

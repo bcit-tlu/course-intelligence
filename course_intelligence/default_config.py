@@ -10,10 +10,19 @@ _ENV_OVERRIDES = {
     # LLM provider selection
     "LLM_PROVIDER":       "llm_provider",
 
-    # Ollama (dev)
+    # Ollama (local or cloud)
     "OLLAMA_BASE_URL":    "ollama_base_url",
     "OLLAMA_API_KEY":     "ollama_api_key",
     "OLLAMA_MODEL":       "ollama_model",
+
+    # LM Studio (local)
+    "LMSTUDIO_BASE_URL":  "lmstudio_base_url",
+    "LMSTUDIO_MODEL":     "lmstudio_model",
+
+    # OpenAI (cloud)
+    "OPENAI_BASE_URL":    "openai_base_url",
+    "OPENAI_API_KEY":     "openai_api_key",
+    "OPENAI_MODEL":       "openai_model",
 
     # Azure OpenAI (pilot/prod)
     "AZURE_OPENAI_ENDPOINT":    "azure_openai_endpoint",
@@ -76,13 +85,18 @@ def _apply_env_overrides(config: dict) -> dict:
 
 
 DEFAULT_CONFIG = _apply_env_overrides({
-    # LLM provider: "ollama" (dev), "azure" (pilot/prod), "mock" (testing)
+    # LLM provider: "ollama" (local/cloud), "lmstudio" (local), "azure" (prod),
+    # "litellm" (proxy), "openai" (cloud), "mock" (testing)
     "llm_provider": "ollama",
 
-    # Ollama settings (dev default)
+    # Ollama settings (local: http://localhost:11434, cloud: https://ollama.com)
     "ollama_base_url": "https://ollama.com",
     "ollama_api_key": "",
     "ollama_model": "gemma4:31b-cloud",
+
+    # LM Studio settings (local only — no API key needed)
+    "lmstudio_base_url": "http://localhost:1234/v1",
+    "lmstudio_model": "local-model",
 
     # Azure OpenAI settings (pilot/prod)
     "azure_openai_endpoint": "",       # e.g. https://myinstance.openai.azure.com
@@ -90,6 +104,11 @@ DEFAULT_CONFIG = _apply_env_overrides({
     "azure_openai_api_version": "2024-06-01",
     "azure_openai_deployment": "",     # chat model deployment name
     "azure_openai_embedding_deployment": "",  # embedding model deployment name
+
+    # OpenAI (cloud)
+    "openai_base_url": "",             # leave empty for api.openai.com default
+    "openai_api_key": "",
+    "openai_model": "gpt-4o",
 
     # LiteLLM gateway (OpenAI-compatible proxy)
     "litellm_base_url": "",            # e.g. http://litellm.llm-gateway.svc.cluster.local:4000

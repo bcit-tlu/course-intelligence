@@ -2,12 +2,16 @@ import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
-import { BookOpen, ChevronRight, Menu, X } from "lucide-react";
+import { BookOpen, ChevronRight, Code2, Menu, X } from "lucide-react";
 
 import overview from "@/docs/overview.md?raw";
 import uploading from "@/docs/uploading.md?raw";
 import results from "@/docs/results.md?raw";
 import jobStatus from "@/docs/job-status.md?raw";
+import architecture from "@/dev-docs/architecture.md?raw";
+import components from "@/dev-docs/components.md?raw";
+import apiReference from "@/dev-docs/api-reference.md?raw";
+import deployment from "@/dev-docs/deployment.md?raw";
 import { analytics } from "@/analytics/events";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +19,7 @@ interface DocPage {
   slug: string;
   title: string;
   content: string;
+  section?: "dev";
 }
 
 const PAGES: DocPage[] = [
@@ -22,6 +27,10 @@ const PAGES: DocPage[] = [
   { slug: "uploading", title: "Uploading a Module", content: uploading },
   { slug: "results", title: "Reading Results", content: results },
   { slug: "job-status", title: "Job Status", content: jobStatus },
+  { slug: "architecture", title: "Architecture", content: architecture, section: "dev" },
+  { slug: "components", title: "System Components", content: components, section: "dev" },
+  { slug: "api-reference", title: "API Reference", content: apiReference, section: "dev" },
+  { slug: "deployment", title: "Deployment", content: deployment, section: "dev" },
 ];
 
 export default function DocsPage() {
@@ -69,7 +78,32 @@ export default function DocsPage() {
               <BookOpen className="h-4 w-4" />
               Documentation
             </h2>
-            {PAGES.map((page) => (
+            {PAGES.filter((p) => !p.section).map((page) => (
+              <button
+                key={page.slug}
+                onClick={() => handleSelect(page.slug)}
+                className={cn(
+                  "flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors",
+                  page.slug === activeSlug
+                    ? "bg-accent font-medium text-foreground"
+                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+                )}
+              >
+                <ChevronRight
+                  className={cn(
+                    "h-3.5 w-3.5 shrink-0 transition-transform",
+                    page.slug === activeSlug && "rotate-90",
+                  )}
+                />
+                {page.title}
+              </button>
+            ))}
+            <div className="!mt-8 !mb-4 border-t border-border" />
+            <h2 className="mb-3 hidden items-center gap-2 text-sm font-semibold text-muted-foreground lg:flex">
+              <Code2 className="h-4 w-4" />
+              Developer Docs
+            </h2>
+            {PAGES.filter((p) => p.section === "dev").map((page) => (
               <button
                 key={page.slug}
                 onClick={() => handleSelect(page.slug)}

@@ -34,7 +34,7 @@ export default function LevelFilter({
                 : "bg-background hover:bg-accent",
             )}
           >
-            All
+            All ({Array.from(counts.values()).reduce((a, b) => a + b, 0)})
           </Badge>
         </button>
         {levels.map((level) => {

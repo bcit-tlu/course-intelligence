@@ -54,7 +54,7 @@ export default function DocsPage() {
       <div className="mb-4 flex items-center justify-between lg:hidden">
         <h1 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
           <BookOpen className="h-5 w-5 text-primary" />
-          Documentation
+          User Documentation
         </h1>
         <button
           onClick={() => setSidebarOpen((v) => !v)}
@@ -76,7 +76,7 @@ export default function DocsPage() {
           <nav className="sticky top-24 space-y-1">
             <h2 className="mb-3 hidden items-center gap-2 text-sm font-semibold text-muted-foreground lg:flex">
               <BookOpen className="h-4 w-4" />
-              Documentation
+              User Documentation
             </h2>
             {PAGES.filter((p) => !p.section).map((page) => (
               <button

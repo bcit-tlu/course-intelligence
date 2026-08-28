@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v0.6.0...studio-v0.7.0) (2026-08-28)
+
+
+### Features
+
+* consolidate developer documentation into main docs page ([1e6aad3](https://github.com/bcit-tlu/course-intelligence/commit/1e6aad3bb0772b67c9ac2f17c8c2039d74291422))
+
 ## [0.6.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v0.5.0...studio-v0.6.0) (2026-08-28)
 
 

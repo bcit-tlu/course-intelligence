@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.13.0...backend-v0.14.0) (2026-08-28)
+
+
+### Features
+
+* consolidate developer documentation into main docs page ([1e6aad3](https://github.com/bcit-tlu/course-intelligence/commit/1e6aad3bb0772b67c9ac2f17c8c2039d74291422))
+
 ## [0.13.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.12.0...backend-v0.13.0) (2026-08-28)
 
 

@@ -31,7 +31,7 @@ export default function App() {
               className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               <History className="h-4 w-4" />
-              History
+              Job History
             </Link>
           </nav>
         </div>

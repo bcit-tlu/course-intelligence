@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.12.0...backend-v0.13.0) (2026-08-28)
+
+
+### Features
+
+* add developer documentation with rehype-slug for heading anchors ([9014df9](https://github.com/bcit-tlu/course-intelligence/commit/9014df9135e0ddcdfa26b2c2f017332295ac344c))
+
 ## [0.12.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.11.0...backend-v0.12.0) (2026-08-28)
 
 

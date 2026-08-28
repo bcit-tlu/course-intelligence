@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v0.5.0...studio-v0.6.0) (2026-08-28)
+
+
+### Features
+
+* add developer documentation with rehype-slug for heading anchors ([9014df9](https://github.com/bcit-tlu/course-intelligence/commit/9014df9135e0ddcdfa26b2c2f017332295ac344c))
+
 ## [0.5.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v0.4.0...studio-v0.5.0) (2026-08-28)
 
 

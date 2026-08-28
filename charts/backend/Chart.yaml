@@ -2,5 +2,5 @@ apiVersion: v2
 name: course-intelligence-backend
 description: Course Intelligence Backend — Course Intelligence API, background worker, and LLM Gateway
 type: application
-version: 0.12.0 # x-release-please-version
-appVersion: "0.12.0" # x-release-please-version
+version: 0.13.0 # x-release-please-version
+appVersion: "0.13.0" # x-release-please-version

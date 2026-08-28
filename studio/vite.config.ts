@@ -1,12 +1,14 @@
 import path from "node:path";
+import fs from "node:fs";
 import react from "@vitejs/plugin-react";
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig } from "vite";
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "");
-  const backendUrl = env.BACKEND_URL || "http://localhost:8000";
+// Inside Docker the backend is at http://api:8000 (Docker service name).
+// Outside Docker (standalone dev) it's at http://localhost:8000.
+const isDocker = fs.existsSync("/.dockerenv");
+const backendUrl = isDocker ? "http://api:8000" : "http://localhost:8000";
 
-  return {
+export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
@@ -22,22 +24,12 @@ export default defineConfig(({ mode }) => {
     },
     proxy: {
       // Proxy API calls to the FastAPI backend in dev (avoids CORS).
-      // The /api prefix is stripped so /api/jobs -> <BACKEND_URL>/jobs
-      // BACKEND_URL defaults to localhost:8000 for standalone dev; the Docker
-      // override sets it to http://api:8000 (the Docker service name).
+      // The /api prefix is stripped so /api/jobs -> <backendUrl>/jobs
       "/api": {
         target: backendUrl,
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/api/, ""),
       },
-      // OTel proxy disabled in local dev — no collector runs in the dev stack.
-      // Re-enable if you run a local OTel collector on port 4318:
-      // "/otel": {
-      //   target: "http://localhost:4318",
-      //   changeOrigin: true,
-      //   rewrite: (p) => p.replace(/^\/otel/, ""),
-      // },
     },
   },
-  };
 });

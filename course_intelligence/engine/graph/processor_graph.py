@@ -75,6 +75,7 @@ class CourseProcessorGraph:
         source_path: str,
         learning_objectives: str = "",
         on_step: Optional[Callable[[str], None]] = None,
+        on_progress: Optional[Callable[[str, dict], None]] = None,
     ) -> Dict[str, Any]:
         """Process a document, calling *on_step* after each graph node.
 
@@ -86,10 +87,17 @@ class CourseProcessorGraph:
             learning_objectives: Instructor-provided objectives string.
             on_step: Optional callback invoked with the node name after
                 each node completes (e.g. ``on_step("extract")``).
+            on_progress: Optional callback invoked with (step_name, progress_dict)
+                during node execution for sub-step progress reporting.
 
         Returns:
             Final graph state dict — same shape as ``process()``.
         """
+        from course_intelligence.engine.graph.progress_context import (
+            set_progress_callback,
+        )
+
+        set_progress_callback(on_progress)
         initial_state = self.propagator.create_initial_state(
             source_path, learning_objectives
         )
@@ -103,4 +111,5 @@ class CourseProcessorGraph:
                         on_step(node_name)
             elif mode == "values":
                 final_state = chunk
+        set_progress_callback(None)
         return final_state if final_state is not None else initial_state

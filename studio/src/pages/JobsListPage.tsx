@@ -13,6 +13,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { computeProgressPercent } from "@/lib/progress";
 import { cn } from "@/lib/utils";
 import type { Job, JobStatus } from "@/types";
 
@@ -200,6 +202,14 @@ export default function JobsListPage() {
                     <span>{formatRelative(job.created_at)}</span>
                     <JobDuration job={job} />
                   </div>
+                  {job.status === "processing" && (
+                    <div className="mt-2">
+                      <Progress
+                        value={computeProgressPercent(job.status, job.current_step)}
+                        className="h-1.5"
+                      />
+                    </div>
+                  )}
                 </div>
                 <StatusBadge status={job.status} />
               </CardContent>

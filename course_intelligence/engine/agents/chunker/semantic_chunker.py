@@ -9,6 +9,7 @@ import uuid
 from course_intelligence.engine.agents.utils.agent_states import AgentState, KnowledgeChunk
 from course_intelligence.engine.agents.utils.json_parsing import parse_llm_json
 from course_intelligence.engine.agents.utils.llm_retry import invoke_with_retry
+from course_intelligence.engine.graph.progress_context import report_progress
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +81,7 @@ def create_semantic_chunker(llm):
             for i, page in enumerate(course_module["pages"], 1):
                 if not page["text"].strip():
                     continue
+                report_progress("chunking", i, n_pages, "pages")
                 page_input = f"# {page['title']}\n\n{page['text']}"
                 t0 = time.perf_counter()
                 chunks = _chunk_text(llm, page_input)

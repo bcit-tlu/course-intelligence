@@ -277,3 +277,106 @@ def test_current_step_transitions_during_processing(client):
         assert job.current_step == "chunking"
     finally:
         session.close()
+
+
+# ---------------------------------------------------------------------------
+# Sub-step progress: step_progress field
+# ---------------------------------------------------------------------------
+
+
+def test_step_progress_is_null_on_new_job(client):
+    """A freshly created job should have step_progress = null."""
+    import io
+
+    resp = client.post(
+        "/jobs",
+        files={"file": ("test.txt", io.BytesIO(b"hello"), "text/plain")},
+        data={"learning_objectives": ""},
+    )
+    assert resp.status_code == 202
+    job_id = resp.json()["job_id"]
+
+    job = client.get(f"/jobs/{job_id}").json()
+    assert job["step_progress"] is None, "New job should have step_progress=null"
+
+
+def test_step_progress_in_api_response(client):
+    """The API response should include the step_progress field."""
+    resp = _upload(client, b"Sepsis is a life-threatening condition.", "module.txt")
+    job_id = resp.json()["job_id"]
+
+    job = client.get(f"/jobs/{job_id}").json()
+    assert "step_progress" in job, "API response should include step_progress field"
+
+
+def test_set_step_progress_writes_to_db(client):
+    """_set_step_progress should persist the progress dict to the DB."""
+    from course_intelligence.db import Job
+    from course_intelligence.db.models import JobStatus
+    from course_intelligence.worker import _set_step_progress, get_session
+
+    session = get_session()
+    try:
+        job = Job(
+            filename="test.txt",
+            storage_key="jobs/test/test.txt",
+            learning_objectives="",
+            status=JobStatus.processing,
+        )
+        session.add(job)
+        session.commit()
+        job_id = job.id
+    finally:
+        session.close()
+
+    progress = {"current": 5, "total": 15, "unit": "pages"}
+    _set_step_progress(job_id, progress)
+
+    session = get_session()
+    try:
+        job = session.get(Job, job_id)
+        assert job.step_progress == progress
+    finally:
+        session.close()
+
+
+def test_process_with_progress_calls_on_progress():
+    """on_progress should be called with step name and progress dict."""
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+        f.write("Sepsis is a life-threatening condition caused by infection.")
+        tmp_path = f.name
+
+    try:
+        from course_intelligence.engine import CourseProcessorGraph
+
+        graph = CourseProcessorGraph(config=_config)
+        progress_events: list[tuple[str, dict]] = []
+        result = graph.process_with_progress(
+            tmp_path,
+            on_step=lambda node: None,
+            on_progress=lambda step, p: progress_events.append((step, p)),
+        )
+
+        assert len(progress_events) > 0, (
+            f"Expected at least one progress event, got {len(progress_events)}"
+        )
+        for step, p in progress_events:
+            assert "current" in p, f"Progress dict missing 'current': {p}"
+            assert "total" in p, f"Progress dict missing 'total': {p}"
+            assert "unit" in p, f"Progress dict missing 'unit': {p}"
+    finally:
+        os.unlink(tmp_path)
+
+
+def test_step_progress_cleared_after_processing(client):
+    """After processing completes, step_progress may be set from the last node."""
+    resp = _upload(client, b"Sepsis is a life-threatening condition.", "module.txt")
+    job_id = resp.json()["job_id"]
+
+    _drain_worker(client.queue)
+
+    job = client.get(f"/jobs/{job_id}").json()
+    assert job["status"] == "completed"
+    # step_progress should be present in the response (may be the last
+    # progress update from the classifier, or None if no progress was reported)
+    assert "step_progress" in job

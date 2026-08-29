@@ -13,6 +13,7 @@ import logging
 from course_intelligence.engine.agents.utils.agent_states import AgentState, KnowledgeChunk
 from course_intelligence.engine.agents.utils.json_parsing import parse_llm_json
 from course_intelligence.engine.agents.utils.llm_retry import invoke_with_retry
+from course_intelligence.engine.graph.progress_context import report_progress
 
 logger = logging.getLogger(__name__)
 
@@ -105,8 +106,10 @@ def create_blooms_classifier(llm):
         if not knowledge_map:
             return {}
 
-        for start in range(0, len(knowledge_map), BATCH_SIZE):
+        total = len(knowledge_map)
+        for start in range(0, total, BATCH_SIZE):
             batch = knowledge_map[start : start + BATCH_SIZE]
+            report_progress("classifying", min(start + BATCH_SIZE, total), total, "elements")
             try:
                 _classify_batch(llm, batch)
             except Exception as e:

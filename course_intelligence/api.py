@@ -72,6 +72,7 @@ def _job_to_dict(job: Job) -> dict:
         "updated_at": job.updated_at.isoformat(),
         "error": job.error,
         "current_step": job.current_step,
+        "step_progress": job.step_progress,
         "tenant_id": job.tenant_id,
     }
 

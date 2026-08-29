@@ -12,7 +12,8 @@ from sqlalchemy.orm import sessionmaker
 
 from course_intelligence.db.models import Base, Job, JobStatus
 from course_intelligence.default_config import DEFAULT_CONFIG
-from course_intelligence.worker import JobTimeout, _timeout_handler
+from course_intelligence.exceptions import JobTimeout
+from course_intelligence.worker import _timeout_handler
 
 
 @pytest.fixture()

@@ -32,6 +32,7 @@ from course_intelligence.analytics import (
     jobs_failed,
 )
 from course_intelligence.db import Job, JobStatus, Result, get_session
+from course_intelligence.exceptions import JobTimeout
 from course_intelligence.default_config import DEFAULT_CONFIG
 from course_intelligence.engine import CourseProcessorGraph
 from course_intelligence.engine.graph.steps import NODE_TO_STEP
@@ -67,10 +68,6 @@ PROCESSING_QUEUE = "course-intelligence:jobs:processing"
 BLOCK_TIMEOUT_S = 5
 
 _LOCAL_DEV_REDIS = "redis://localhost:6379/0"
-
-
-class JobTimeout(Exception):
-    """Raised when a job exceeds the configured execution timeout."""
 
 
 def _timeout_handler(signum, frame):

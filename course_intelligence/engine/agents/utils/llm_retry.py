@@ -12,6 +12,8 @@ import logging
 import time
 from typing import Any
 
+from course_intelligence.exceptions import JobTimeout
+
 logger = logging.getLogger(__name__)
 
 MAX_RETRIES = 3
@@ -98,6 +100,8 @@ def invoke_with_retry(
             logger.info("  ".join(parts))
             return result
 
+        except JobTimeout:
+            raise
         except Exception as exc:
             elapsed = time.perf_counter() - t0
             last_exc = exc

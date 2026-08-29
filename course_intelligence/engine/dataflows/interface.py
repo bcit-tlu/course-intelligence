@@ -24,6 +24,7 @@ from course_intelligence.engine.agents.utils.agent_states import (
     ContentPage,
     CourseModule,
 )
+from course_intelligence.engine.graph.progress_context import report_progress
 
 
 SUPPORTED_EXTENSIONS = {".zip", ".pdf", ".docx", ".txt", ".md"}
@@ -145,7 +146,9 @@ def _parse_generic_directory(path: Path) -> CourseModule:
         )
 
     pages: list[ContentPage] = []
+    n_files = len(files)
     for i, f in enumerate(files, 1):
+        report_progress("extracting", i, n_files, "files")
         rel = str(f.relative_to(path))
         ext = f.suffix.lower()
 

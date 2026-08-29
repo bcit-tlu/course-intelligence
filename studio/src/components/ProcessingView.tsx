@@ -10,6 +10,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { computeProgressPercent, formatStepProgress } from "@/lib/progress";
 import { cn } from "@/lib/utils";
 import type { Job } from "@/types";
 
@@ -90,15 +92,26 @@ export default function ProcessingView({ job }: { job: Job }) {
               Queued for processing…
             </p>
           )}
+          <div className="mb-6 space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Overall progress</span>
+              <span className="font-medium">
+                {computeProgressPercent(job.status, job.current_step, job.step_progress)}%
+              </span>
+            </div>
+            <Progress
+              value={computeProgressPercent(job.status, job.current_step, job.step_progress)}
+            />
+          </div>
           <ol className="space-y-4">
             {STEPS.map((step, i) => {
               const done = i < currentIndex;
               const active = i === currentIndex;
               return (
-                <li key={step.key} className="flex items-center gap-3">
+                <li key={step.key} className="flex items-start gap-3">
                   <span
                     className={cn(
-                      "flex h-7 w-7 items-center justify-center rounded-full border text-xs",
+                      "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs",
                       done && "border-primary bg-primary text-primary-foreground",
                       active && "border-primary text-primary",
                       !done && !active && "border-border text-muted-foreground",
@@ -112,14 +125,21 @@ export default function ProcessingView({ job }: { job: Job }) {
                       i + 1
                     )}
                   </span>
-                  <span
-                    className={cn(
-                      "text-sm",
-                      active ? "font-medium" : "text-muted-foreground",
+                  <div className="flex flex-col">
+                    <span
+                      className={cn(
+                        "text-sm",
+                        active ? "font-medium" : "text-muted-foreground",
+                      )}
+                    >
+                      {step.label}
+                    </span>
+                    {active && formatStepProgress(job.step_progress) && (
+                      <span className="text-xs text-muted-foreground">
+                        {formatStepProgress(job.step_progress)}
+                      </span>
                     )}
-                  >
-                    {step.label}
-                  </span>
+                  </div>
                 </li>
               );
             })}

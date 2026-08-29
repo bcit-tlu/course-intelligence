@@ -2,6 +2,12 @@
 
 export type JobStatus = "queued" | "processing" | "completed" | "failed";
 
+export interface StepProgress {
+  current: number;
+  total: number;
+  unit: string;
+}
+
 export interface Job {
   job_id: string;
   status: JobStatus;
@@ -10,6 +16,7 @@ export interface Job {
   updated_at: string;
   error: string | null;
   current_step: string | null;
+  step_progress: StepProgress | null;
   tenant_id: string | null;
 }
 

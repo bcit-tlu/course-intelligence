@@ -35,6 +35,7 @@ from course_intelligence.db import Job, JobStatus, Result, get_session
 from course_intelligence.exceptions import JobTimeout
 from course_intelligence.default_config import DEFAULT_CONFIG
 from course_intelligence.engine import CourseProcessorGraph
+from course_intelligence.engine.graph.progress_context import set_progress_callback
 from course_intelligence.engine.graph.steps import NODE_TO_STEP
 from course_intelligence.observability import setup_otel, instrument_shared
 
@@ -108,6 +109,18 @@ def _set_step(job_id: str, step: str | None) -> None:
         session.close()
 
 
+def _set_step_progress(job_id: str, progress: dict) -> None:
+    session = get_session()
+    try:
+        job = session.get(Job, job_id)
+        if job is None:
+            return
+        job.step_progress = progress
+        session.commit()
+    finally:
+        session.close()
+
+
 def process_job(job_id: str, graph: CourseProcessorGraph) -> None:
     """Process a single job: download, run pipeline, save results."""
     session = get_session()
@@ -144,6 +157,9 @@ def process_job(job_id: str, graph: CourseProcessorGraph) -> None:
             step_start = now
             _set_step(job_id, NODE_TO_STEP.get(node, node))
 
+        def _on_progress(step: str, progress: dict) -> None:
+            _set_step_progress(job_id, progress)
+
         timeout_s = DEFAULT_CONFIG.get("job_timeout_s", 600)
         old_handler = signal.signal(signal.SIGALRM, _timeout_handler)
         signal.alarm(timeout_s)
@@ -156,6 +172,7 @@ def process_job(job_id: str, graph: CourseProcessorGraph) -> None:
                     local_path,
                     learning_objectives,
                     on_step=_on_step,
+                    on_progress=_on_progress,
                 )
         finally:
             signal.alarm(0)

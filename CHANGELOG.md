@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.16.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.15.0...backend-v0.16.0) (2026-08-29)
+
+
+### Features
+
+* 133 llm provider abstraction ([cbe0263](https://github.com/bcit-tlu/course-intelligence/commit/cbe0263551a363fe4ec4a9853fc54e0abe3a2313))
+* add LLM retry logic with exponential backoff and per-call observability ([61aaa4c](https://github.com/bcit-tlu/course-intelligence/commit/61aaa4c6ec0ffb7bf514d590cda14364a0b5792e))
+* add LM Studio and OpenAI provider support with centralized LLM factory ([c9c8cad](https://github.com/bcit-tlu/course-intelligence/commit/c9c8cad9e9b9e453d0a66a395d5a2572e76c5668))
+
 ## [0.15.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.14.0...backend-v0.15.0) (2026-08-28)
 
 

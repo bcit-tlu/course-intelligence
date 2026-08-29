@@ -29,6 +29,7 @@ class OpenAIClient(BaseLLMClient):
             model=self.model,
             temperature=self.kwargs.get("temperature", 0),
             max_tokens=self.kwargs.get("max_tokens", 8192),
+            max_retries=0,
             model_kwargs=model_kwargs,
         )
 

@@ -205,7 +205,7 @@ export default function JobsListPage() {
                   {job.status === "processing" && (
                     <div className="mt-2">
                       <Progress
-                        value={computeProgressPercent(job.status, job.current_step)}
+                        value={computeProgressPercent(job.status, job.current_step, job.step_progress)}
                         className="h-1.5"
                       />
                     </div>

@@ -96,11 +96,11 @@ export default function ProcessingView({ job }: { job: Job }) {
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Overall progress</span>
               <span className="font-medium">
-                {computeProgressPercent(job.status, job.current_step)}%
+                {computeProgressPercent(job.status, job.current_step, job.step_progress)}%
               </span>
             </div>
             <Progress
-              value={computeProgressPercent(job.status, job.current_step)}
+              value={computeProgressPercent(job.status, job.current_step, job.step_progress)}
             />
           </div>
           <ol className="space-y-4">

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.10.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v0.9.0...studio-v0.10.0) (2026-08-29)
+
+
+### Features
+
+* add sub-step progress tracking with live UI updates ([62b6606](https://github.com/bcit-tlu/course-intelligence/commit/62b6606dc674b697886f894751deffb5ec8fa471))
+* integrate sub-step progress into overall progress calculation ([ac3783f](https://github.com/bcit-tlu/course-intelligence/commit/ac3783f1ef7b5f8685da1b3a9ec76045cf753bd7))
+
+
+### Bug Fixes
+
+* 139 real time progress updates ([8fd66b5](https://github.com/bcit-tlu/course-intelligence/commit/8fd66b5fa16319a51f0cc10901d1f958267da7fc))
+
 ## [0.9.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v0.8.0...studio-v0.9.0) (2026-08-29)
 
 

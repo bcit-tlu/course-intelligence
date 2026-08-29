@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { AlertCircle, CheckCircle2, Loader2, Clock } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, Clock, Timer } from "lucide-react";
 
 import { ApiError, listJobs } from "@/api/client";
 import { analytics } from "@/analytics/events";
@@ -47,6 +47,52 @@ function formatRelative(iso: string): string {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
+}
+
+function formatDuration(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
+}
+
+function useElapsed(startIso: string): string {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const seconds = Math.max(0, Math.floor((now - new Date(startIso).getTime()) / 1000));
+  return formatDuration(seconds);
+}
+
+function JobDuration({ job }: { job: Job }) {
+  if (job.status === "processing") {
+    const elapsed = useElapsed(job.created_at);
+    return (
+      <span className="flex items-center gap-1 text-sm text-primary">
+        <Timer className="h-3.5 w-3.5" />
+        {elapsed}
+      </span>
+    );
+  }
+  if (job.status === "completed" || job.status === "failed") {
+    const seconds = Math.max(
+      0,
+      Math.floor(
+        (new Date(job.updated_at).getTime() -
+          new Date(job.created_at).getTime()) /
+          1000,
+      ),
+    );
+    return (
+      <span className="flex items-center gap-1 text-sm text-muted-foreground">
+        <Timer className="h-3.5 w-3.5" />
+        {formatDuration(seconds)}
+      </span>
+    );
+  }
+  return null;
 }
 
 export default function JobsListPage() {
@@ -150,9 +196,10 @@ export default function JobsListPage() {
               <CardContent className="flex items-center justify-between py-4">
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{job.filename}</p>
-                  <p className="mt-0.5 text-sm text-muted-foreground">
-                    {formatRelative(job.created_at)}
-                  </p>
+                  <div className="mt-0.5 flex items-center gap-3 text-sm text-muted-foreground">
+                    <span>{formatRelative(job.created_at)}</span>
+                    <JobDuration job={job} />
+                  </div>
                 </div>
                 <StatusBadge status={job.status} />
               </CardContent>

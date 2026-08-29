@@ -13,8 +13,11 @@ save results → mark completed/failed → LREM from processing list.
 from __future__ import annotations
 
 import logging
+import signal
 import tempfile
+import threading
 import time
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import redis as redis_lib
@@ -66,6 +69,14 @@ BLOCK_TIMEOUT_S = 5
 _LOCAL_DEV_REDIS = "redis://localhost:6379/0"
 
 
+class JobTimeout(Exception):
+    """Raised when a job exceeds the configured execution timeout."""
+
+
+def _timeout_handler(signum, frame):
+    raise JobTimeout("Job exceeded max processing time")
+
+
 def _get_redis():
     return redis_lib.Redis.from_url(
         DEFAULT_CONFIG.get("redis_url") or _LOCAL_DEV_REDIS,
@@ -108,6 +119,9 @@ def process_job(job_id: str, graph: CourseProcessorGraph) -> None:
         if job is None:
             logger.warning("Job %s not found in DB — skipping", job_id)
             return
+        if job.status in (JobStatus.completed, JobStatus.failed):
+            logger.info("Job %s already %s — skipping", job_id, job.status)
+            return
         storage_key = job.storage_key
         filename = job.filename
         learning_objectives = job.learning_objectives
@@ -133,15 +147,22 @@ def process_job(job_id: str, graph: CourseProcessorGraph) -> None:
             step_start = now
             _set_step(job_id, NODE_TO_STEP.get(node, node))
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            local_path = str(Path(tmp_dir) / filename)
-            storage.download_file(storage_key, local_path)
+        timeout_s = DEFAULT_CONFIG.get("job_timeout_s", 600)
+        old_handler = signal.signal(signal.SIGALRM, _timeout_handler)
+        signal.alarm(timeout_s)
+        try:
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                local_path = str(Path(tmp_dir) / filename)
+                storage.download_file(storage_key, local_path)
 
-            result = graph.process_with_progress(
-                local_path,
-                learning_objectives,
-                on_step=_on_step,
-            )
+                result = graph.process_with_progress(
+                    local_path,
+                    learning_objectives,
+                    on_step=_on_step,
+                )
+        finally:
+            signal.alarm(0)
+            signal.signal(signal.SIGALRM, old_handler)
 
         error = result.get("error")
         knowledge_map = result.get("knowledge_map", [])
@@ -242,6 +263,50 @@ def cleanup_old_uploads() -> None:
         session.close()
 
 
+def _reap_stale_jobs() -> None:
+    """Mark processing jobs as failed if they haven't been updated recently.
+
+    Uses updated_at as a heartbeat: the worker touches updated_at on every
+    pipeline step transition.  If a job's updated_at is older than the
+    configured threshold, it's considered frozen and marked failed.
+
+    Does NOT touch Redis — the worker's finally:LREM or _reclaim_stale_jobs
+    handles Redis cleanup.
+    """
+    threshold_s = DEFAULT_CONFIG.get("watchdog_stale_threshold_s", 900)
+    cutoff = datetime.now(timezone.utc) - timedelta(seconds=threshold_s)
+    session = get_session()
+    try:
+        stale_jobs = (
+            session.query(Job)
+            .filter(Job.status == JobStatus.processing)
+            .filter(Job.updated_at < cutoff)
+            .all()
+        )
+        for job in stale_jobs:
+            job.status = JobStatus.failed
+            job.error = f"Job timed out (no progress for {threshold_s}s)"
+            logger.warning(
+                "Watchdog: reaped stale job %s (last updated %s)",
+                job.id, job.updated_at,
+            )
+        if stale_jobs:
+            session.commit()
+    finally:
+        session.close()
+
+
+def _watchdog_loop() -> None:
+    """Background thread that periodically reaps stale jobs."""
+    interval = DEFAULT_CONFIG.get("watchdog_interval_s", 60)
+    while True:
+        time.sleep(interval)
+        try:
+            _reap_stale_jobs()
+        except Exception:
+            logger.exception("Watchdog loop error")
+
+
 def _reclaim_stale_jobs(redis_client) -> None:
     """Requeue jobs left in the processing list by a crashed worker run.
 
@@ -266,6 +331,7 @@ def run() -> None:
     redis_client = _get_redis()
     graph = CourseProcessorGraph(config=DEFAULT_CONFIG)
     _reclaim_stale_jobs(redis_client)
+    threading.Thread(target=_watchdog_loop, daemon=True).start()
     logger.info("Worker started — waiting for jobs on '%s'...", JOB_QUEUE)
 
     while True:

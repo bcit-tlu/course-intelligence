@@ -57,6 +57,11 @@ _ENV_OVERRIDES = {
     # Upload retention
     "RETENTION_COUNT":    "retention_count",
 
+    # Job timeout & watchdog
+    "JOB_TIMEOUT_S":              "job_timeout_s",
+    "WATCHDOG_INTERVAL_S":        "watchdog_interval_s",
+    "WATCHDOG_STALE_THRESHOLD_S": "watchdog_stale_threshold_s",
+
     # API server
     "API_HOST":           "api_host",
     "API_PORT":           "api_port",
@@ -146,6 +151,16 @@ DEFAULT_CONFIG = _apply_env_overrides({
 
     # Upload retention — number of recent job uploads to keep in S3
     "retention_count": 10,
+
+    # Job timeout — max seconds a single job may run before being killed
+    "job_timeout_s": 600,
+
+    # Watchdog — interval (s) between stale-job checks, and threshold (s)
+    # for how long a job can stay in "processing" with no updated_at
+    # heartbeat before being marked failed.  Must be > job_timeout_s and
+    # should exceed the longest expected single pipeline step.
+    "watchdog_interval_s": 60,
+    "watchdog_stale_threshold_s": 900,
 
     # Enable uvicorn auto-reload (dev only). Must stay False in production/containers.
     "dev_reload": False,

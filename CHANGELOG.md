@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.17.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.16.0...backend-v0.17.0) (2026-08-29)
+
+
+### Features
+
+* add job duration display with live elapsed time for processing jobs ([03f106c](https://github.com/bcit-tlu/course-intelligence/commit/03f106c0818e8be789097d0bcc2f21066265d7ca))
+* add job timeout and watchdog for stale job detection ([c2608cf](https://github.com/bcit-tlu/course-intelligence/commit/c2608cf450e63ab6ac58f61eb30cf7da3b111538))
+
+
+### Bug Fixes
+
+* 136 job timeout watchdog ([7e06451](https://github.com/bcit-tlu/course-intelligence/commit/7e0645180256638917bd83b33ec495c2c7212b99))
+
 ## [0.16.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.15.0...backend-v0.16.0) (2026-08-29)
 
 

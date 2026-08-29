@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+import logging
+import time
 import uuid
 
 from course_intelligence.engine.agents.utils.agent_states import AgentState, KnowledgeChunk
 from course_intelligence.engine.agents.utils.json_parsing import parse_llm_json
+from course_intelligence.engine.agents.utils.llm_retry import invoke_with_retry
+
+logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """\
 You are a medical content analyst. Given the full text of a course module,
@@ -28,11 +33,18 @@ Return ONLY the JSON array. No markdown fences, no explanation.
 
 
 def _chunk_text(llm, text: str) -> list[KnowledgeChunk] | None:
-    """Run one chunking LLM call over a block of text."""
-    response = llm.invoke([
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": text},
-    ])
+    """Run one chunking LLM call over a block of text.
+
+    Returns None on parse failure or transient LLM errors so the caller
+    can record the page as failed and continue with remaining pages.
+    """
+    try:
+        response = invoke_with_retry(llm, [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": text},
+        ], caller="chunker")
+    except Exception:
+        return None
 
     chunks_raw = parse_llm_json(response.content)
     if chunks_raw is None:
@@ -64,11 +76,19 @@ def create_semantic_chunker(llm):
 
         if course_module and course_module.get("pages"):
             # Chunk each page separately — one LLM call per page
-            for page in course_module["pages"]:
+            n_pages = len(course_module["pages"])
+            for i, page in enumerate(course_module["pages"], 1):
                 if not page["text"].strip():
                     continue
                 page_input = f"# {page['title']}\n\n{page['text']}"
+                t0 = time.perf_counter()
                 chunks = _chunk_text(llm, page_input)
+                page_elapsed = time.perf_counter() - t0
+                n_chunks = len(chunks) if chunks else 0
+                logger.info(
+                    "[chunker] page %d/%d \"%s\": %.1fs, %d chunks",
+                    i, n_pages, page["title"][:60], page_elapsed, n_chunks,
+                )
                 if chunks is None:
                     failed_pages.append(page["title"])
                     continue

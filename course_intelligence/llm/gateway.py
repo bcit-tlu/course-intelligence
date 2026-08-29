@@ -24,6 +24,7 @@ from pydantic import BaseModel
 from course_intelligence.analytics import emit_event, llm_tokens_by_tenant
 from course_intelligence.default_config import DEFAULT_CONFIG
 from course_intelligence.llm.clients import build_llm_from_config
+from course_intelligence.engine.agents.utils.llm_retry import invoke_with_retry
 from course_intelligence.observability import setup_otel
 
 logger = logging.getLogger(__name__)
@@ -132,7 +133,7 @@ async def complete(
             "llm.complete",
             attributes={"llm.model": model_name},
         ) as span:
-            result = llm.invoke(messages)
+            result = invoke_with_retry(llm, messages, caller="gateway")
             latency_ms = int((time.perf_counter() - start) * 1000)
 
             # Extract usage if available

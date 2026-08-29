@@ -114,6 +114,7 @@ def build_llm_from_config(config: dict) -> Any:
             base_url=config.get("lmstudio_base_url"),
             api_key="lm-studio",
             max_tokens=max_tokens,
+            reasoning_effort=config.get("lmstudio_reasoning_effort", "none"),
         )
     elif provider == "openai" and not mock:
         client = create_llm_client(

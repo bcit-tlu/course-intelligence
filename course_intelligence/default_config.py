@@ -16,8 +16,9 @@ _ENV_OVERRIDES = {
     "OLLAMA_MODEL":       "ollama_model",
 
     # LM Studio (local)
-    "LMSTUDIO_BASE_URL":  "lmstudio_base_url",
-    "LMSTUDIO_MODEL":     "lmstudio_model",
+    "LMSTUDIO_BASE_URL":     "lmstudio_base_url",
+    "LMSTUDIO_MODEL":        "lmstudio_model",
+    "LMSTUDIO_REASONING_EFFORT": "lmstudio_reasoning_effort",
 
     # OpenAI (cloud)
     "OPENAI_BASE_URL":    "openai_base_url",
@@ -97,6 +98,9 @@ DEFAULT_CONFIG = _apply_env_overrides({
     # LM Studio settings (local only — no API key needed)
     "lmstudio_base_url": "http://localhost:1234/v1",
     "lmstudio_model": "local-model",
+    # Reasoning effort: "none" (Gemma 4), "low"/"medium"/"high"/"xhigh" (Muse Glimmer),
+    # or "" to omit the parameter entirely
+    "lmstudio_reasoning_effort": "none",
 
     # Azure OpenAI settings (pilot/prod)
     "azure_openai_endpoint": "",       # e.g. https://myinstance.openai.azure.com

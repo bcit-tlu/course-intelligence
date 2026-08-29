@@ -12,6 +12,7 @@ import logging
 
 from course_intelligence.engine.agents.utils.agent_states import AgentState, KnowledgeChunk
 from course_intelligence.engine.agents.utils.json_parsing import parse_llm_json
+from course_intelligence.engine.agents.utils.llm_retry import invoke_with_retry
 
 logger = logging.getLogger(__name__)
 
@@ -60,10 +61,10 @@ def _classify_batch(llm, batch: list[KnowledgeChunk]) -> None:
         {"chunk_id": c["chunk_id"], "topic": c["topic"], "content": c["content"]}
         for c in batch
     ]
-    response = llm.invoke([
+    response = invoke_with_retry(llm, [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": json.dumps(units, indent=2)},
-    ])
+    ], caller="classifier")
 
     items = parse_llm_json(response.content)
     if items is None:

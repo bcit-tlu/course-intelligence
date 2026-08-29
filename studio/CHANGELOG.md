@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v0.8.0...studio-v0.9.0) (2026-08-29)
+
+
+### Features
+
+* add job duration display with live elapsed time for processing jobs ([03f106c](https://github.com/bcit-tlu/course-intelligence/commit/03f106c0818e8be789097d0bcc2f21066265d7ca))
+
+
+### Bug Fixes
+
+* 136 job timeout watchdog ([7e06451](https://github.com/bcit-tlu/course-intelligence/commit/7e0645180256638917bd83b33ec495c2c7212b99))
+
 ## [0.8.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v0.7.0...studio-v0.8.0) (2026-08-28)
 
 

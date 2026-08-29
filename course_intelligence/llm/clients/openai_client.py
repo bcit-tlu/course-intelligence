@@ -31,6 +31,7 @@ class OpenAIClient(BaseLLMClient):
             max_tokens=self.kwargs.get("max_tokens", 8192),
             max_retries=0,
             model_kwargs=model_kwargs,
+            timeout=self.kwargs.get("request_timeout"),
         )
 
     def validate_model(self) -> bool:

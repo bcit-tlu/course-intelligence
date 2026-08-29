@@ -53,6 +53,7 @@ _ENV_OVERRIDES = {
     "MAX_CHUNK_TOKENS":   "max_chunk_tokens",
     "MIN_CHUNK_TOKENS":   "min_chunk_tokens",
     "LLM_MAX_TOKENS":     "llm_max_tokens",
+    "LLM_REQUEST_TIMEOUT_S": "llm_request_timeout_s",
 
     # Upload retention
     "RETENTION_COUNT":    "retention_count",
@@ -141,6 +142,11 @@ DEFAULT_CONFIG = _apply_env_overrides({
 
     # LLM output token limit — prevents truncated JSON responses
     "llm_max_tokens": 8192,
+
+    # Per-request HTTP timeout for LLM calls (seconds). Ensures a hung
+    # LLM server returns control to Python so signal.alarm can fire.
+    # Must be < job_timeout_s / max_retries (3) to stay within budget.
+    "llm_request_timeout_s": 180,
 
     # Mock mode — run the graph without real LLM calls
     "mock_llm": False,

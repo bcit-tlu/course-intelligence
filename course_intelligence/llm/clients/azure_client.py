@@ -21,6 +21,7 @@ class AzureOpenAIClient(BaseLLMClient):
             azure_deployment=self.model,
             temperature=self.kwargs.get("temperature", 0),
             max_tokens=self.kwargs.get("max_tokens", 8192),
+            timeout=self.kwargs.get("request_timeout"),
         )
 
     def validate_model(self) -> bool:

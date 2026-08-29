@@ -86,6 +86,7 @@ def build_llm_from_config(config: dict) -> Any:
     provider = config.get("llm_provider", "ollama")
     mock = config.get("mock_llm", False)
     max_tokens = config.get("llm_max_tokens", 8192)
+    request_timeout = config.get("llm_request_timeout_s", 180)
 
     if not mock:
         _validate_provider_config(provider, config)
@@ -98,6 +99,7 @@ def build_llm_from_config(config: dict) -> Any:
             api_key=config.get("azure_openai_api_key", ""),
             api_version=config.get("azure_openai_api_version", "2024-06-01"),
             max_tokens=max_tokens,
+            request_timeout=request_timeout,
         )
     elif provider == "litellm" and not mock:
         client = create_llm_client(
@@ -106,6 +108,7 @@ def build_llm_from_config(config: dict) -> Any:
             base_url=config.get("litellm_base_url"),
             api_key=config.get("litellm_api_key", ""),
             max_tokens=max_tokens,
+            request_timeout=request_timeout,
         )
     elif provider == "lmstudio" and not mock:
         client = create_llm_client(
@@ -115,6 +118,7 @@ def build_llm_from_config(config: dict) -> Any:
             api_key="lm-studio",
             max_tokens=max_tokens,
             reasoning_effort=config.get("lmstudio_reasoning_effort", "none"),
+            request_timeout=request_timeout,
         )
     elif provider == "openai" and not mock:
         client = create_llm_client(
@@ -123,6 +127,7 @@ def build_llm_from_config(config: dict) -> Any:
             base_url=config.get("openai_base_url") or None,
             api_key=config.get("openai_api_key", ""),
             max_tokens=max_tokens,
+            request_timeout=request_timeout,
         )
     else:
         client = create_llm_client(
@@ -132,6 +137,7 @@ def build_llm_from_config(config: dict) -> Any:
             mock=mock,
             api_key=config.get("ollama_api_key", ""),
             max_tokens=max_tokens,
+            request_timeout=request_timeout,
         )
 
     client.validate_model()

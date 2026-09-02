@@ -40,8 +40,8 @@ Return your answer as a JSON array with one object per knowledge unit,
 in the SAME ORDER as the input, with keys "chunk_id", "blooms_level",
 and "rationale". Example:
 [
-  {{"chunk_id": "a1b2c3d4", "blooms_level": "Understand", "rationale": "Requires explaining the concept of sepsis in own words."}},
-  {{"chunk_id": "e5f6a7b8", "blooms_level": "Apply", "rationale": "Requires using the qSOFA score in a clinical scenario."}}
+  {{"chunk_id": "a1b2c3d4", "blooms_level": "Understand", "rationale": "Requires explaining the concept in own words."}},
+  {{"chunk_id": "e5f6a7b8", "blooms_level": "Apply", "rationale": "Requires using the formula in a new scenario."}}
 ]
 
 Return ONLY the JSON array. No markdown fences, no explanation.

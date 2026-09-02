@@ -14,8 +14,9 @@ from course_intelligence.engine.graph.progress_context import report_progress
 logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """\
-You are a medical content analyst. Given the full text of a course module,
-split the text into self-contained "Atomic Knowledge Units".
+You are an expert content analyst across all academic and professional
+disciplines. Given the full text of a course module, split the text into
+self-contained "Atomic Knowledge Units".
 
 Each unit must:
 1. Cover exactly ONE concept, procedure, or fact.
@@ -25,8 +26,8 @@ Each unit must:
 Return your answer as a JSON array of objects with keys "topic" and "content".
 Example:
 [
-  {{"topic": "Sepsis Definition", "content": "Sepsis is a life-threatening..."}},
-  {{"topic": "qSOFA Criteria", "content": "The quick SOFA score..."}}
+  {{"topic": "Newton's Second Law", "content": "Force equals mass times acceleration..."}},
+  {{"topic": "Supply and Demand Equilibrium", "content": "The equilibrium price occurs where..."}}
 ]
 
 Return ONLY the JSON array. No markdown fences, no explanation.

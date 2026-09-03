@@ -225,7 +225,6 @@ are in `docker-compose.override.yml`.
 | `AZURE_OPENAI_API_KEY` | — | Azure OpenAI API key |
 | `AZURE_OPENAI_API_VERSION` | `2024-06-01` | Azure OpenAI API version |
 | `AZURE_OPENAI_DEPLOYMENT` | — | Azure chat model deployment name |
-| `AZURE_OPENAI_EMBEDDING_DEPLOYMENT` | — | Azure embedding model deployment name |
 | `LITELLM_API_BASE` | — | LiteLLM gateway base URL (e.g. `http://litellm:4000`) |
 | `LITELLM_API_KEY` | — | LiteLLM gateway API key |
 | `LITELLM_MODEL` | `default-fast` | LiteLLM model alias |

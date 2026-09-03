@@ -30,7 +30,6 @@ _ENV_OVERRIDES = {
     "AZURE_OPENAI_API_KEY":     "azure_openai_api_key",
     "AZURE_OPENAI_API_VERSION": "azure_openai_api_version",
     "AZURE_OPENAI_DEPLOYMENT":  "azure_openai_deployment",
-    "AZURE_OPENAI_EMBEDDING_DEPLOYMENT": "azure_openai_embedding_deployment",
 
     # LiteLLM gateway (OpenAI-compatible proxy)
     "LITELLM_API_BASE":  "litellm_base_url",
@@ -50,8 +49,6 @@ _ENV_OVERRIDES = {
 
     # Processing
     "MOCK_LLM":           "mock_llm",
-    "MAX_CHUNK_TOKENS":   "max_chunk_tokens",
-    "MIN_CHUNK_TOKENS":   "min_chunk_tokens",
     "LLM_MAX_TOKENS":     "llm_max_tokens",
     "LLM_REQUEST_TIMEOUT_S": "llm_request_timeout_s",
 
@@ -113,7 +110,6 @@ DEFAULT_CONFIG = _apply_env_overrides({
     "azure_openai_api_key": "",
     "azure_openai_api_version": "2024-06-01",
     "azure_openai_deployment": "",     # chat model deployment name
-    "azure_openai_embedding_deployment": "",  # embedding model deployment name
 
     # OpenAI (cloud)
     "openai_base_url": "",             # leave empty for api.openai.com default
@@ -135,10 +131,6 @@ DEFAULT_CONFIG = _apply_env_overrides({
     "s3_access_key": "",
     "s3_secret_key": "",
     "s3_bucket": "uploads",
-
-    # Processing defaults
-    "max_chunk_tokens": 800,
-    "min_chunk_tokens": 100,
 
     # LLM output token limit — prevents truncated JSON responses
     "llm_max_tokens": 8192,

@@ -32,7 +32,6 @@ llm:
     endpoint: ""
     apiVersion: "2024-06-01"
     deployment: ""
-    embeddingDeployment: ""
     apiKey: ""              # -> Secret key `azure-openai-api-key` / env AZURE_OPENAI_API_KEY
   litellm:
     model: "default-fast"   # LiteLLM model alias (non-secret); API key/base URL come from envFrom

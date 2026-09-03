@@ -76,17 +76,37 @@ def _validate_provider_config(provider: str, config: dict) -> None:
         )
 
 
-def build_llm_from_config(config: dict) -> Any:
+def build_llm_from_config(config: dict, direct: bool = False) -> Any:
     """Build a LangChain LLM instance from a config dict.
 
     Centralizes provider selection so gateway.py and processor_graph.py
     don't duplicate the same if/elif/else logic. Validates required
     config keys at init time for fail-fast behavior.
+
+    Args:
+        config: Configuration dict with provider settings.
+        direct: If True, always build a direct provider client (used by
+            the gateway itself to avoid routing back to itself). If False
+            (default), routes through the CI gateway when
+            ``llm_gateway_url`` is set in config.
     """
     provider = config.get("llm_provider", "ollama")
     mock = config.get("mock_llm", False)
     max_tokens = config.get("llm_max_tokens", 8192)
     request_timeout = config.get("llm_request_timeout_s", 180)
+
+    # Route through CI gateway when configured (unless caller is the
+    # gateway itself, which needs a direct provider client).
+    gateway_url = config.get("llm_gateway_url", "")
+    if gateway_url and not direct and not mock:
+        from .gateway_client import GatewayLLMClient
+        client = GatewayLLMClient(
+            gateway_url=gateway_url,
+            max_tokens=max_tokens,
+            request_timeout=request_timeout,
+        )
+        client.validate_model()
+        return client.get_llm()
 
     if not mock:
         _validate_provider_config(provider, config)

@@ -42,7 +42,7 @@ spec:
             # The nginx config template proxies /otel/* to this URL.
             # Leave empty to disable frontend analytics.
             - name: OTEL_ENDPOINT
-              value: {{ .Values.otel.endpoint | quote }}
+              value: {{ .Values.observability.openTelemetry.endpoint | quote }}
           volumeMounts:
             # Shadow the image's baked-in template with the ConfigMap so the
             # upstream can change without an image rebuild.

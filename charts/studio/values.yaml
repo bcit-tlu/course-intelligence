@@ -29,8 +29,10 @@ env:
 
 # OTel collector endpoint for frontend trace export. The nginx config
 # proxies /otel/* to this URL. Leave empty to disable frontend analytics.
-otel:
-  endpoint: ""
+observability:
+  openTelemetry:
+    enabled: false
+    endpoint: ""
 
 ingress:
   enabled: false

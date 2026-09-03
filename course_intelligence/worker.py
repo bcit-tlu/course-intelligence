@@ -63,6 +63,11 @@ classified_counter = meter.create_counter(
     unit="1",
     description="Chunks classified by Bloom's level",
 )
+queue_depth = meter.create_gauge(
+    "ci.queue.depth",
+    unit="1",
+    description="Number of jobs waiting in the Redis queue",
+)
 
 JOB_QUEUE = "course-intelligence:jobs"
 PROCESSING_QUEUE = "course-intelligence:jobs:processing"
@@ -358,15 +363,35 @@ def run() -> None:
                 continue
             job_id = raw_job_id.decode()
 
+            # Report queue depth before processing (gauge is point-in-time)
+            try:
+                queue_depth.set(redis_client.llen(JOB_QUEUE))
+            except Exception:
+                pass
+
             try:
                 process_job(job_id, graph)
             except Exception as e:
                 logger.error("Job %s: failed — %s", job_id, e, exc_info=True)
                 _set_status(job_id, JobStatus.failed, error=str(e))
                 jobs_counter.add(1, {"status": "failed"})
-                jobs_failed.add(1, {"tenant_id": "unknown", "stage": "processing"})
+
+                # Look up tenant_id and filename from the DB for correlation
+                # with the ci.job.submitted event (success path captures
+                # these at worker.py:214/136).
+                fail_session = get_session()
+                try:
+                    failed_job = fail_session.get(Job, job_id)
+                    tenant_id = failed_job.tenant_id or "unknown" if failed_job else "unknown"
+                    filename = failed_job.filename if failed_job else "unknown"
+                finally:
+                    fail_session.close()
+
+                jobs_failed.add(1, {"tenant_id": tenant_id, "stage": "processing"})
                 emit_event("ci.job.failed", {
                     "job.id": job_id,
+                    "job.tenant_id": tenant_id,
+                    "job.filename": filename,
                     "error": str(e),
                 })
             finally:

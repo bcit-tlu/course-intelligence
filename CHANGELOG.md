@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.19.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.18.0...backend-v0.19.0) (2026-09-03)
+
+
+### Features
+
+* add GatewayLLMClient to route all LLM calls through CI gateway … ([e723720](https://github.com/bcit-tlu/course-intelligence/commit/e723720482b3d349ef867c7b05a94782c575eed0))
+* add GatewayLLMClient to route all LLM calls through CI gateway for centralized metrics and analytics ([2839e3d](https://github.com/bcit-tlu/course-intelligence/commit/2839e3dacabb8a91e1d216fa5ccc6184931c16f6))
+
 ## [0.18.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.17.0...backend-v0.18.0) (2026-08-29)
 
 

@@ -175,5 +175,3 @@ observability:
   # <fullname>-<component> (e.g. course-intelligence-backend-api,
   # -worker, -gateway) so each role gets a distinct OTel identity.
   serviceName: ""
-  grafanaDashboards:
-    enabled: false

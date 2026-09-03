@@ -57,7 +57,7 @@ rationale, and a source page reference where the parser can determine one.
 ## Quick Start
 
 ```bash
-cp .env.example .env          # fill in your Ollama Cloud key
+cp .env.example .env          # fill in your LLM provider settings
 docker compose up --build
 ```
 
@@ -92,6 +92,8 @@ MOCK_LLM=true docker compose up --build
 
 ### Local Development
 
+For quick mock-mode tests without docker-compose:
+
 ```bash
 uv sync
 MOCK_LLM=true uv run python main.py api      # FastAPI server
@@ -104,6 +106,11 @@ uv run python main.py worker                  # Background job worker
 uv run python main.py gateway                 # LLM gateway proxy (:8100)
 uv run python main.py <file.pdf|docx|txt|md|zip>  # Process a single file
 ```
+
+> **Note:** When running outside docker-compose, `LLM_GATEWAY_URL` is not set
+> by default, so LLM calls go directly to the provider — not through the
+> gateway. Set `LLM_GATEWAY_URL=http://localhost:8100` in `.env` if you want
+> gateway routing (and start the gateway separately).
 
 ### Studio Development with Docker
 
@@ -152,6 +159,12 @@ Test suite:
 | `test_db.py` | SQLAlchemy models and session |
 | `test_progress.py` | Per-node progress tracking |
 | `test_retention.py` | S3 upload retention cleanup |
+| `test_llm_factory.py` | LLM client factory and provider selection |
+| `test_llm_retry.py` | `invoke_with_retry` retry and usage extraction |
+| `test_analytics.py` | Analytics event emission |
+| `test_observability.py` | OpenTelemetry setup and instrumentation |
+| `test_watchdog.py` | Stale job reaping logic |
+| `test_worker_timeout.py` | Job timeout signal handling |
 
 ## Project Structure
 
@@ -177,7 +190,6 @@ course-intelligence/             # repo root
     ├── storage.py               # S3/MinIO object storage wrapper
     ├── engine/                  # transport-independent processing core
     │   ├── agents/              # agent factories grouped by role
-    │   │   ├── schemas.py       # Pydantic structured-output models (ChunkOutput)
     │   │   ├── extractor/       # create_content_extractor() — pure Python, no LLM
     │   │   ├── chunker/         # create_semantic_chunker(llm) — LLM-powered chunking
     │   │   ├── classifier/      # create_blooms_classifier(llm) — Bloom's taxonomy tagging
@@ -201,8 +213,10 @@ course-intelligence/             # repo root
     └── llm/                      # LLM layer (clients + gateway)
         ├── gateway.py            # LLM Gateway proxy (FastAPI, port 8100)
         └── clients/              # LLM provider abstraction
+            ├── __init__.py       # public exports
             ├── base_client.py    # ABC
-            ├── factory.py        # create_llm_client(provider, model, mock, ...)
+            ├── factory.py        # build_llm_from_config() + create_llm_client()
+            ├── gateway_client.py # routes calls through the CI gateway
             ├── openai_client.py  # Ollama / OpenAI / LiteLLM compat
             ├── azure_client.py   # Azure OpenAI (AzureChatOpenAI)
             └── mock_client.py    # FakeListChatModel for testing
@@ -217,10 +231,16 @@ are in `docker-compose.override.yml`.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `LLM_PROVIDER` | `ollama` | LLM provider: `ollama` (dev), `azure` (pilot/prod), `litellm` (self-hosted gateway), `mock` (testing) |
+| `LLM_PROVIDER` | `ollama` | LLM provider: `ollama` (dev), `lmstudio` (local), `openai` (cloud), `azure` (pilot/prod), `litellm` (self-hosted gateway), `mock` (testing) |
 | `OLLAMA_API_KEY` | — | API key from [ollama.com/settings/keys](https://ollama.com/settings/keys) |
 | `OLLAMA_BASE_URL` | `https://ollama.com` | Ollama Cloud endpoint |
 | `OLLAMA_MODEL` | `gemma4:31b-cloud` | Chat model |
+| `LMSTUDIO_BASE_URL` | — | LM Studio server URL (e.g. `http://host.docker.internal:1234/v1`) |
+| `LMSTUDIO_MODEL` | `local-model` | Model name shown in LM Studio |
+| `LMSTUDIO_REASONING_EFFORT` | `none` | Reasoning effort: `none`/`low`/`medium`/`high`/`xhigh` |
+| `OPENAI_API_KEY` | — | OpenAI API key |
+| `OPENAI_MODEL` | `gpt-4o` | OpenAI chat model |
+| `OPENAI_BASE_URL` | — | OpenAI base URL (leave empty for default, set for proxies) |
 | `AZURE_OPENAI_ENDPOINT` | — | Azure OpenAI instance URL |
 | `AZURE_OPENAI_API_KEY` | — | Azure OpenAI API key |
 | `AZURE_OPENAI_API_VERSION` | `2024-06-01` | Azure OpenAI API version |
@@ -228,15 +248,19 @@ are in `docker-compose.override.yml`.
 | `LITELLM_API_BASE` | — | LiteLLM gateway base URL (e.g. `http://litellm:4000`) |
 | `LITELLM_API_KEY` | — | LiteLLM gateway API key |
 | `LITELLM_MODEL` | `default-fast` | LiteLLM model alias |
+| `LLM_GATEWAY_URL` | — | LLM gateway proxy URL (set automatically by docker-compose) |
 | `LLM_MAX_TOKENS` | `8192` | Max output tokens per LLM call (prevents truncated JSON) |
+| `LLM_REQUEST_TIMEOUT_S` | `180` | Per-request HTTP timeout for LLM calls (seconds) |
 | `MOCK_LLM` | `false` | Run pipeline with deterministic mock responses |
 | `DEV_RELOAD` | `false` | Enable uvicorn auto-reload (dev only) |
 | `RETENTION_COUNT` | `10` | Number of recent job uploads to retain in S3 |
+| `JOB_TIMEOUT_S` | `600` | Max seconds a single job may run before being killed |
+| `WATCHDOG_INTERVAL_S` | `60` | How often the watchdog checks for stale jobs (seconds) |
+| `WATCHDOG_STALE_THRESHOLD_S` | `900` | Max time a job can stay processing with no progress (seconds) |
 | `DATABASE_URL` | — | Postgres connection string (e.g. `postgresql://course_intelligence:course_intelligence@db:5432/course_intelligence`) |
 | `REDIS_URL` | — | Redis connection string (e.g. `redis://redis:6379/0`) |
 | `S3_ENDPOINT_URL` | — | S3/MinIO endpoint (e.g. `http://minio:9000`) |
 | `S3_ACCESS_KEY` | — | S3 access key |
 | `S3_SECRET_KEY` | — | S3 secret key |
 | `S3_BUCKET` | `uploads` | S3 bucket name for uploads |
-| `LLM_GATEWAY_URL` | — | LLM gateway proxy URL (e.g. `http://llm-gateway:8100`) |
 | `GATEWAY_PORT` | `8100` | Port for the LLM gateway service |

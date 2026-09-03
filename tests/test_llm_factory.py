@@ -67,7 +67,6 @@ def _mock_config(**overrides):
         "azure_openai_api_key": "key",
         "azure_openai_api_version": "2024-06-01",
         "azure_openai_deployment": "deployment",
-        "azure_openai_embedding_deployment": "",
         "llm_max_tokens": 8192,
     }
     base.update(overrides)

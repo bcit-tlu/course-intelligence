@@ -81,7 +81,7 @@ def _get_llm():
     if _llm is not None:
         return _llm
 
-    _llm = build_llm_from_config(DEFAULT_CONFIG)
+    _llm = build_llm_from_config(DEFAULT_CONFIG, direct=True)
     logger.info(
         "LLM Gateway initialized with provider=%s",
         DEFAULT_CONFIG.get("llm_provider"),

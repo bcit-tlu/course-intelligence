@@ -30,6 +30,8 @@ services:
         condition: service_started
       minio:
         condition: service_started
+      llm-gateway:
+        condition: service_started
       migrate:
         condition: service_completed_successfully
 
@@ -50,6 +52,8 @@ services:
       redis:
         condition: service_started
       minio:
+        condition: service_started
+      llm-gateway:
         condition: service_started
       migrate:
         condition: service_completed_successfully

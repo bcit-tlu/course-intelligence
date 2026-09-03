@@ -1,8 +1,10 @@
+import { trace } from "@opentelemetry/api";
 import { WebTracerProvider } from "@opentelemetry/sdk-trace-web";
 import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { ZoneContextManager } from "@opentelemetry/context-zone";
 import { DocumentLoadInstrumentation } from "@opentelemetry/instrumentation-document-load";
+import { FetchInstrumentation } from "@opentelemetry/instrumentation-fetch";
 import { UserInteractionInstrumentation } from "@opentelemetry/instrumentation-user-interaction";
 import { registerInstrumentations } from "@opentelemetry/instrumentation";
 import { Resource } from "@opentelemetry/resources";
@@ -42,11 +44,44 @@ export function initAnalytics() {
   registerInstrumentations({
     instrumentations: [
       new DocumentLoadInstrumentation(),
+      new FetchInstrumentation({
+        propagateTraceHeaderCorsUrls: ["/api"],
+      }),
       new UserInteractionInstrumentation({
         eventNames: ["click", "submit"],
       }),
     ],
   });
+
+  // Global error handlers — create error spans for uncaught exceptions
+  // and unhandled promise rejections so they show up in traces.
+  const tracer = trace.getTracer("course-intelligence.studio.errors");
+  const errorHandler = (event: ErrorEvent) => {
+    const span = tracer.startSpan("window.onerror", {
+      attributes: {
+        "error.message": event.message,
+        "error.filename": event.filename,
+        "error.lineno": event.lineno,
+      },
+    });
+    span.recordException({
+      name: event.error?.name || "Error",
+      message: event.message,
+      stack: event.error?.stack,
+    });
+    span.end();
+  };
+  const rejectionHandler = (event: PromiseRejectionEvent) => {
+    const span = tracer.startSpan("unhandledrejection", {
+      attributes: {
+        "error.reason": String(event.reason),
+      },
+    });
+    span.recordException(event.reason);
+    span.end();
+  };
+  window.addEventListener("error", errorHandler);
+  window.addEventListener("unhandledrejection", rejectionHandler);
 
   analyticsEnabled = true;
 }

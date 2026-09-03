@@ -183,6 +183,11 @@ def get_job(job_id: str):
         job = session.get(Job, job_id)
         if job is None:
             raise HTTPException(404, "Job not found")
+        emit_event("ci.job.viewed", {
+            "job.id": job_id,
+            "job.tenant_id": job.tenant_id,
+            "job.status": job.status.value,
+        })
         return _job_to_dict(job)
     finally:
         session.close()

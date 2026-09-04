@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.1](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.19.0...backend-v0.19.1) (2026-09-04)
+
+
+### Bug Fixes
+
+* include refactor as release-triggering type in release-please config ([47d127a](https://github.com/bcit-tlu/course-intelligence/commit/47d127a84593eb649e42aa5912c83bb801d56095))
+
 ## [0.19.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.18.0...backend-v0.19.0) (2026-09-03)
 
 

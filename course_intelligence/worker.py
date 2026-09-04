@@ -373,7 +373,16 @@ def run() -> None:
                 process_job(job_id, graph)
             except Exception as e:
                 logger.error("Job %s: failed — %s", job_id, e, exc_info=True)
-                _set_status(job_id, JobStatus.failed, error=str(e))
+                error_str = str(e)
+                for step_label, keyword in [
+                    ("extracting", "extract"),
+                    ("chunking", "Chunker"),
+                    ("classifying", "Classifier"),
+                ]:
+                    if keyword in error_str:
+                        _set_step(job_id, step_label)
+                        break
+                _set_status(job_id, JobStatus.failed, error=error_str)
                 jobs_counter.add(1, {"status": "failed"})
 
                 # Look up tenant_id and filename from the DB for correlation

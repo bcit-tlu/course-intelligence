@@ -8,7 +8,9 @@ metadata:
 data:
   # LLM provider selection and gateway location.
   LLM_PROVIDER: {{ .Values.llm.provider | quote }}
+  {{- if and .Values.gateway.enabled (ne .Values.llm.provider "litellm") }}
   LLM_GATEWAY_URL: {{ .Values.llm.gatewayUrl | default (printf "http://%s-gateway:%d" $fullname (.Values.gateway.port | int)) | quote }}
+  {{- end }}
   # Ollama (non-secret) settings.
   OLLAMA_BASE_URL: {{ .Values.llm.ollama.baseUrl | quote }}
   OLLAMA_MODEL: {{ .Values.llm.ollama.model | quote }}

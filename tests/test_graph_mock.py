@@ -14,7 +14,7 @@ from course_intelligence.default_config import DEFAULT_CONFIG
 _config = {**DEFAULT_CONFIG, "mock_llm": True}
 
 
-def _run_pipeline(text: str) -> dict:
+def _run_pipeline(text: str, learning_objectives: str = "") -> dict:
     """Helper: write text to a temp file and run the pipeline."""
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
         f.write(text)
@@ -22,7 +22,7 @@ def _run_pipeline(text: str) -> dict:
 
     try:
         graph = CourseProcessorGraph(config=_config)
-        return graph.process(tmp_path)
+        return graph.process(tmp_path, learning_objectives)
     finally:
         os.unlink(tmp_path)
 
@@ -56,3 +56,20 @@ def test_classifier_populates_blooms_levels():
             f"Chunk {chunk['chunk_id']} has invalid level: {chunk.get('blooms_level')}"
         )
         assert chunk.get("blooms_rationale"), "Rationale should be populated"
+
+
+def test_pipeline_with_learning_objectives_completes():
+    """Non-empty objectives flow through both LLM nodes without breaking
+    the pipeline — the mock ignores message content, so responses (and
+    thus chunk/Bloom's output) are unchanged from a run without objectives."""
+    result = _run_pipeline(
+        "Sepsis is a life-threatening condition caused by infection.",
+        "Students should be able to recognize and manage sepsis.",
+    )
+
+    valid_levels = {"Remember", "Understand", "Apply", "Analyze", "Evaluate", "Create"}
+    assert len(result["knowledge_map"]) > 0
+    assert not result.get("error")
+    for chunk in result["knowledge_map"]:
+        assert chunk.get("blooms_level") in valid_levels
+        assert chunk.get("blooms_rationale")

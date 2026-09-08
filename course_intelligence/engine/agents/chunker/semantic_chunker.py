@@ -9,6 +9,7 @@ import uuid
 from course_intelligence.engine.agents.utils.agent_states import AgentState, KnowledgeChunk
 from course_intelligence.engine.agents.utils.json_parsing import parse_llm_json
 from course_intelligence.engine.agents.utils.llm_retry import invoke_with_retry
+from course_intelligence.engine.agents.utils.objectives import build_messages
 from course_intelligence.engine.graph.progress_context import report_progress
 
 logger = logging.getLogger(__name__)
@@ -34,17 +35,20 @@ Return ONLY the JSON array. No markdown fences, no explanation.
 """
 
 
-def _chunk_text(llm, text: str) -> list[KnowledgeChunk] | None:
+def _chunk_text(
+    llm, text: str, learning_objectives: str = ""
+) -> list[KnowledgeChunk] | None:
     """Run one chunking LLM call over a block of text.
 
     Returns None on parse failure or transient LLM errors so the caller
     can record the page as failed and continue with remaining pages.
     """
     try:
-        response = invoke_with_retry(llm, [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": text},
-        ], caller="chunker")
+        response = invoke_with_retry(
+            llm,
+            build_messages(SYSTEM_PROMPT, learning_objectives, text),
+            caller="chunker",
+        )
     except Exception:
         return None
 
@@ -73,6 +77,7 @@ def create_semantic_chunker(llm):
     def semantic_chunker_node(state: AgentState) -> dict:
         """Chunk content into knowledge_map entries."""
         course_module = state.get("course_module")
+        learning_objectives = state.get("learning_objectives", "")
         knowledge_map: list[KnowledgeChunk] = []
         failed_pages: list[str] = []
 
@@ -85,7 +90,7 @@ def create_semantic_chunker(llm):
                 report_progress("chunking", i, n_pages, "pages")
                 page_input = f"# {page['title']}\n\n{page['text']}"
                 t0 = time.perf_counter()
-                chunks = _chunk_text(llm, page_input)
+                chunks = _chunk_text(llm, page_input, learning_objectives)
                 page_elapsed = time.perf_counter() - t0
                 n_chunks = len(chunks) if chunks else 0
                 logger.info(
@@ -102,7 +107,7 @@ def create_semantic_chunker(llm):
         else:
             # Fallback: single call over raw_text
             raw = state.get("raw_text", "")
-            chunks = _chunk_text(llm, raw)
+            chunks = _chunk_text(llm, raw, learning_objectives)
             if chunks is None:
                 return {"knowledge_map": [], "error": "Chunker returned invalid JSON"}
             knowledge_map = chunks

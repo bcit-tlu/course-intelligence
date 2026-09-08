@@ -13,6 +13,7 @@ import logging
 from course_intelligence.engine.agents.utils.agent_states import AgentState, KnowledgeChunk
 from course_intelligence.engine.agents.utils.json_parsing import parse_llm_json
 from course_intelligence.engine.agents.utils.llm_retry import invoke_with_retry
+from course_intelligence.engine.agents.utils.objectives import build_messages
 from course_intelligence.engine.graph.progress_context import report_progress
 
 logger = logging.getLogger(__name__)
@@ -55,17 +56,20 @@ def _normalize_level(raw: str | None) -> str | None:
     return BLOOMS_LEVELS.get(raw.strip().lower())
 
 
-def _classify_batch(llm, batch: list[KnowledgeChunk]) -> None:
+def _classify_batch(
+    llm, batch: list[KnowledgeChunk], learning_objectives: str = ""
+) -> None:
     """Classify one batch of chunks in-place. Failures leave chunks
     unclassified rather than raising."""
     units = [
         {"chunk_id": c["chunk_id"], "topic": c["topic"], "content": c["content"]}
         for c in batch
     ]
-    response = invoke_with_retry(llm, [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": json.dumps(units, indent=2)},
-    ], caller="classifier")
+    response = invoke_with_retry(
+        llm,
+        build_messages(SYSTEM_PROMPT, learning_objectives, json.dumps(units, indent=2)),
+        caller="classifier",
+    )
 
     items = parse_llm_json(response.content)
     if items is None:
@@ -106,12 +110,14 @@ def create_blooms_classifier(llm):
         if not knowledge_map:
             return {}
 
+        learning_objectives = state.get("learning_objectives", "")
+
         total = len(knowledge_map)
         for start in range(0, total, BATCH_SIZE):
             batch = knowledge_map[start : start + BATCH_SIZE]
             report_progress("classifying", min(start + BATCH_SIZE, total), total, "elements")
             try:
-                _classify_batch(llm, batch)
+                _classify_batch(llm, batch, learning_objectives)
             except Exception as e:
                 # A failing batch must not fail the whole job
                 logger.error("Classifier batch failed: %s", e)

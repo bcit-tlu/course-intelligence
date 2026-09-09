@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.20.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.19.1...backend-v0.20.0) (2026-09-09)
+
+
+### Features
+
+* add debug logging to objectives message builder and enable debug logging in pipeline ([48635ab](https://github.com/bcit-tlu/course-intelligence/commit/48635abc4dd463ddfdbaae6419e074b7ee345b48))
+* inject learning objectives into chunker and classifier LLM calls ([ac02184](https://github.com/bcit-tlu/course-intelligence/commit/ac02184d34906f89d025ea4f03365249d26fc1ac))
+
+
+### Bug Fixes
+
+* 146 wire learning objectives into llm calls ([1243320](https://github.com/bcit-tlu/course-intelligence/commit/1243320b665bf265e12d06632ceb66f98b18c09a))
+
 ## [0.19.1](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.19.0...backend-v0.19.1) (2026-09-04)
 
 

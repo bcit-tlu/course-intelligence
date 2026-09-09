@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import logging
+
 OBJECTIVES_LABEL = "Learning objectives for this course:"
+
+logger = logging.getLogger(__name__)
 
 
 def build_messages(
@@ -25,4 +29,5 @@ def build_messages(
             "content": f"{OBJECTIVES_LABEL}\n{learning_objectives.strip()}",
         })
     messages.append({"role": "user", "content": content})
+    logger.debug("build_messages: %d messages, roles=%s", len(messages), [m["role"] for m in messages])
     return messages

@@ -1,5 +1,6 @@
 """Quick entry point for running the processor pipeline, API, or worker."""
 
+import logging
 import sys
 
 from course_intelligence.default_config import DEFAULT_CONFIG
@@ -41,6 +42,7 @@ def run_gateway():
 
 def run_pipeline(source_path: str, learning_objectives: str = ""):
     """Run the pipeline on a single file and print results."""
+    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     graph = CourseProcessorGraph(config=DEFAULT_CONFIG, debug=True)
     result = graph.process(source_path, learning_objectives)
 

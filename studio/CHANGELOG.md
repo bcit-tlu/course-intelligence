@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.11.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v0.10.0...studio-v0.11.0) (2026-09-10)
+
+
+### Features
+
+* add runtime config endpoint and tenant ID support for frontend observability ([59bf515](https://github.com/bcit-tlu/course-intelligence/commit/59bf5153012dff52ed4cfb049ea5bcba6d9b7349))
+* add session ID tracking across frontend and backend for trace correlation ([a440733](https://github.com/bcit-tlu/course-intelligence/commit/a440733ed778bd1be95e0312ff69edb713af160d))
+
+
+### Bug Fixes
+
+* 157 observability analytics completion ([26b0e1e](https://github.com/bcit-tlu/course-intelligence/commit/26b0e1e8b9fc3508bb758eb573da9e3164f07bec))
+
 ## [0.10.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v0.9.0...studio-v0.10.0) (2026-08-29)
 
 

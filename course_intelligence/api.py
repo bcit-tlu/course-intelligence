@@ -87,6 +87,7 @@ def create_job(
     file: UploadFile = File(...),
     learning_objectives: str = Form(""),
     x_tenant_id: str | None = Header(default=None),
+    x_session_id: str | None = Header(default=None),
 ):
     """Accept a course upload, store it, and queue it for processing."""
     filename = file.filename or "upload"
@@ -128,6 +129,7 @@ def create_job(
             "job.file_size": file_size,
             "job.tenant_id": tenant_id,
             "job.has_learning_objectives": bool(learning_objectives),
+            "session.id": x_session_id or "",
         })
         jobs_submitted.add(1, {"tenant_id": tenant_id, "file_type": suffix})
         file_size_uploaded.record(file_size, {"file_type": suffix})
@@ -143,6 +145,7 @@ def create_job(
             "job.filename": filename,
             "job.file_type": suffix,
             "error": str(e),
+            "session.id": x_session_id or "",
         })
         jobs_failed.add(1, {"tenant_id": x_tenant_id or "unknown", "stage": "upload"})
         raise HTTPException(500, f"Job creation failed: {e}")
@@ -155,6 +158,7 @@ def list_jobs(
     limit: int = 50,
     status: JobStatus | None = None,
     x_tenant_id: str | None = Header(default=None),
+    x_session_id: str | None = Header(default=None),
 ):
     """List jobs, optionally filtered by status and/or tenant."""
     session = get_session()
@@ -169,6 +173,7 @@ def list_jobs(
             "jobs.count": len(jobs),
             "jobs.filter_status": status.value if status else None,
             "jobs.tenant_id": x_tenant_id,
+            "session.id": x_session_id or "",
         })
         return {"jobs": [_job_to_dict(j) for j in jobs]}
     finally:
@@ -176,7 +181,10 @@ def list_jobs(
 
 
 @app.get("/jobs/{job_id}")
-def get_job(job_id: str):
+def get_job(
+    job_id: str,
+    x_session_id: str | None = Header(default=None),
+):
     """Return the current status of a job."""
     session = get_session()
     try:
@@ -187,6 +195,7 @@ def get_job(job_id: str):
             "job.id": job_id,
             "job.tenant_id": job.tenant_id,
             "job.status": job.status.value,
+            "session.id": x_session_id or "",
         })
         return _job_to_dict(job)
     finally:
@@ -194,7 +203,10 @@ def get_job(job_id: str):
 
 
 @app.get("/jobs/{job_id}/results")
-def get_job_results(job_id: str):
+def get_job_results(
+    job_id: str,
+    x_session_id: str | None = Header(default=None),
+):
     """Return the learning elements for a completed job."""
     session = get_session()
     try:
@@ -209,6 +221,7 @@ def get_job_results(job_id: str):
             "job.id": job_id,
             "job.tenant_id": job.tenant_id,
             "results.count": len(job.results),
+            "session.id": x_session_id or "",
         })
         return {
             "job_id": job.id,

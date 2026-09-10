@@ -12,3 +12,7 @@ services:
       BACKEND_URL: http://api:8000
       NGINX_DNS_RESOLVER: !reset null
       NGINX_LOCAL_RESOLVERS: !reset null
+      # Vite dev server serves /runtime-config.js with these values.
+      # /otel is proxied to OTEL_ENDPOINT (http://otel-collector:4318).
+      VITE_OTEL_EXPORTER_OTLP_ENDPOINT: /otel
+      VITE_TENANT_ID: local-dev

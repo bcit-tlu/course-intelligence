@@ -7,14 +7,10 @@
   </head>
   <body>
     <div id="root"></div>
-    <!-- Runtime config: nginx proxies /otel to the OTel collector (see
-         default.conf.template). In dev (Vite), the endpoint is not set so
-         frontend analytics is disabled gracefully. -->
-    <script type="module">
-      if (import.meta.env.PROD) {
-        window.__OTEL_ENDPOINT__ = "/otel";
-      }
-    </script>
+    <!-- Runtime config: nginx serves /runtime-config.js with envsubst'd
+         values for the OTel endpoint and tenant ID. In dev (Vite), the
+         file 404s and analytics is disabled gracefully. -->
+    <script src="/runtime-config.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -40,9 +40,15 @@ spec:
               value: "true"
             # OTel collector endpoint for frontend trace export.
             # The nginx config template proxies /otel/* to this URL.
-            # Leave empty to disable frontend analytics.
+            # Only set when observability is enabled; empty disables
+            # frontend analytics via runtime-config.js.
             - name: OTEL_ENDPOINT
-              value: {{ .Values.observability.openTelemetry.endpoint | quote }}
+              value: {{ if .Values.observability.openTelemetry.enabled }}{{ .Values.observability.openTelemetry.endpoint | quote }}{{ else }}""{{ end }}
+            # Tenant identifier for this deployment. Surfaced to the
+            # browser via runtime-config.js and sent as X-Tenant-Id on
+            # API calls. Leave empty to omit.
+            - name: TENANT_ID
+              value: {{ .Values.tenantId | default "" | quote }}
           volumeMounts:
             # Shadow the image's baked-in template with the ConfigMap so the
             # upstream can change without an image rebuild.

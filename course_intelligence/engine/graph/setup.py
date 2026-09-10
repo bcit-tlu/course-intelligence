@@ -40,7 +40,10 @@ class GraphSetup:
 
         # Wire edges
         workflow.set_entry_point("extract")
-        workflow.add_edge("extract", "chunk")
+        workflow.add_conditional_edges(
+            "extract",
+            lambda state: END if state.get("error") else "chunk",
+        )
         workflow.add_edge("chunk", "classify")
         workflow.add_edge("classify", END)
 

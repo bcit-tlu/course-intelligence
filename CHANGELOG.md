@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.21.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.20.0...backend-v0.21.0) (2026-09-10)
+
+
+### Features
+
+* add support for .txt, .md, .docx extraction and add error handling to extract node ([d22a4c9](https://github.com/bcit-tlu/course-intelligence/commit/d22a4c9fb35df6b2c12262c075c1b4162b662f1d))
+
+
+### Bug Fixes
+
+* add support for .txt, .md, .docx extraction and add error handling ([d7a1da7](https://github.com/bcit-tlu/course-intelligence/commit/d7a1da7fe87bd63857e47648c5e386bbc2aa8f0f))
+
 ## [0.20.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.19.1...backend-v0.20.0) (2026-09-09)
 
 

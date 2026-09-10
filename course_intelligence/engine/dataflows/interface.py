@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 # Only extract these file types from zip archives.
 # Everything else (images, video, audio) is skipped to save disk space.
-_EXTRACTABLE_EXTENSIONS = {".html", ".htm", ".pdf"}
+_EXTRACTABLE_EXTENSIONS = {".html", ".htm", ".pdf", ".txt", ".md", ".docx"}
 
 from course_intelligence.engine.agents.utils.agent_states import (
     AgentState,

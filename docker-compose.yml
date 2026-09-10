@@ -28,6 +28,7 @@ services:
       S3_BUCKET: uploads
       LLM_GATEWAY_URL: http://llm-gateway:8100
       RETENTION_COUNT: "10"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
     depends_on:
       redis:
         condition: service_started
@@ -37,6 +38,8 @@ services:
         condition: service_started
       migrate:
         condition: service_completed_successfully
+      otel-collector:
+        condition: service_started
 
   worker:
     build: .
@@ -51,6 +54,7 @@ services:
       S3_BUCKET: uploads
       LLM_GATEWAY_URL: http://llm-gateway:8100
       RETENTION_COUNT: "10"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
     depends_on:
       redis:
         condition: service_started
@@ -60,6 +64,8 @@ services:
         condition: service_started
       migrate:
         condition: service_completed_successfully
+      otel-collector:
+        condition: service_started
 
   migrate:
     build: .

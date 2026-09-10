@@ -9,6 +9,8 @@ import { XMLHttpRequestInstrumentation } from "@opentelemetry/instrumentation-xm
 import { UserInteractionInstrumentation } from "@opentelemetry/instrumentation-user-interaction";
 import { registerInstrumentations } from "@opentelemetry/instrumentation";
 import { Resource } from "@opentelemetry/resources";
+import type { SpanProcessor, Span } from "@opentelemetry/sdk-trace-base";
+import { getSessionId } from "./session";
 
 // Runtime config: the OTel endpoint is injected by nginx as a global
 // variable (window.__OTEL_ENDPOINT__) so it can change without an image
@@ -29,6 +31,19 @@ export function initAnalytics() {
     }),
   });
 
+  // Stamp every span with session.id so auto-instrumented spans
+  // (fetch, XHR, document-load, user-interaction) are correlated
+  // without needing to pass it manually to each trackAction call.
+  class SessionSpanProcessor implements SpanProcessor {
+    onStart(span: Span): void {
+      span.setAttribute("session.id", getSessionId());
+    }
+    onEnd(_span: Span): void {}
+    shutdown(): Promise<void> { return Promise.resolve(); }
+    forceFlush(): Promise<void> { return Promise.resolve(); }
+  }
+
+  provider.addSpanProcessor(new SessionSpanProcessor());
   provider.addSpanProcessor(
     new BatchSpanProcessor(
       new OTLPTraceExporter({ url: `${endpoint}/v1/traces` }),

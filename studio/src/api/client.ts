@@ -3,6 +3,7 @@
 // (and nginx proxies in the containerized build).
 
 import type { CreateJobResponse, Job, JobResults } from "@/types";
+import { getSessionId } from "@/analytics/session";
 
 const BASE = "/api";
 
@@ -12,8 +13,12 @@ const tenantId =
   (typeof window !== "undefined" && (window as any).__TENANT_ID__) ||
   import.meta.env.VITE_TENANT_ID;
 
-function tenantHeaders(): Record<string, string> {
-  return tenantId ? { "X-Tenant-Id": tenantId } : {};
+function authHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {};
+  if (tenantId) headers["X-Tenant-Id"] = tenantId;
+  const sessionId = getSessionId();
+  if (sessionId) headers["X-Session-Id"] = sessionId;
+  return headers;
 }
 
 export class ApiError extends Error {
@@ -50,7 +55,7 @@ export async function createJob(
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `${BASE}/jobs`);
 
-    const headers = tenantHeaders();
+    const headers = authHeaders();
     for (const [key, value] of Object.entries(headers)) {
       xhr.setRequestHeader(key, value);
     }
@@ -80,20 +85,20 @@ export async function createJob(
 }
 
 export async function listJobs(): Promise<Job[]> {
-  const res = await fetch(`${BASE}/jobs`, { headers: tenantHeaders() });
+  const res = await fetch(`${BASE}/jobs`, { headers: authHeaders() });
   if (!res.ok) return parseError(res);
   const body = await res.json();
   return body.jobs;
 }
 
 export async function getJob(jobId: string): Promise<Job> {
-  const res = await fetch(`${BASE}/jobs/${jobId}`, { headers: tenantHeaders() });
+  const res = await fetch(`${BASE}/jobs/${jobId}`, { headers: authHeaders() });
   if (!res.ok) return parseError(res);
   return res.json();
 }
 
 export async function getResults(jobId: string): Promise<JobResults> {
-  const res = await fetch(`${BASE}/jobs/${jobId}/results`, { headers: tenantHeaders() });
+  const res = await fetch(`${BASE}/jobs/${jobId}/results`, { headers: authHeaders() });
   if (!res.ok) return parseError(res);
   return res.json();
 }

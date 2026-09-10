@@ -6,6 +6,16 @@ import type { CreateJobResponse, Job, JobResults } from "@/types";
 
 const BASE = "/api";
 
+// Tenant ID is injected at runtime via /runtime-config.js (nginx envsubst).
+// In dev, fall back to the Vite env var if set.
+const tenantId =
+  (typeof window !== "undefined" && (window as any).__TENANT_ID__) ||
+  import.meta.env.VITE_TENANT_ID;
+
+function tenantHeaders(): Record<string, string> {
+  return tenantId ? { "X-Tenant-Id": tenantId } : {};
+}
+
 export class ApiError extends Error {
   status: number;
   constructor(status: number, message: string) {
@@ -40,6 +50,11 @@ export async function createJob(
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `${BASE}/jobs`);
 
+    const headers = tenantHeaders();
+    for (const [key, value] of Object.entries(headers)) {
+      xhr.setRequestHeader(key, value);
+    }
+
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total);
     };
@@ -65,20 +80,20 @@ export async function createJob(
 }
 
 export async function listJobs(): Promise<Job[]> {
-  const res = await fetch(`${BASE}/jobs`);
+  const res = await fetch(`${BASE}/jobs`, { headers: tenantHeaders() });
   if (!res.ok) return parseError(res);
   const body = await res.json();
   return body.jobs;
 }
 
 export async function getJob(jobId: string): Promise<Job> {
-  const res = await fetch(`${BASE}/jobs/${jobId}`);
+  const res = await fetch(`${BASE}/jobs/${jobId}`, { headers: tenantHeaders() });
   if (!res.ok) return parseError(res);
   return res.json();
 }
 
 export async function getResults(jobId: string): Promise<JobResults> {
-  const res = await fetch(`${BASE}/jobs/${jobId}/results`);
+  const res = await fetch(`${BASE}/jobs/${jobId}/results`, { headers: tenantHeaders() });
   if (!res.ok) return parseError(res);
   return res.json();
 }

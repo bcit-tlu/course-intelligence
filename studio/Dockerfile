@@ -20,6 +20,8 @@ FROM nginx:alpine
 # standalone `docker run` working; the Helm chart overrides them in K8s.
 ENV BACKEND_URL=http://api:8000
 ENV NGINX_DNS_RESOLVER=127.0.0.11
+ENV OTEL_ENDPOINT=""
+ENV TENANT_ID=""
 COPY default.conf.template /etc/nginx/templates/default.conf.template
 
 # Static assets from the build stage

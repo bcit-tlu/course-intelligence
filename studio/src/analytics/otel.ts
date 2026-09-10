@@ -5,6 +5,7 @@ import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { ZoneContextManager } from "@opentelemetry/context-zone";
 import { DocumentLoadInstrumentation } from "@opentelemetry/instrumentation-document-load";
 import { FetchInstrumentation } from "@opentelemetry/instrumentation-fetch";
+import { XMLHttpRequestInstrumentation } from "@opentelemetry/instrumentation-xml-http-request";
 import { UserInteractionInstrumentation } from "@opentelemetry/instrumentation-user-interaction";
 import { registerInstrumentations } from "@opentelemetry/instrumentation";
 import { Resource } from "@opentelemetry/resources";
@@ -45,6 +46,9 @@ export function initAnalytics() {
     instrumentations: [
       new DocumentLoadInstrumentation(),
       new FetchInstrumentation({
+        propagateTraceHeaderCorsUrls: ["/api"],
+      }),
+      new XMLHttpRequestInstrumentation({
         propagateTraceHeaderCorsUrls: ["/api"],
       }),
       new UserInteractionInstrumentation({

@@ -36,6 +36,34 @@ server {
         proxy_send_timeout 3600s;
     }
 
+    # Proxy OTel trace exports to the internal collector. The frontend
+    # sends traces to /otel/v1/traces (same origin, no CORS). envsubst
+    # replaces ${OTEL_ENDPOINT} at container start. If empty, the frontend
+    # SDK is disabled via runtime-config.js and never hits this block.
+    location /otel/ {
+        resolver ${NGINX_LOCAL_RESOLVERS} valid=10s;
+        set $otel_endpoint "${OTEL_ENDPOINT}";
+
+        rewrite ^/otel/(.*)$ /$1 break;
+        proxy_pass $otel_endpoint;
+
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Runtime config served as JS. envsubst replaces ${OTEL_ENDPOINT} and
+    # ${TENANT_ID} at container start. When OTel is disabled (OTEL_ENDPOINT
+    # is empty), __OTEL_ENDPOINT__ is "" — initAnalytics() returns early,
+    # no trace exports, no 502 loop.
+    location = /runtime-config.js {
+        default_type application/javascript;
+        add_header Cache-Control "no-cache";
+        return 200 'window.__OTEL_ENDPOINT__="${OTEL_ENDPOINT}"?"/otel":"";window.__TENANT_ID__="${TENANT_ID}";';
+    }
+
     # SPA fallback: serve index.html for client-side routes
     # (e.g. a page refresh on /jobs/{id}).
     location / {

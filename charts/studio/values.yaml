@@ -27,8 +27,14 @@ env:
   # the backend Service FQDN (see course-intelligence-studio.backendUrl helper).
   BACKEND_URL: ""
 
+# Tenant identifier for this deployment. Surfaced to the browser via
+# runtime-config.js and sent as X-Tenant-Id on API calls. Leave empty
+# to omit (the backend defaults to "unknown").
+tenantId: ""
+
 # OTel collector endpoint for frontend trace export. The nginx config
-# proxies /otel/* to this URL. Leave empty to disable frontend analytics.
+# proxies /otel/* to this URL. Set enabled: true and provide an endpoint
+# to activate frontend analytics.
 observability:
   openTelemetry:
     enabled: false

@@ -233,6 +233,68 @@ def test_reaps_expired_buckets(client, monkeypatch):
     assert "active" in _telemetry._rate_buckets
 
 
+def test_oversized_session_id_collapses_to_unknown(client):
+    """Session IDs exceeding _MAX_SESSION_ID_LENGTH fall back to "unknown".
+
+    Without this bound, a client could send oversized X-Session-Id headers
+    (up to the HTTP limit) so each bucket key bloats worker memory.
+    """
+    long_id = "x" * (_telemetry._MAX_SESSION_ID_LENGTH + 1)
+    _post(client, [{"event": "studio.docs.viewed"}], session_id=long_id)
+    assert len(_log_processor.records) == 1
+    assert _log_processor.records[0].attributes["session.id"] == "unknown"
+
+
+def test_session_id_at_boundary_is_accepted(client):
+    """Exactly _MAX_SESSION_ID_LENGTH chars is accepted (not off-by-one)."""
+    boundary_id = "y" * _telemetry._MAX_SESSION_ID_LENGTH
+    _post(client, [{"event": "studio.docs.viewed"}], session_id=boundary_id)
+    assert len(_log_processor.records) == 1
+    assert _log_processor.records[0].attributes["session.id"] == boundary_id
+
+
+def test_bucket_cap_collapses_new_sessions_to_overflow(client, monkeypatch):
+    """When _rate_buckets is at capacity, new sessions share the overflow
+    bucket so memory is bounded regardless of session-ID cardinality.
+
+    Existing sessions keep their own buckets; only new ones collapse. The
+    overflow bucket has the same per-session limit, so sessions sharing it
+    are collectively rate-limited.
+    """
+    monkeypatch.setattr(_telemetry, "_MAX_RATE_BUCKETS", 1)
+    # sess-a fills the single allowed bucket.
+    _post(client, [{"event": "studio.docs.viewed"}], session_id="sess-a")
+    assert len(_telemetry._rate_buckets) == 1
+
+    # sess-b is new and at capacity -> collapses into the overflow bucket.
+    # Exhaust the overflow bucket's limit (30 requests).
+    for _ in range(30):
+        assert _post(client, [{"event": "studio.docs.viewed"}],
+                     session_id="sess-b").status_code == 202
+
+    # sess-c is also new and at capacity -> same overflow bucket -> 429.
+    assert _post(client, [{"event": "studio.docs.viewed"}],
+                 session_id="sess-c").status_code == 429
+
+    # Memory stayed bounded: only sess-a + the overflow bucket exist.
+    assert len(_telemetry._rate_buckets) == 2
+    assert "sess-a" in _telemetry._rate_buckets
+    assert _telemetry._OVERFLOW_BUCKET in _telemetry._rate_buckets
+
+
+def test_existing_session_keeps_own_bucket_at_capacity(client, monkeypatch):
+    """An existing session is not displaced when the cap is hit."""
+    monkeypatch.setattr(_telemetry, "_MAX_RATE_BUCKETS", 1)
+    # sess-a fills the cap.
+    _post(client, [{"event": "studio.docs.viewed"}], session_id="sess-a")
+    # sess-b overflows.
+    _post(client, [{"event": "studio.docs.viewed"}], session_id="sess-b")
+    # sess-a still has its own bucket and is not rate-limited by sess-b.
+    assert "sess-a" in _telemetry._rate_buckets
+    assert _telemetry._rate_buckets["sess-a"] is not _telemetry._rate_buckets.get(
+        _telemetry._OVERFLOW_BUCKET)
+
+
 def test_optional_fields_are_emitted(client):
     """Optional envelope fields (outcome, duration_ms, error, page) are passed through."""
     _post(client, [{

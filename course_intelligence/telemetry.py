@@ -74,6 +74,18 @@ _MAX_ATTRIBUTE_LENGTH = 1000
 _MAX_ATTRIBUTES_PER_EVENT = 20
 _MAX_ATTRIBUTE_KEY_LENGTH = 64
 
+# Bounds on the X-Session-Id header value and the rate-limit bucket map. The
+# endpoint is unauthenticated, so a client can send arbitrary (and oversized)
+# session IDs; without these caps, each unique ID creates a rate-limit bucket
+# until the next sweep, allowing rapid memory growth. Oversized IDs collapse
+# to "unknown" (sharing that bucket); when the bucket count hits the cap, new
+# sessions collapse into a shared overflow bucket so memory is bounded by
+# _MAX_RATE_BUCKETS regardless of cardinality. Generous vs. the studio's
+# 36-char crypto.randomUUID() session IDs (see studio/src/analytics/session.ts).
+_MAX_SESSION_ID_LENGTH = 128
+_MAX_RATE_BUCKETS = 10_000
+_OVERFLOW_BUCKET = "__overflow__"
+
 # Provenance fields the server stamps and trusts unconditionally. Applied
 # after merging client attributes so untrusted input can never forge or
 # overwrite them — e.g. attributing events to another session, posing as
@@ -128,6 +140,16 @@ def _check_rate_limit(session_id: str) -> int | None:
                    if not any(t > window_start for t in ts)]
         for sid in expired:
             del _rate_buckets[sid]
+
+    # Cap bucket cardinality: when at capacity, collapse new sessions into
+    # a shared overflow bucket so a high-cardinality X-Session-Id attack
+    # can't grow _rate_buckets beyond _MAX_RATE_BUCKETS between sweeps.
+    # Existing sessions keep their own buckets; only new ones overflow. The
+    # real session_id is still stamped in emitted event attributes — only the
+    # rate-limit key is remapped, so legitimate sessions caught in overflow
+    # remain attributable in Loki.
+    if session_id not in _rate_buckets and len(_rate_buckets) >= _MAX_RATE_BUCKETS:
+        session_id = _OVERFLOW_BUCKET
 
     bucket = [t for t in _rate_buckets.pop(session_id, []) if t > window_start]
     if len(bucket) >= _RATE_LIMIT_MAX_REQUESTS:
@@ -198,6 +220,8 @@ async def ingest_telemetry_events(
     rate limiting protects the log pipeline from a misbehaving client.
     """
     session_id = x_session_id or "unknown"
+    if len(session_id) > _MAX_SESSION_ID_LENGTH:
+        session_id = "unknown"
 
     retry_after = _check_rate_limit(session_id)
     if retry_after is not None:

@@ -1,4 +1,5 @@
 import { isAnalyticsEnabled } from "./otel";
+import { getSessionId } from "./session";
 import { postTelemetryEvents, type TelemetryPayload } from "@/api/client";
 
 // Batch + flush configuration. Events accumulate for up to FLUSH_INTERVAL_MS
@@ -53,13 +54,23 @@ export function trackAction(
   }
 }
 
+// Records the session ID a studio.session.started event has already been
+// emitted for. sessionStorage survives reloads (which reuse the tab's
+// session ID) so the event fires once per tab, not once per reload. Tied
+// to the session ID so a regenerated ID can still start a new session.
+const SESSION_STARTED_KEY = "ci.session.started";
+
 /**
  * Emit a session-started event once per tab session. Call from App init
  * so the first page load is counted as an active session in dashboards.
  */
 export function trackSessionStarted(): void {
   if (!isAnalyticsEnabled()) return;
+  const sessionId = getSessionId();
+  if (!sessionId) return;
+  if (sessionStorage.getItem(SESSION_STARTED_KEY) === sessionId) return;
   trackAction("studio.session.started");
+  sessionStorage.setItem(SESSION_STARTED_KEY, sessionId);
 }
 
 // Predefined event helpers

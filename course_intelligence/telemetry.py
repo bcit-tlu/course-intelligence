@@ -75,7 +75,23 @@ _last_sweep = 0.0
 
 
 def _check_rate_limit(session_id: str) -> int | None:
-    """Return retry-after seconds if rate limited, else None and record the attempt."""
+    """Return retry-after seconds if rate limited, else None and record the attempt.
+
+    Concurrency invariant: this is a synchronous function with no ``await``
+    points. Its single caller (``ingest_telemetry_events``) is an ``async
+    def`` endpoint, so this runs to completion on the event loop without
+    yielding — the read-filter-update of ``_rate_buckets`` is atomic
+    relative to other coroutines on the same loop, and the GIL serializes
+    bytecode across any threads. It is therefore safe for the current
+    single-process deployment.
+
+    It is **not** safe across OS processes: each uvicorn worker / pod owns
+    a separate ``_rate_buckets`` and may over-count (the documented reason
+    to move to a Redis-backed limiter — see the module note above). Do not
+    add an ``await`` inside this function or call it from a sync endpoint
+    (which FastAPI runs on a threadpool) without revisiting this invariant;
+    in those cases a lock or an async-safe structure becomes necessary.
+    """
     global _last_sweep
     now = time.monotonic()
     window_start = now - _RATE_LIMIT_WINDOW_S

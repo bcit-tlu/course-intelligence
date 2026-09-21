@@ -1,5 +1,5 @@
 import { isAnalyticsEnabled } from "./otel";
-import { getSessionId } from "./session";
+import { getSessionId, safeGetItem, safeSetItem } from "./session";
 import { postTelemetryEvents, type TelemetryPayload } from "@/api/client";
 
 // Batch + flush configuration. Events accumulate for up to FLUSH_INTERVAL_MS
@@ -58,6 +58,7 @@ export function trackAction(
 // emitted for. sessionStorage survives reloads (which reuse the tab's
 // session ID) so the event fires once per tab, not once per reload. Tied
 // to the session ID so a regenerated ID can still start a new session.
+// Uses the safe accessors so a blocked-storage browser still renders.
 const SESSION_STARTED_KEY = "ci.session.started";
 
 /**
@@ -68,9 +69,9 @@ export function trackSessionStarted(): void {
   if (!isAnalyticsEnabled()) return;
   const sessionId = getSessionId();
   if (!sessionId) return;
-  if (sessionStorage.getItem(SESSION_STARTED_KEY) === sessionId) return;
+  if (safeGetItem(SESSION_STARTED_KEY) === sessionId) return;
   trackAction("studio.session.started");
-  sessionStorage.setItem(SESSION_STARTED_KEY, sessionId);
+  safeSetItem(SESSION_STARTED_KEY, sessionId);
 }
 
 // Predefined event helpers

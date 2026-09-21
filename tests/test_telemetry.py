@@ -1,6 +1,6 @@
 """Tests for the frontend telemetry relay endpoint.
 
-Validates that the ``POST /api/telemetry/events`` endpoint:
+Validates that the ``POST /telemetry/events`` endpoint:
 - Accepts batched events and re-emits them as structured log records.
 - Drops events with unknown names silently.
 - Propagates ``session.id`` from the ``X-Session-Id`` header.
@@ -72,7 +72,7 @@ def client(monkeypatch):
     from course_intelligence import api
 
     # The API constructs a DB engine at import time via get_engine(). In
-    # tests that only hit /api/telemetry/events this is never used, but
+    # tests that only hit /telemetry/events this is never used, but
     # instrument_shared(engine=...) is called at module scope. Patch it
     # to a no-op so we don't need a real database.
     monkeypatch.setattr(api, "instrument_shared", lambda engine=None: None)
@@ -87,7 +87,7 @@ def client(monkeypatch):
 
 def _post(client, events, session_id="test-session"):
     headers = {"X-Session-Id": session_id}
-    return client.post("/api/telemetry/events",
+    return client.post("/telemetry/events",
                        json={"events": events}, headers=headers)
 
 
@@ -132,7 +132,7 @@ def test_session_id_from_header(client):
 
 def test_session_id_defaults_to_unknown_when_header_missing(client):
     """Without X-Session-Id, session.id falls back to 'unknown'."""
-    resp = client.post("/api/telemetry/events",
+    resp = client.post("/telemetry/events",
                        json={"events": [{"event": "studio.docs.viewed"}]})
     assert resp.status_code == 202
     assert _log_processor.records[0].attributes["session.id"] == "unknown"
@@ -141,7 +141,7 @@ def test_session_id_defaults_to_unknown_when_header_missing(client):
 def test_propagates_traceparent(client):
     """traceparent header is recorded for trace correlation."""
     resp = client.post(
-        "/api/telemetry/events",
+        "/telemetry/events",
         json={"events": [{"event": "studio.docs.viewed"}]},
         headers={"X-Session-Id": "s1", "traceparent": "00-abc-def-01"},
     )

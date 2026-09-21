@@ -57,7 +57,7 @@ app.add_middleware(
 FastAPIInstrumentor.instrument_app(app)
 instrument_shared(engine=get_engine())
 
-app.include_router(telemetry_router, prefix="/api")
+app.include_router(telemetry_router)
 
 
 def _get_redis():

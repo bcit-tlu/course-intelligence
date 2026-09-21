@@ -6,8 +6,10 @@ import { Toaster } from "sonner";
 import App from "@/App";
 import "@/index.css";
 import { initAnalytics } from "@/analytics/otel";
+import { trackSessionStarted } from "@/analytics/events";
 
 initAnalytics();
+trackSessionStarted();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

@@ -10,6 +10,8 @@ Validates that the ``POST /telemetry/events`` endpoint:
 
 from __future__ import annotations
 
+import time
+
 import opentelemetry.trace as _trace_mod
 import opentelemetry._logs._internal as _logs_mod
 from opentelemetry._logs import LogRecord
@@ -177,6 +179,24 @@ def test_rate_limit_is_per_session(client):
     # sess-b is unaffected
     assert _post(client, [{"event": "studio.docs.viewed"}],
                  session_id="sess-b").status_code == 202
+
+
+def test_reaps_expired_buckets(client, monkeypatch):
+    """Buckets with only expired timestamps are dropped to bound memory.
+
+    A session that was active long ago and never returns would otherwise
+    leave an entry in _rate_buckets forever; the periodic sweep removes it.
+    """
+    stale = "stale-session"
+    stale_time = time.monotonic() - 2 * _telemetry._RATE_LIMIT_WINDOW_S
+    _telemetry._rate_buckets[stale] = [stale_time]
+    # Force the next request to sweep (last sweep predates the window).
+    monkeypatch.setattr(_telemetry, "_last_sweep", stale_time)
+
+    _post(client, [{"event": "studio.docs.viewed"}], session_id="active")
+
+    assert stale not in _telemetry._rate_buckets
+    assert "active" in _telemetry._rate_buckets
 
 
 def test_optional_fields_are_emitted(client):

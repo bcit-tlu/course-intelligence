@@ -71,13 +71,27 @@ _RATE_LIMIT_WINDOW_S = 60
 _RATE_LIMIT_MAX_REQUESTS = 30  # 30 batched requests per session per minute
 
 _rate_buckets: dict[str, list[float]] = defaultdict(list)
+_last_sweep = 0.0
 
 
 def _check_rate_limit(session_id: str) -> int | None:
     """Return retry-after seconds if rate limited, else None and record the attempt."""
+    global _last_sweep
     now = time.monotonic()
     window_start = now - _RATE_LIMIT_WINDOW_S
-    bucket = [t for t in _rate_buckets[session_id] if t > window_start]
+
+    # Reap buckets whose timestamps have all expired so memory stays
+    # bounded by recently-active sessions rather than by every session_id
+    # this worker has ever seen. Sweeping at most once per window keeps
+    # the amortized per-request cost near zero.
+    if now - _last_sweep >= _RATE_LIMIT_WINDOW_S:
+        _last_sweep = now
+        expired = [sid for sid, ts in _rate_buckets.items()
+                   if not any(t > window_start for t in ts)]
+        for sid in expired:
+            del _rate_buckets[sid]
+
+    bucket = [t for t in _rate_buckets.pop(session_id, []) if t > window_start]
     if len(bucket) >= _RATE_LIMIT_MAX_REQUESTS:
         _rate_buckets[session_id] = bucket
         return _RATE_LIMIT_WINDOW_S

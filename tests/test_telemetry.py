@@ -226,6 +226,58 @@ def test_long_attribute_values_are_truncated(client):
     assert len(record.attributes["file.name"]) == 1000
 
 
+def test_client_cannot_forge_provenance(client):
+    """Reserved provenance fields in client attributes are dropped; server
+    values always win.
+
+    Without this guard, a client could inject records attributed to another
+    session, pose as a backend source, forge a schema version, or corrupt
+    trace correlation.
+    """
+    resp = client.post(
+        "/telemetry/events",
+        json={"events": [{
+            "event": "studio.docs.viewed",
+            "attributes": {
+                "session.id": "victim-session",
+                "event.source": "backend",
+                "schema.version": 999,
+                "trace.parent": "00-forged-forged-01",
+                "file.name": "legit.pdf",
+            },
+        }]},
+        headers={"X-Session-Id": "real-session"},
+    )
+    assert resp.status_code == 202
+    assert len(_log_processor.records) == 1
+    attrs = _log_processor.records[0].attributes
+    # Server-stamped provenance wins over forged client values.
+    assert attrs["session.id"] == "real-session"
+    assert attrs["event.source"] == "studio"
+    assert attrs["schema.version"] == _telemetry.TELEMETRY_SCHEMA_VERSION
+    # No traceparent header on the request -> no trace.parent at all (not
+    # the client's forged value).
+    assert "trace.parent" not in attrs
+    # Non-reserved client attributes still pass through.
+    assert attrs["file.name"] == "legit.pdf"
+
+
+def test_traceparent_header_wins_over_client_attribute(client):
+    """When the request carries a traceparent header, the server-stamped
+    value wins over any client-supplied trace.parent attribute."""
+    resp = client.post(
+        "/telemetry/events",
+        json={"events": [{
+            "event": "studio.docs.viewed",
+            "attributes": {"trace.parent": "00-forged-forged-01"},
+        }]},
+        headers={"X-Session-Id": "s1", "traceparent": "00-real-real-01"},
+    )
+    assert resp.status_code == 202
+    attrs = _log_processor.records[0].attributes
+    assert attrs["trace.parent"] == "00-real-real-01"
+
+
 def test_schema_version_defaults_to_current(client):
     """Omitted schema_version defaults to TELEMETRY_SCHEMA_VERSION."""
     _post(client, [{"event": "studio.docs.viewed"}])

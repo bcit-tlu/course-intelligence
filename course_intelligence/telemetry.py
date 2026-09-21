@@ -64,6 +64,18 @@ _ALLOWED_EVENTS = frozenset({
 _MAX_EVENTS_PER_REQUEST = 10
 _MAX_ATTRIBUTE_LENGTH = 1000
 
+# Provenance fields the server stamps and trusts unconditionally. Applied
+# after merging client attributes so untrusted input can never forge or
+# overwrite them — e.g. attributing events to another session, posing as
+# a backend source, or corrupting trace correlation. Keep in lockstep with
+# the attrs dict built in ``ingest_telemetry_events``.
+_RESERVED_ATTR_KEYS = frozenset({
+    "session.id",
+    "event.source",
+    "schema.version",
+    "trace.parent",
+})
+
 # Basic in-memory rate limit: per-session, per window. This is a stopgap
 # until CI has authentication and a Redis-backed limiter like HRIV. In a
 # multi-pod deployment this should move to Redis so limits are shared.
@@ -169,11 +181,22 @@ async def ingest_telemetry_events(
         if event.event not in _ALLOWED_EVENTS:
             continue
 
-        attrs: dict[str, object] = {
-            "session.id": session_id,
-            "event.source": "studio",
-            "schema.version": event.schema_version or TELEMETRY_SCHEMA_VERSION,
-        }
+        # Build attributes in trust order: untrusted client payload first,
+        # then typed/validated envelope fields, then server-owned provenance
+        # last so it always wins over any colliding client-supplied value
+        # (see _RESERVED_ATTR_KEYS).
+        attrs: dict[str, object] = {}
+
+        # Untrusted client attributes, with per-value bounds. Reserved
+        # provenance keys are skipped here and stamped by the server below.
+        if event.attributes:
+            for key, value in event.attributes.items():
+                if key in _RESERVED_ATTR_KEYS:
+                    continue
+                if isinstance(value, str) and len(value) > _MAX_ATTRIBUTE_LENGTH:
+                    value = value[:_MAX_ATTRIBUTE_LENGTH]
+                attrs[key] = value
+
         if event.outcome is not None:
             attrs["event.outcome"] = event.outcome
         if event.duration_ms is not None:
@@ -182,13 +205,13 @@ async def ingest_telemetry_events(
             attrs["error.message"] = event.error
         if event.page is not None:
             attrs["event.page"] = event.page
+
+        # Server-owned provenance — stamped last, always wins.
+        attrs["session.id"] = session_id
+        attrs["event.source"] = "studio"
+        attrs["schema.version"] = event.schema_version or TELEMETRY_SCHEMA_VERSION
         if traceparent:
             attrs["trace.parent"] = traceparent
-        if event.attributes:
-            for key, value in event.attributes.items():
-                if isinstance(value, str) and len(value) > _MAX_ATTRIBUTE_LENGTH:
-                    value = value[:_MAX_ATTRIBUTE_LENGTH]
-                attrs[key] = value
 
         emit_event(event.event, attrs)
 

@@ -29,7 +29,7 @@ from collections import defaultdict
 from typing import Literal
 
 from fastapi import APIRouter, Header, HTTPException, Request, Response, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from pydantic.config import ConfigDict
 
 from course_intelligence.analytics import emit_event
@@ -63,6 +63,16 @@ _ALLOWED_EVENTS = frozenset({
 # or larger client batches will be rejected wholesale with a 422.
 _MAX_EVENTS_PER_REQUEST = 10
 _MAX_ATTRIBUTE_LENGTH = 1000
+# Bound the per-event attribute map so a single event can't force expensive
+# per-entry validation or emit oversized analytics records. The count is
+# checked before pydantic validates individual entries (see the validator
+# on TelemetryEvent.attributes) so an oversized payload is rejected (422)
+# without iterating it. Key length is capped to keep Loki attribute names
+# small and prevent key-based log bloat. Values are truncated separately in
+# the handler. Generous vs. current studio usage (≤3 attrs/event, ≤19-char
+# keys — see studio/src/analytics/events.ts).
+_MAX_ATTRIBUTES_PER_EVENT = 20
+_MAX_ATTRIBUTE_KEY_LENGTH = 64
 
 # Provenance fields the server stamps and trusts unconditionally. Applied
 # after merging client attributes so untrusted input can never forge or
@@ -141,7 +151,31 @@ class TelemetryEvent(BaseModel):
     page: str | None = Field(None, max_length=64)
     # Structured domain fields the studio wants in Loki for drill-down.
     # Values are bounded per entry to prevent log injection / bloat.
-    attributes: dict[str, str | int | float | bool] | None = None
+    attributes: dict[str, str | int | float | bool] | None = Field(
+        None, max_length=_MAX_ATTRIBUTES_PER_EVENT
+    )
+
+    @field_validator("attributes", mode="before")
+    @classmethod
+    def _bound_attributes(cls, v):
+        """Reject oversized payloads before pydantic validates each entry.
+
+        Checking count first (O(1)) avoids iterating a large dict just to
+        reject it; key lengths are only checked once the count is already
+        within bounds. Raises -> 422, consistent with the batch-size limit.
+        """
+        if v is None:
+            return v
+        if len(v) > _MAX_ATTRIBUTES_PER_EVENT:
+            raise ValueError(
+                f"at most {_MAX_ATTRIBUTES_PER_EVENT} attributes per event"
+            )
+        for key in v:
+            if len(key) > _MAX_ATTRIBUTE_KEY_LENGTH:
+                raise ValueError(
+                    f"attribute key exceeds {_MAX_ATTRIBUTE_KEY_LENGTH} chars"
+                )
+        return v
 
 
 class TelemetryBatch(BaseModel):

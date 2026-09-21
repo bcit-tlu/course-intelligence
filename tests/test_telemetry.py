@@ -158,6 +158,40 @@ def test_rejects_oversized_batch(client):
     assert resp.status_code == 422
 
 
+def test_rejects_too_many_attributes_per_event(client):
+    """Events with more than _MAX_ATTRIBUTES_PER_REQUEST attributes are
+    rejected (422) before the handler iterates them."""
+    too_many = {f"k{i}": i for i in range(_telemetry._MAX_ATTRIBUTES_PER_EVENT + 1)}
+    resp = _post(client, [{
+        "event": "studio.docs.viewed",
+        "attributes": too_many,
+    }])
+    assert resp.status_code == 422
+    assert len(_log_processor.records) == 0
+
+
+def test_rejects_oversized_attribute_key(client):
+    """Attribute keys exceeding _MAX_ATTRIBUTE_KEY_LENGTH are rejected (422)."""
+    long_key = "x" * (_telemetry._MAX_ATTRIBUTE_KEY_LENGTH + 1)
+    resp = _post(client, [{
+        "event": "studio.docs.viewed",
+        "attributes": {long_key: "v"},
+    }])
+    assert resp.status_code == 422
+    assert len(_log_processor.records) == 0
+
+
+def test_max_attributes_boundary_is_accepted(client):
+    """Exactly _MAX_ATTRIBUTES_PER_EVENT attributes are accepted (not off-by-one)."""
+    attrs = {f"k{i}": i for i in range(_telemetry._MAX_ATTRIBUTES_PER_EVENT)}
+    resp = _post(client, [{
+        "event": "studio.docs.viewed",
+        "attributes": attrs,
+    }])
+    assert resp.status_code == 202
+    assert len(_log_processor.records) == 1
+
+
 def test_enforces_rate_limit(client):
     """Per-session rate limiting returns 429 after the limit is exceeded."""
     # _RATE_LIMIT_MAX_REQUESTS = 30; send 30 then expect 429 on the 31st.

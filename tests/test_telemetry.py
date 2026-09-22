@@ -275,10 +275,10 @@ def test_bucket_cap_collapses_new_sessions_to_overflow(client, monkeypatch):
 
     Existing sessions keep their own buckets; only new ones collapse. The
     overflow bucket has the same per-session limit, so sessions sharing it
-    are collectively rate-limited.
+    are collectively rate-limited. The map never exceeds _MAX_RATE_BUCKETS.
     """
-    monkeypatch.setattr(_telemetry, "_MAX_RATE_BUCKETS", 1)
-    # sess-a fills the single allowed bucket.
+    monkeypatch.setattr(_telemetry, "_MAX_RATE_BUCKETS", 2)
+    # sess-a fills the first regular slot (cap reserves 1 for overflow).
     _post(client, [{"event": "studio.docs.viewed"}], session_id="sess-a")
     assert len(_telemetry._rate_buckets) == 1
 
@@ -292,23 +292,36 @@ def test_bucket_cap_collapses_new_sessions_to_overflow(client, monkeypatch):
     assert _post(client, [{"event": "studio.docs.viewed"}],
                  session_id="sess-c").status_code == 429
 
-    # Memory stayed bounded: only sess-a + the overflow bucket exist.
-    assert len(_telemetry._rate_buckets) == 2
+    # Memory stayed bounded: sess-a + overflow = exactly _MAX_RATE_BUCKETS.
+    assert len(_telemetry._rate_buckets) == _telemetry._MAX_RATE_BUCKETS
     assert "sess-a" in _telemetry._rate_buckets
     assert _telemetry._OVERFLOW_BUCKET in _telemetry._rate_buckets
 
 
 def test_existing_session_keeps_own_bucket_at_capacity(client, monkeypatch):
     """An existing session is not displaced when the cap is hit."""
-    monkeypatch.setattr(_telemetry, "_MAX_RATE_BUCKETS", 1)
-    # sess-a fills the cap.
+    monkeypatch.setattr(_telemetry, "_MAX_RATE_BUCKETS", 2)
+    # sess-a fills the first regular slot.
     _post(client, [{"event": "studio.docs.viewed"}], session_id="sess-a")
-    # sess-b overflows.
+    # sess-b overflows into the reserved overflow slot.
     _post(client, [{"event": "studio.docs.viewed"}], session_id="sess-b")
     # sess-a still has its own bucket and is not rate-limited by sess-b.
     assert "sess-a" in _telemetry._rate_buckets
     assert _telemetry._rate_buckets["sess-a"] is not _telemetry._rate_buckets.get(
         _telemetry._OVERFLOW_BUCKET)
+    # Map is at the cap, not above it.
+    assert len(_telemetry._rate_buckets) == _telemetry._MAX_RATE_BUCKETS
+
+
+def test_bucket_count_never_exceeds_cap(client, monkeypatch):
+    """len(_rate_buckets) never exceeds _MAX_RATE_BUCKETS, even under
+    high-cardinality session-ID load that would otherwise create one bucket
+    per unique ID."""
+    monkeypatch.setattr(_telemetry, "_MAX_RATE_BUCKETS", 3)
+    # Send far more unique session IDs than the cap allows.
+    for i in range(100):
+        _post(client, [{"event": "studio.docs.viewed"}], session_id=f"sess-{i}")
+    assert len(_telemetry._rate_buckets) <= _telemetry._MAX_RATE_BUCKETS
 
 
 def test_optional_fields_are_emitted(client):

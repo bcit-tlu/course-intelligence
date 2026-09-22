@@ -147,8 +147,11 @@ def _check_rate_limit(session_id: str) -> int | None:
     # Existing sessions keep their own buckets; only new ones overflow. The
     # real session_id is still stamped in emitted event attributes — only the
     # rate-limit key is remapped, so legitimate sessions caught in overflow
-    # remain attributable in Loki.
-    if session_id not in _rate_buckets and len(_rate_buckets) >= _MAX_RATE_BUCKETS:
+    # remain attributable in Loki. Reserve one slot for the overflow bucket
+    # when it isn't yet present so the map never exceeds _MAX_RATE_BUCKETS.
+    overflow_present = _OVERFLOW_BUCKET in _rate_buckets
+    cap = _MAX_RATE_BUCKETS - (0 if overflow_present else 1)
+    if session_id not in _rate_buckets and len(_rate_buckets) >= cap:
         session_id = _OVERFLOW_BUCKET
 
     bucket = [t for t in _rate_buckets.pop(session_id, []) if t > window_start]

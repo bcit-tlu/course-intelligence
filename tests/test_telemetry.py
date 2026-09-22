@@ -192,6 +192,22 @@ def test_max_attributes_boundary_is_accepted(client):
     assert len(_log_processor.records) == 1
 
 
+@pytest.mark.parametrize("bad_attributes", [42, [1, 2, 3], "not-a-dict", 3.14])
+def test_malformed_attributes_returns_422_not_500(client, bad_attributes):
+    """Non-dict `attributes` values produce a 422, not a 500.
+
+    Without the isinstance guard in _bound_attributes, len()/key iteration
+    raises TypeError (which pydantic does not wrap into a ValidationError),
+    leaking an unhandled 500 to the client instead of a clean 422.
+    """
+    resp = _post(client, [{
+        "event": "studio.docs.viewed",
+        "attributes": bad_attributes,
+    }])
+    assert resp.status_code == 422
+    assert len(_log_processor.records) == 0
+
+
 def test_enforces_rate_limit(client):
     """Per-session rate limiting returns 429 after the limit is exceeded."""
     # _RATE_LIMIT_MAX_REQUESTS = 30; send 30 then expect 429 on the 31st.

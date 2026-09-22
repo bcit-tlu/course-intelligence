@@ -185,8 +185,13 @@ class TelemetryEvent(BaseModel):
         Checking count first (O(1)) avoids iterating a large dict just to
         reject it; key lengths are only checked once the count is already
         within bounds. Raises -> 422, consistent with the batch-size limit.
+        Non-dict values (e.g. a number or list sent where attributes is
+        expected) are returned unchanged so pydantic's built-in type
+        validation produces the 422 — without this guard, ``len()`` / key
+        iteration would raise ``TypeError``, which pydantic does not wrap
+        into a ``ValidationError``, leaking a 500 to the client.
         """
-        if v is None:
+        if v is None or not isinstance(v, dict):
             return v
         if len(v) > _MAX_ATTRIBUTES_PER_EVENT:
             raise ValueError(

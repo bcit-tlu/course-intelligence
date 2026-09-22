@@ -102,3 +102,42 @@ export async function getResults(jobId: string): Promise<JobResults> {
   if (!res.ok) return parseError(res);
   return res.json();
 }
+
+// --- Telemetry relay ---
+
+// Matches the backend's _MAX_EVENTS_PER_REQUEST in telemetry.py; larger
+// batches are rejected wholesale with a 422.
+const MAX_EVENTS_PER_REQUEST = 10;
+
+export interface TelemetryPayload {
+  event: string;
+  attributes?: Record<string, string | number | boolean>;
+}
+
+/**
+ * Post a batch of frontend telemetry events to the backend relay endpoint.
+ * The backend re-emits them as structured OTel log records so they flow to
+ * Loki through the same analytics pipeline as backend ci.* events.
+ *
+ * Delivery is best-effort (fire-and-forget with keepalive) and never blocks
+ * the UI — a failed POST is silently dropped.
+ */
+export function postTelemetryEvents(events: TelemetryPayload[]): void {
+  if (events.length === 0) return;
+
+  for (let i = 0; i < events.length; i += MAX_EVENTS_PER_REQUEST) {
+    fetch(`${BASE}/telemetry/events`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders(),
+      },
+      body: JSON.stringify({
+        events: events.slice(i, i + MAX_EVENTS_PER_REQUEST),
+      }),
+      keepalive: true,
+    }).catch(() => {
+      // Telemetry delivery is best-effort; never block the UI.
+    });
+  }
+}

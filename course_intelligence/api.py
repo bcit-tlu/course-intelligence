@@ -27,6 +27,7 @@ from course_intelligence.db import Job, JobStatus, get_session
 from course_intelligence.db.session import get_engine
 from course_intelligence.default_config import DEFAULT_CONFIG
 from course_intelligence.observability import setup_otel, instrument_shared
+from course_intelligence.telemetry import router as telemetry_router
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,8 @@ app.add_middleware(
 
 FastAPIInstrumentor.instrument_app(app)
 instrument_shared(engine=get_engine())
+
+app.include_router(telemetry_router)
 
 
 def _get_redis():

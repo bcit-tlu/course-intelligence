@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.3](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.23.2...backend-v0.23.3) (2026-09-24)
+
+
+### Bug Fixes
+
+* cap SQLAlchemy version below 2.1 to prevent compatibility issues ([d35b941](https://github.com/bcit-tlu/course-intelligence/commit/d35b94133e3f57a0b15ac5bdaa6aafcb6a27ecaf))
+
 ## [0.23.2](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.23.1...backend-v0.23.2) (2026-09-24)
 
 

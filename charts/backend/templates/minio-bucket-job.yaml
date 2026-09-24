@@ -28,6 +28,7 @@ spec:
       containers:
         - name: createbucket
           image: {{ .Values.minio.mcImage | quote }}
+          imagePullPolicy: IfNotPresent
           env:
             - name: MINIO_ROOT_USER
               valueFrom:

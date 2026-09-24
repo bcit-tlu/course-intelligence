@@ -19,7 +19,7 @@
       "extra-files": [
         {
           "type": "generic",
-          "path": "charts/studio/Chart.yaml",
+          "path": "../charts/studio/Chart.yaml",
           "glob": true
         }
       ]

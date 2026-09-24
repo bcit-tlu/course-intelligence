@@ -1,0 +1,111 @@
+{{- if .Values.seaweedfs.enabled }}
+{{- $fullname := include "course-intelligence-backend.fullname" . -}}
+{{- $name := printf "%s-seaweedfs" $fullname -}}
+{{- $secretName := include "course-intelligence-backend.s3SecretName" . -}}
+{{- if not .Values.seaweedfs.existingSecret }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "course-intelligence-backend.labels" . | nindent 4 }}
+    app.kubernetes.io/component: seaweedfs
+type: Opaque
+stringData:
+  root-user: {{ .Values.seaweedfs.auth.accessKey | quote }}
+  root-password: {{ .Values.seaweedfs.auth.secretKey | quote }}
+---
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "course-intelligence-backend.labels" . | nindent 4 }}
+    app.kubernetes.io/component: seaweedfs
+spec:
+  replicas: 1
+  # Single-instance SeaweedFS owns a RWO volume; never run two replicas.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "course-intelligence-backend.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: seaweedfs
+  template:
+    metadata:
+      labels:
+        {{- include "course-intelligence-backend.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: seaweedfs
+    spec:
+      securityContext:
+        # Image runs as seaweed (1000); avoids a recursive chown on start.
+        fsGroup: 1000
+      containers:
+        - name: seaweedfs
+          image: {{ .Values.seaweedfs.image | quote }}
+          imagePullPolicy: IfNotPresent
+          # Vendor-neutral S3_* env names at the pod level; the wrapper
+          # translates to the AWS_* names `weed mini` reads (S3-SDK
+          # convention). Nothing here talks to Amazon AWS. `exec` keeps
+          # the image entrypoint (root→seaweed drop, /data perms) with
+          # correct signal handling. Unused listeners are disabled.
+          command:
+            - /bin/sh
+            - -c
+            - |
+              export AWS_ACCESS_KEY_ID="$S3_ACCESS_KEY"
+              export AWS_SECRET_ACCESS_KEY="$S3_SECRET_KEY"
+              exec /entrypoint.sh mini -dir=/data \
+                -webdav=false -s3.port.iceberg=0 -s3.port.lance=0
+          {{- with .Values.seaweedfs.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName }}
+                  key: root-user
+            - name: S3_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName }}
+                  key: root-password
+            - name: S3_BUCKET
+              value: {{ .Values.seaweedfs.bucket | quote }}
+          ports:
+            - name: s3
+              containerPort: 8333
+              protocol: TCP
+          livenessProbe:
+            tcpSocket:
+              port: s3
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          readinessProbe:
+            tcpSocket:
+              port: s3
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ $name }}
+      {{- with .Values.seaweedfs.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.seaweedfs.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.seaweedfs.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

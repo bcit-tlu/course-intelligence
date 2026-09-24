@@ -79,7 +79,7 @@ See [API Reference](#api-reference) for endpoint details.
 queue pattern (`BLMOVE` / `LREM`):
 
 1. Atomically claim a job from Redis
-2. Download the upload from MinIO to a temp directory
+2. Download the upload from object storage to a temp directory
 3. Run `CourseProcessorGraph.process_with_progress()` with an `on_step` callback
 4. Save results to Postgres, mark job completed/failed
 5. Remove the job from the processing list
@@ -122,7 +122,7 @@ back to the main queue (handles worker crashes).
 ## Storage
 
 `course_intelligence/storage.py` wraps boto3 for S3-compatible object storage
-(MinIO locally, any S3 in production).
+(SeaweedFS locally, any S3 in production).
 
 | Function | Description |
 |----------|-------------|

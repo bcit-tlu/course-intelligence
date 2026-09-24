@@ -114,33 +114,40 @@ redis:
   tolerations: []
   affinity: {}
 
-# ── MinIO object storage (Step 7) ───────────────────────────
-minio:
+# ── SeaweedFS object storage ────────────────────────────────
+# Replaces the former MinIO deployment (MinIO removed its Docker Hub
+# images in September 2026). `weed mini` runs a complete single-process
+# store (master + volume + filer + S3 gateway) intended for single-node
+# production, and creates the bucket from S3_BUCKET at startup — no
+# bucket-init Job.
+seaweedfs:
   enabled: false
-  image: minio/minio:RELEASE.2025-10-15T17-29-55Z
-  mcImage: minio/mc:RELEASE.2025-08-13T08-35-41Z
+  # Pinned, actively maintained. Do NOT use :latest.
+  image: chrislusf/seaweedfs:4.47
   bucket: uploads
-  # Root credentials for the in-cluster MinIO. Also used by the backend as
-  # its S3 access/secret keys. Move these to a Secret / Vault for production
-  # (see minio.existingSecret).
+  # S3 credentials for the embedded gateway. Also used by the backend as
+  # its S3 access/secret keys. Move to a Secret / Vault for production
+  # (see seaweedfs.existingSecret).
   auth:
-    rootUser: minioadmin
-    rootPassword: minioadmin
+    accessKey: admin
+    secretKey: secret
   # Name of a pre-existing Secret with keys `root-user` and `root-password`.
   # When set, the chart references it instead of creating its own.
   existingSecret: ""
-  # Used when minio.enabled=false (external S3).
+  # Used when seaweedfs.enabled=false (external S3).
   endpointUrl: ""
   persistence:
     size: 30Gi
     storageClass: ""
+  # Optional; the namespace LimitRange applies defaults when empty.
+  resources: {}
   nodeSelector: {}
   tolerations: []
   affinity: {}
 
 # ── Upload retention ────────────────────────────────────────
 # Number of recent job uploads to retain in S3. Older uploads are
-# purged from MinIO after each job completes; the Job row (and its
+# purged from object storage after each job completes; the Job row (and its
 # Result rows via ON DELETE CASCADE) are also deleted from Postgres.
 retentionCount: 10
 

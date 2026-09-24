@@ -21,7 +21,7 @@ from course_intelligence.db.models import Base
 
 
 class FakeStorage:
-    """In-memory object store standing in for MinIO/S3."""
+    """In-memory object store standing in for the S3 backend."""
 
     def __init__(self):
         self.objects: dict[str, bytes] = {}

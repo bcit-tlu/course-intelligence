@@ -69,7 +69,7 @@ http://localhost:5173). Once it's running:
 | **Studio** | **http://localhost:5173** | Upload modules, watch processing, browse results (HMR) |
 | API | http://localhost:8000 | Course Intelligence API (FastAPI job API) |
 | LLM Gateway | http://localhost:8100 | LLM proxy (centralizes calls, logs tokens) |
-| MinIO console | http://localhost:9001 | Object storage (uploads) |
+| SeaweedFS S3 | http://localhost:8333 | Object storage (uploads) |
 
 The database schema is migrated automatically by the one-shot `migrate`
 service before the `api`/`worker` start.
@@ -187,7 +187,7 @@ course-intelligence/             # repo root
     ├── default_config.py        # config dict + env-var overlay
     ├── api.py                   # FastAPI endpoints (async job API)
     ├── worker.py                # background worker (Redis queue, reliable pattern)
-    ├── storage.py               # S3/MinIO object storage wrapper
+    ├── storage.py               # S3 object storage wrapper
     ├── engine/                  # transport-independent processing core
     │   ├── agents/              # agent factories grouped by role
     │   │   ├── extractor/       # create_content_extractor() — pure Python, no LLM
@@ -259,7 +259,7 @@ are in `docker-compose.override.yml`.
 | `WATCHDOG_STALE_THRESHOLD_S` | `900` | Max time a job can stay processing with no progress (seconds) |
 | `DATABASE_URL` | — | Postgres connection string (e.g. `postgresql://course_intelligence:course_intelligence@db:5432/course_intelligence`) |
 | `REDIS_URL` | — | Redis connection string (e.g. `redis://redis:6379/0`) |
-| `S3_ENDPOINT_URL` | — | S3/MinIO endpoint (e.g. `http://minio:9000`) |
+| `S3_ENDPOINT_URL` | — | S3 endpoint (e.g. `http://seaweedfs:8333`) |
 | `S3_ACCESS_KEY` | — | S3 access key |
 | `S3_SECRET_KEY` | — | S3 secret key |
 | `S3_BUCKET` | `uploads` | S3 bucket name for uploads |

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.1](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.23.0...backend-v0.23.1) (2026-09-24)
+
+
+### Bug Fixes
+
+* correct Chart.yaml path in release-please config to match monorepo structure ([a80b13b](https://github.com/bcit-tlu/course-intelligence/commit/a80b13b17c1421b1129950a3e8cf44d23a0f3ad0))
+
 ## [0.23.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.22.0...backend-v0.23.0) (2026-09-22)
 
 

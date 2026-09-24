@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.23.2](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.23.1...backend-v0.23.2) (2026-09-24)
+
+
+### Bug Fixes
+
+* pin MinIO images to specific releases and set IfNotPresent pull policy ([5518ada](https://github.com/bcit-tlu/course-intelligence/commit/5518adac479326a14ec78db62de8a6074d7094c5))
+* update MinIO server image to RELEASE.2025-10-15T17-29-55Z ([ac83248](https://github.com/bcit-tlu/course-intelligence/commit/ac83248cb216d31184accdf78fc8921041719d0b))
+
 ## [0.23.1](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.23.0...backend-v0.23.1) (2026-09-24)
 
 

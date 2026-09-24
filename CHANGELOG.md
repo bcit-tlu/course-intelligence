@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.23.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.22.0...backend-v0.23.0) (2026-09-22)
+
+
+### Features
+
+* add frontend telemetry relay endpoint for product analytics ([a6ab2ea](https://github.com/bcit-tlu/course-intelligence/commit/a6ab2ea73eac715d8baefe7adc02711d6b35f3a4))
+* add frontend telemetry relay endpoint for product analytics ([4e36dd6](https://github.com/bcit-tlu/course-intelligence/commit/4e36dd60f13297bfc7d624800d35d6f7db5849db))
+* add in-memory fallback for sessionStorage to prevent blank page in private browsing ([e1fa9a0](https://github.com/bcit-tlu/course-intelligence/commit/e1fa9a0784e91f82922724dd8e3bcd7067a6bc86))
+* add per-event attribute count and key length limits to prevent log bloat ([e77f17c](https://github.com/bcit-tlu/course-intelligence/commit/e77f17cbca0ee0015d3551e41fb713029fc13d31))
+* add periodic sweep to prevent unbounded memory growth in rate limit buckets ([76934f3](https://github.com/bcit-tlu/course-intelligence/commit/76934f3d8035ddaffe7044ed8b3f17d5f68e8f04))
+* add session ID length limit and rate bucket cardinality cap to prevent memory exhaustion ([4cc5382](https://github.com/bcit-tlu/course-intelligence/commit/4cc53829f2961fc860caaca343f613aca6435e21))
+* prevent duplicate session.started events across page reloads ([f7ea9e9](https://github.com/bcit-tlu/course-intelligence/commit/f7ea9e9c30bea2b9f7c94c0a2351c2aea252055e))
+
+
+### Bug Fixes
+
+* prevent client forgery of server-owned telemetry provenance fields ([081088e](https://github.com/bcit-tlu/course-intelligence/commit/081088ebcbd2a4eafbef5577e83ec0bd7c631b15))
+* prioritize in-memory store in safeGetItem to prevent ID churn when sessionStorage writes fail ([f4abd16](https://github.com/bcit-tlu/course-intelligence/commit/f4abd163d7b677fe4aa4f5f9ffc7d4038053fc0f))
+* remove /api prefix from telemetry endpoint route ([803197b](https://github.com/bcit-tlu/course-intelligence/commit/803197bb9bcfc9b3e8515ed1525ed356b6faf6fe))
+* reserve overflow bucket slot to prevent rate limiter map from exceeding _MAX_RATE_BUCKETS ([7399759](https://github.com/bcit-tlu/course-intelligence/commit/7399759d8763c145e39f1e2a00e13fda9005e0f3))
+* return non-dict attributes unchanged in validator to prevent 500 on type mismatch ([c83d10f](https://github.com/bcit-tlu/course-intelligence/commit/c83d10f7701c8350611bd1a8bbcae794486be14d))
+
+
+### Documentation
+
+* document rate limit concurrency invariant and single-process safety assumptions ([01bdef0](https://github.com/bcit-tlu/course-intelligence/commit/01bdef07669315bc2f4ad8349bf587c747981ac6))
+
 ## [0.22.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.21.0...backend-v0.22.0) (2026-09-10)
 
 

@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.12.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v0.11.0...studio-v0.12.0) (2026-09-22)
+
+
+### Features
+
+* add frontend telemetry relay endpoint for product analytics ([a6ab2ea](https://github.com/bcit-tlu/course-intelligence/commit/a6ab2ea73eac715d8baefe7adc02711d6b35f3a4))
+* add frontend telemetry relay endpoint for product analytics ([4e36dd6](https://github.com/bcit-tlu/course-intelligence/commit/4e36dd60f13297bfc7d624800d35d6f7db5849db))
+* add in-memory fallback for sessionStorage to prevent blank page in private browsing ([e1fa9a0](https://github.com/bcit-tlu/course-intelligence/commit/e1fa9a0784e91f82922724dd8e3bcd7067a6bc86))
+* prevent duplicate session.started events across page reloads ([f7ea9e9](https://github.com/bcit-tlu/course-intelligence/commit/f7ea9e9c30bea2b9f7c94c0a2351c2aea252055e))
+
+
+### Bug Fixes
+
+* prioritize in-memory store in safeGetItem to prevent ID churn when sessionStorage writes fail ([f4abd16](https://github.com/bcit-tlu/course-intelligence/commit/f4abd163d7b677fe4aa4f5f9ffc7d4038053fc0f))
+
 ## [0.11.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v0.10.0...studio-v0.11.0) (2026-09-10)
 
 

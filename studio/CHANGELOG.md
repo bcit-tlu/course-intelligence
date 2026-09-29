@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.13.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v0.12.0...studio-v0.13.0) (2026-09-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* the `minio` values block is replaced by `seaweedfs`. Deployments must update values files: minio.enabled -> seaweedfs.enabled, minio.existingSecret -> seaweedfs.existingSecret (secret keys root-user/root-password unchanged), and external S3 endpoints move from port 9000 to 8333 for the in-cluster service.
+
+### Features
+
+* replace MinIO with SeaweedFS for object storage ([e1c4bc0](https://github.com/bcit-tlu/course-intelligence/commit/e1c4bc0b1e0bed34e2ef3d38bebd2c33176f9f3f))
+
 ## [0.12.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v0.11.0...studio-v0.12.0) (2026-09-22)
 
 

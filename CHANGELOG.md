@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.24.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.23.3...backend-v0.24.0) (2026-09-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* the `minio` values block is replaced by `seaweedfs`. Deployments must update values files: minio.enabled -> seaweedfs.enabled, minio.existingSecret -> seaweedfs.existingSecret (secret keys root-user/root-password unchanged), and external S3 endpoints move from port 9000 to 8333 for the in-cluster service.
+
+### Features
+
+* isolate SeaweedFS on dedicated storage network to restrict access to S3 clients only ([0589ad3](https://github.com/bcit-tlu/course-intelligence/commit/0589ad32b0ca867643b6cae3b43bd37dcadd4d56))
+* replace MinIO with SeaweedFS for object storage ([e1c4bc0](https://github.com/bcit-tlu/course-intelligence/commit/e1c4bc0b1e0bed34e2ef3d38bebd2c33176f9f3f))
+
+
+### Bug Fixes
+
+* add healthcheck to seaweedfs and update dependent services to wait for healthy status ([4a54f84](https://github.com/bcit-tlu/course-intelligence/commit/4a54f8472418d7797062af3481e11f3208b14f80))
+
 ## [0.23.3](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.23.2...backend-v0.23.3) (2026-09-24)
 
 

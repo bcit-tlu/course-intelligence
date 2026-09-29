@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.1](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.24.0...backend-v0.24.1) (2026-09-29)
+
+
+### Bug Fixes
+
+* correct chart path in release-please config from relative to absolute ([5c85e92](https://github.com/bcit-tlu/course-intelligence/commit/5c85e928c230110d7f93848937c2bcc493b29d2e))
+
 ## [0.24.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.23.3...backend-v0.24.0) (2026-09-29)
 
 

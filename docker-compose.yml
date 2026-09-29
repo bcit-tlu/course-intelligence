@@ -33,7 +33,7 @@ services:
       redis:
         condition: service_started
       seaweedfs:
-        condition: service_started
+        condition: service_healthy
       llm-gateway:
         condition: service_started
       migrate:
@@ -59,7 +59,7 @@ services:
       redis:
         condition: service_started
       seaweedfs:
-        condition: service_started
+        condition: service_healthy
       llm-gateway:
         condition: service_started
       migrate:
@@ -129,6 +129,15 @@ services:
       S3_BUCKET: uploads
     volumes:
       - seaweedfs_data:/data
+    # TCP readiness on the S3 port. curl (bundled in the image) exits 0 on
+    # any HTTP response and 7 on connection-refused, so this passes once
+    # the S3 gateway accepts connections — the admin identity is loaded
+    # by then, and the bucket auto-creates on first admin upload.
+    healthcheck:
+      test: ["CMD", "curl", "-s", "--max-time", "2", "-o", "/dev/null", "http://localhost:8333/"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest

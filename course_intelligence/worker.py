@@ -6,7 +6,7 @@ atomically moved to a processing list while being worked on, removed
 crashed mid-job.
 
 Loop: BLMOVE course-intelligence:jobs → course-intelligence:jobs:processing → load job from
-Postgres → download upload from MinIO → run CourseProcessorGraph →
+Postgres → download upload from object storage → run CourseProcessorGraph →
 save results → mark completed/failed → LREM from processing list.
 """
 

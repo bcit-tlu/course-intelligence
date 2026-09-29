@@ -1,0 +1,17 @@
+{{- if .Values.seaweedfs.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "course-intelligence-backend.fullname" . }}-seaweedfs
+  labels:
+    {{- include "course-intelligence-backend.labels" . | nindent 4 }}
+    app.kubernetes.io/component: seaweedfs
+spec:
+  ports:
+    - name: s3
+      port: 8333
+      targetPort: s3
+  selector:
+    {{- include "course-intelligence-backend.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: seaweedfs
+{{- end }}

@@ -50,11 +50,11 @@ from its Service; otherwise fall back to the externally-provided redis.url.
 {{- end -}}
 
 {{/*
-Name of the Secret holding MinIO/S3 root credentials (keys: root-user,
+Name of the Secret holding SeaweedFS/S3 root credentials (keys: root-user,
 root-password). Prefers an existing Secret when provided.
 */}}
-{{- define "course-intelligence-backend.minioSecretName" -}}
-{{- .Values.minio.existingSecret | default (printf "%s-minio" (include "course-intelligence-backend.fullname" .)) -}}
+{{- define "course-intelligence-backend.s3SecretName" -}}
+{{- .Values.seaweedfs.existingSecret | default (printf "%s-seaweedfs" (include "course-intelligence-backend.fullname" .)) -}}
 {{- end -}}
 
 {{/*
@@ -75,14 +75,14 @@ Prefers an existing Secret when provided; falls back to the chart-managed
 {{- end -}}
 
 {{/*
-S3 endpoint URL. Uses the in-cluster MinIO Service when enabled, otherwise
-the externally-provided endpoint.
+S3 endpoint URL. Uses the in-cluster SeaweedFS Service when enabled,
+otherwise the externally-provided endpoint.
 */}}
 {{- define "course-intelligence-backend.s3EndpointUrl" -}}
-{{- if .Values.minio.enabled -}}
-{{- printf "http://%s-minio:9000" (include "course-intelligence-backend.fullname" .) -}}
+{{- if .Values.seaweedfs.enabled -}}
+{{- printf "http://%s-seaweedfs:8333" (include "course-intelligence-backend.fullname" .) -}}
 {{- else -}}
-{{- .Values.minio.endpointUrl -}}
+{{- .Values.seaweedfs.endpointUrl -}}
 {{- end -}}
 {{- end -}}
 
@@ -106,12 +106,12 @@ in-cluster, otherwise from the external postgres.uri value.
 - name: S3_ACCESS_KEY
   valueFrom:
     secretKeyRef:
-      name: {{ include "course-intelligence-backend.minioSecretName" . }}
+      name: {{ include "course-intelligence-backend.s3SecretName" . }}
       key: root-user
 - name: S3_SECRET_KEY
   valueFrom:
     secretKeyRef:
-      name: {{ include "course-intelligence-backend.minioSecretName" . }}
+      name: {{ include "course-intelligence-backend.s3SecretName" . }}
       key: root-password
 {{- end -}}
 

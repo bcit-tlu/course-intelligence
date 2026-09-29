@@ -127,7 +127,7 @@ DEFAULT_CONFIG = _apply_env_overrides({
     # Infrastructure
     "database_url": "",                # e.g. postgresql://course_intelligence:course_intelligence@db:5432/course_intelligence
     "redis_url": "",                   # e.g. redis://redis:6379/0
-    "s3_endpoint_url": "",             # e.g. http://minio:9000
+    "s3_endpoint_url": "",             # e.g. http://seaweedfs:8333
     "s3_access_key": "",
     "s3_secret_key": "",
     "s3_bucket": "uploads",

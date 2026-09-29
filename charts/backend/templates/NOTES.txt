@@ -12,7 +12,7 @@ Roles deployed from image {{ include "course-intelligence-backend.image" . }}:
 Dependencies:
   - PostgreSQL (CNPG): {{ if .Values.postgres.enabled }}in-cluster{{ else }}external ({{ .Values.postgres.uri }}){{ end }}
   - Redis:             {{ if .Values.redis.enabled }}in-cluster{{ else }}external ({{ .Values.redis.url }}){{ end }}
-  - Object storage:    {{ if .Values.minio.enabled }}in-cluster MinIO{{ else }}external S3 ({{ .Values.minio.endpointUrl }}){{ end }}
+  - Object storage:    {{ if .Values.seaweedfs.enabled }}in-cluster SeaweedFS{{ else }}external S3 ({{ .Values.seaweedfs.endpointUrl }}){{ end }}
 
 Check the API health from within the cluster:
 

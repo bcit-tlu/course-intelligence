@@ -1,0 +1,29 @@
+{{- if .Values.seaweedfs.enabled }}
+# `weed mini` also opens unauthenticated listeners (master, volume, filer,
+# admin UI) that serve object data directly. This policy closes them to the
+# rest of the cluster and allows S3 (8333) only from this release's pods
+# (api, worker, gateway), which are the only S3 clients. Kubelet probes are
+# exempt from NetworkPolicy on Canal, so the tcpSocket probes keep working.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "course-intelligence-backend.fullname" . }}-seaweedfs
+  labels:
+    {{- include "course-intelligence-backend.labels" . | nindent 4 }}
+    app.kubernetes.io/component: seaweedfs
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "course-intelligence-backend.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: seaweedfs
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              {{- include "course-intelligence-backend.selectorLabels" . | nindent 14 }}
+      ports:
+        - port: 8333
+          protocol: TCP
+{{- end }}

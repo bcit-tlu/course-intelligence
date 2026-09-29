@@ -461,7 +461,7 @@ by `LLM_PROVIDER` env var.
 Uses Redis `BLMOVE` / `LREM` (the reliable queue pattern from Redis docs):
 
 1. `BLMOVE course-intelligence:jobs → course-intelligence:jobs:processing` — atomically claim a job
-2. Download the upload from MinIO to a temp directory
+2. Download the upload from object storage to a temp directory
 3. Run `CourseProcessorGraph.process_with_progress()` with an `on_step` callback
 4. Save results to Postgres, mark job completed/failed
 5. `LREM` to remove the job from the processing list
@@ -488,7 +488,7 @@ Result rows, via `ON DELETE CASCADE`) are deleted — only the most recent
 
 ## Storage
 
-`storage.py` wraps boto3 for S3-compatible object storage (MinIO locally,
+`storage.py` wraps boto3 for S3-compatible object storage (SeaweedFS locally,
 any S3 in production).
 
 | Function | Description |
@@ -499,8 +499,8 @@ any S3 in production).
 | `object_exists(key)` | Check if an object exists |
 
 Configuration via `S3_ENDPOINT_URL`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`,
-`S3_BUCKET` env vars. Falls back to `http://localhost:9000` with default
-MinIO credentials for local dev.
+`S3_BUCKET` env vars. Falls back to `http://localhost:8333` with default
+credentials for local dev.
 
 ---
 

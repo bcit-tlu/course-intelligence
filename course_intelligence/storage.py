@@ -1,4 +1,4 @@
-"""S3-compatible object storage wrapper (MinIO locally, any S3 in prod).
+"""S3-compatible object storage wrapper (SeaweedFS locally, any S3 in prod).
 
 Reads endpoint/credentials/bucket from config:
   s3_endpoint_url, s3_access_key, s3_secret_key, s3_bucket
@@ -16,9 +16,9 @@ from course_intelligence.default_config import DEFAULT_CONFIG
 
 logger = logging.getLogger(__name__)
 
-# Local dev fallback — matches the docker-compose minio service with its
-# published port (9000) on localhost.
-_LOCAL_DEV_ENDPOINT = "http://localhost:9000"
+# Local dev fallback — matches the docker-compose seaweedfs service with its
+# published port (8333) on localhost.
+_LOCAL_DEV_ENDPOINT = "http://localhost:8333"
 
 
 def _get_client():

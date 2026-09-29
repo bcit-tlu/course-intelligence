@@ -1,6 +1,6 @@
 """FastAPI application — async job API.
 
-Flow: POST /jobs stores the upload in MinIO, creates a job row in
+Flow: POST /jobs stores the upload in object storage, creates a job row in
 Postgres, and enqueues the job id in Redis. The worker picks it up.
 Clients poll GET /jobs/{id} and fetch GET /jobs/{id}/results when done.
 """

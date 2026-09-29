@@ -40,7 +40,7 @@ backend Service, with `BACKEND_URL` injected at container start via `envsubst`.
 ```text
 Ingress → studio (nginx) → api (:8000) → Postgres (CNPG + pgvector)
                                │  └─ enqueue → Redis → worker → llm-gateway (:8100)
-                               └─ uploads → MinIO (S3)
+                               └─ uploads → SeaweedFS (S3)
 ```
 
 ## Prerequisites
@@ -84,15 +84,15 @@ kubectl -n course-intelligence create secret generic course-intelligence-llm \
   --from-literal=ollama-api-key="$OLLAMA_API_KEY" \
   --from-literal=azure-openai-api-key=""
 
-# Object storage (only when pointing at external S3, i.e. minio.enabled=false;
-# in-cluster MinIO creates its own Secret). Keys: root-user / root-password.
+# Object storage (only when pointing at external S3, i.e. seaweedfs.enabled=false;
+# in-cluster SeaweedFS creates its own Secret). Keys: root-user / root-password.
 # kubectl -n course-intelligence create secret generic course-intelligence-s3 \
 #   --from-literal=root-user=... --from-literal=root-password=...
 ```
 
 Then reference them in the Flux fleet overlay: `llm.existingSecret: course-intelligence-llm`
 (already set in `flux-fleet/apps/overlays/latest/course-intelligence/backend/values-latest.yaml`),
-and `minio.existingSecret: course-intelligence-s3` for the external-S3 path.
+and `seaweedfs.existingSecret: course-intelligence-s3` for the external-S3 path.
 
 ## Deploy (via Flux)
 
@@ -134,7 +134,7 @@ from the overlay.
 ## Verify
 
 ```sh
-# All pods Ready (api, worker, gateway, redis, minio, postgres, studio).
+# All pods Ready (api, worker, gateway, redis, seaweedfs, postgres, studio).
 kubectl -n course-intelligence get pods
 
 # Migration ran: the api pod's `migrate` initContainer applied Alembic head.
@@ -144,8 +144,8 @@ kubectl -n course-intelligence logs deploy/course-intelligence-backend -c migrat
 kubectl -n course-intelligence exec -it course-intelligence-backend-db-1 -- psql -U course_intelligence -d course_intelligence -c '\dx'
 #   → the `vector` extension is listed.
 
-# uploads bucket created by the post-install Job.
-kubectl -n course-intelligence get job -l app.kubernetes.io/component=minio-init
+# uploads bucket created at startup by SeaweedFS (S3_BUCKET env — no Job).
+kubectl -n course-intelligence logs deploy/course-intelligence-backend-seaweedfs | grep -i bucket
 
 # API health through the Service.
 kubectl -n course-intelligence port-forward svc/course-intelligence-backend 8000:8000 &
@@ -212,7 +212,7 @@ flux resume helmrelease course-intelligence-backend -n course-intelligence
 - **Worker scaling:** the CPU/memory HPA (`worker.autoscaling.enabled=true`) needs
   metrics-server; for queue-depth-aware scaling on the Redis backlog, prefer KEDA.
 - **External managed services:** set `postgres.enabled=false` + `postgres.uri`,
-  `redis.enabled=false` + `redis.url`, and/or `minio.enabled=false` + `minio.endpointUrl`
+  `redis.enabled=false` + `redis.url`, and/or `seaweedfs.enabled=false` + `seaweedfs.endpointUrl`
   to use managed Postgres/Redis/S3 instead of the in-cluster deployments.
 - **LLM gateway routing (Option B):** route all LLM calls through the gateway so only the
   gateway holds credentials.

@@ -9,7 +9,7 @@ Use `docker compose up` to run the full stack locally:
 - **Gateway** — LLM gateway on port 8100
 - **Postgres** — database
 - **Redis** — job queue
-- **MinIO** — S3-compatible object storage
+- **SeaweedFS** — S3-compatible object storage
 - **Studio** — Vite dev server on port 5173
 
 ## Kubernetes Deployment
@@ -23,14 +23,14 @@ and reverse-proxies `/api` to the backend Service.
 ```text
 Ingress → studio (nginx) → api (:8000) → Postgres (CNPG + pgvector)
                                │  └─ enqueue → Redis → worker → llm-gateway (:8100)
-                               └─ uploads → MinIO (S3)
+                               └─ uploads → SeaweedFS (S3)
 ```
 
 ### Helm Charts
 
 | Chart | Directory | Components |
 |-------|-----------|------------|
-| `course-intelligence-backend` | `charts/backend/` | API, worker, gateway, Postgres, Redis, MinIO |
+| `course-intelligence-backend` | `charts/backend/` | API, worker, gateway, Postgres, Redis, SeaweedFS |
 | `course-intelligence-studio` | `charts/studio/` | Studio (nginx) |
 
 ### Published Images
@@ -98,7 +98,7 @@ curl -s "$BASE/api/jobs/$JOB/results" | jq '.elements[] | {topic, blooms_level}'
 |----------|---------|-------------|
 | `DATABASE_URL` | — | Postgres connection string |
 | `REDIS_URL` | `redis://localhost:6379/0` | Redis connection string |
-| `S3_ENDPOINT_URL` | `http://localhost:9000` | S3-compatible endpoint |
+| `S3_ENDPOINT_URL` | `http://localhost:8333` | S3-compatible endpoint |
 | `S3_ACCESS_KEY` | `minioadmin` | S3 access key |
 | `S3_SECRET_KEY` | `minioadmin` | S3 secret key |
 | `S3_BUCKET` | `course-intelligence` | S3 bucket name |

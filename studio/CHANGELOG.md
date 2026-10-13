@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v0.13.0...studio-v1.0.0) (2026-10-13)
+
+
+### Bug Fixes
+
+* dispatch release publishes for the root package ([b5754a1](https://github.com/bcit-tlu/course-intelligence/commit/b5754a142e34fa64193f1b84db90bfb9d3639f1f))
+
 ## [0.13.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v0.12.0...studio-v0.13.0) (2026-09-29)
 
 

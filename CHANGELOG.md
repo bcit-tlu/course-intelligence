@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.24.1...backend-v1.0.0) (2026-10-13)
+
+
+### Bug Fixes
+
+* dispatch release publishes for the root package ([b5754a1](https://github.com/bcit-tlu/course-intelligence/commit/b5754a142e34fa64193f1b84db90bfb9d3639f1f))
+
 ## [0.24.1](https://github.com/bcit-tlu/course-intelligence/compare/backend-v0.24.0...backend-v0.24.1) (2026-09-29)
 
 

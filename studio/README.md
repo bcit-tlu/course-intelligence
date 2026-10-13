@@ -77,3 +77,11 @@ icons. The docs page additionally uses:
 
 - `react-markdown` — renders markdown as React components
 - `remark-gfm` — GitHub-flavored markdown (tables, strikethrough, task lists)
+
+## Versioning
+
+Versions follow semver and are managed by release-please: merging a
+`chore: release main` pull request tags `studio-vX.Y.Z`, publishes the
+`course-intelligence-studio` chart and image, and updates
+`studio/package.json`. Pushes to `main` between releases publish
+`X.Y.Z-rc.<timestamp>.<sha>` release candidates only.

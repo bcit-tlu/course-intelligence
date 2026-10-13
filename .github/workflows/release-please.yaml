@@ -83,7 +83,11 @@ jobs:
         run: |
           set -euo pipefail
           for path in $(jq -r '.[]' <<<"${PATHS_RELEASED}"); do
-            tag=$(jq -r --arg key "${path}--tag_name" '.[$key] // empty' <<<"${RP_OUTPUTS}")
+            # release-please-action emits unprefixed outputs (e.g. `tag_name`) for the
+            # root package and `<path>--<key>` for subpackages — see setPathOutput().
+            key="tag_name"
+            if [[ "${path}" != "." ]]; then key="${path}--tag_name"; fi
+            tag=$(jq -r --arg key "${key}" '.[$key] // empty' <<<"${RP_OUTPUTS}")
             if [[ -z "${tag}" ]]; then
               echo "::warning::No tag_name output for path '${path}', skipping"
               continue

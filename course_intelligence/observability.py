@@ -25,10 +25,26 @@ def setup_otel(service_name: str) -> None:
 
     Reads OTEL_EXPORTER_OTLP_ENDPOINT from the environment (standard OTel
     env var). If not set, telemetry is silently disabled — safe for local dev.
+    The service name is taken from OTEL_SERVICE_NAME when set (standard OTel
+    env var, wired by the chart), falling back to the provided argument.
     """
     endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
     if not endpoint:
         return
+
+    # OTEL_SERVICE_NAME is the standard OTel env var for overriding the
+    # service name. The chart sets it per-role (e.g.
+    # course-intelligence-backend-api); prefer it over the hardcoded
+    # fallback so Loki service_name matches what the chart declares.
+    service_name = os.environ.get("OTEL_SERVICE_NAME", service_name)
+
+    # Ensure INFO-level logs are forwarded to the OTel LoggingHandler.
+    # The handler uses level=NOTSET (processes whatever the logger passes),
+    # but the root logger defaults to WARNING — so without this, INFO logs
+    # from the API (uvicorn access logs, logger.info calls) never reach
+    # Loki. The worker already calls basicConfig separately; calling it
+    # here is idempotent (only the first call takes effect).
+    logging.basicConfig(level=logging.INFO)
 
     resource = Resource.create({
         "service.name": service_name,

@@ -77,7 +77,7 @@ def test_emit_event_creates_log_record_with_event_name():
     record = _log_processor.records[0]
     assert record.event_name == "ci.test.event"
     assert record.body == "ci.test.event"
-    assert record.attributes == {"key": "value"}
+    assert record.attributes == {"key": "value", "event.name": "ci.test.event"}
 
 
 def test_emit_event_includes_trace_context():
@@ -103,7 +103,7 @@ def test_emit_event_no_attributes():
     assert len(_log_processor.records) == 1
     record = _log_processor.records[0]
     assert record.event_name == "ci.test.no_attrs"
-    assert not record.attributes
+    assert record.attributes == {"event.name": "ci.test.no_attrs"}
 
 
 def test_metric_counters_are_callable():

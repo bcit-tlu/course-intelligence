@@ -65,14 +65,25 @@ def emit_event(name: str, attributes: dict | None = None) -> None:
     with a first-class ``event_name`` field for queryability in Loki.
     Trace context (trace_id, span_id, trace_flags) is injected automatically
     from the current span via the ``context`` parameter.
+
+    ``event.name`` is also stamped as a log attribute so the OTel
+    collector's analytics filters (filter/drop-analytics,
+    filter/keep-analytics) can route the event into the 180d analytics
+    retention pipeline. This matches the HRIV convention.
     """
     logger = get_logger(__name__)
+
+    # Merge event.name into attributes so the collector's filters can
+    # match on log.attributes["event.name"] (not just the top-level
+    # event_name field, which the filters don't check).
+    attrs = dict(attributes) if attributes else {}
+    attrs["event.name"] = name
 
     logger.emit(LogRecord(
         timestamp=time.time_ns(),
         context=get_current(),
         severity_number=SeverityNumber.INFO,
         body=name,
-        attributes=attributes,
+        attributes=attrs,
         event_name=name,
     ))

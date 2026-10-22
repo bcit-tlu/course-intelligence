@@ -5,7 +5,6 @@
 
 ### Features
 
-* **observability:** add deployment.environment.name resource attribu… ([e998e03](https://github.com/bcit-tlu/course-intelligence/commit/e998e030b13f164167d10e84ededcb858c647f4a))
 * **observability:** add deployment.environment.name resource attribute and route analytics events to 180d retention ([db30aea](https://github.com/bcit-tlu/course-intelligence/commit/db30aeaced4d7e6907fd33aa1c02a949ddb6101a))
 * **observability:** attach OTel handler to uvicorn.access logger for HTTP access log export ([57ca0ca](https://github.com/bcit-tlu/course-intelligence/commit/57ca0ca7a29035b230bd489604d6e0139d40be03))
 

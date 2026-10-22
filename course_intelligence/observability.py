@@ -79,6 +79,12 @@ def setup_otel(service_name: str) -> None:
     handler = LoggingHandler(level=logging.NOTSET, logger_provider=logger_provider)
     logging.getLogger().addHandler(handler)
 
+    # Uvicorn configures uvicorn.access with propagate=False and its own
+    # StreamHandler, so access logs never reach the root logger's OTel
+    # handler. Attach the handler directly so HTTP access logs flow to
+    # Loki alongside application logs.
+    logging.getLogger("uvicorn.access").addHandler(handler)
+
 
 def instrument_shared(engine=None) -> None:
     """Instrument SQLAlchemy and Redis — call from each role's startup.

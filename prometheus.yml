@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Scrape the OTel collector's prometheus exporter, which exposes all
+  # metrics received via OTLP (traces/metrics/logs from the CI services).
+  - job_name: otel-collector
+    static_configs:
+      - targets: ["otel-collector:8889"]

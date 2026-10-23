@@ -4,6 +4,12 @@ Handles transient errors from local LLM servers (e.g. LM Studio
 peg-gemma4 format parsing failures) by retrying with exponential backoff.
 Also provides per-call observability: timing, token counts (including
 reasoning tokens), and retry tracking.
+
+Emits ``ci.llm.*`` OpenTelemetry metrics (tokens, latency, errors) on
+every call so the LLM Consumption dashboard works regardless of whether
+the app's internal gateway is deployed. When the gateway IS enabled, it
+calls ``invoke_with_retry`` too, so these metrics are emitted from a
+single chokepoint — no double-counting.
 """
 
 from __future__ import annotations
@@ -12,9 +18,23 @@ import logging
 import time
 from typing import Any
 
+from opentelemetry import metrics
+
 from course_intelligence.exceptions import JobTimeout
 
 logger = logging.getLogger(__name__)
+
+meter = metrics.get_meter(__name__)
+
+llm_tokens = meter.create_counter(
+    "ci.llm.tokens.total", unit="1", description="LLM tokens consumed"
+)
+llm_latency = meter.create_histogram(
+    "ci.llm.request.duration.seconds", unit="s", description="LLM call latency"
+)
+llm_errors = meter.create_counter(
+    "ci.llm.errors.total", unit="1", description="LLM call failures"
+)
 
 MAX_RETRIES = 3
 INITIAL_BACKOFF_SECONDS = 2
@@ -98,6 +118,13 @@ def invoke_with_retry(
                 parts.append(f"(succeeded on attempt {attempt}/{max_retries})")
 
             logger.info("  ".join(parts))
+
+            # --- OTel metrics (shared with gateway.py) ---
+            llm_latency.record(elapsed, {"model": model})
+            if usage:
+                llm_tokens.add(usage.get("input_tokens", 0), {"direction": "input", "model": model})
+                llm_tokens.add(usage.get("output_tokens", 0), {"direction": "output", "model": model})
+
             return result
 
         except JobTimeout:
@@ -117,4 +144,5 @@ def invoke_with_retry(
                     "%s model=%s invoke failed after %d attempts (%.1fs total): %s",
                     tag, model, max_retries, elapsed, exc,
                 )
+                llm_errors.add(1, {"model": model})
     raise last_exc  # type: ignore[misc]

@@ -17,7 +17,7 @@ import logging
 import time
 
 from fastapi import FastAPI, Header, HTTPException
-from opentelemetry import trace, metrics
+from opentelemetry import trace
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from pydantic import BaseModel
 
@@ -32,17 +32,6 @@ logger = logging.getLogger(__name__)
 setup_otel("course-intelligence-gateway")
 
 tracer = trace.get_tracer(__name__)
-meter = metrics.get_meter(__name__)
-
-llm_tokens = meter.create_counter(
-    "ci.llm.tokens.total", unit="1", description="LLM tokens consumed"
-)
-llm_latency = meter.create_histogram(
-    "ci.llm.request.duration.seconds", unit="s", description="LLM call latency"
-)
-llm_errors = meter.create_counter(
-    "ci.llm.errors.total", unit="1", description="LLM call failures"
-)
 
 app = FastAPI(
     title="LLM Gateway",
@@ -144,12 +133,14 @@ async def complete(
                     "output_tokens": result.usage_metadata.get("output_tokens", 0),
                     "total_tokens": result.usage_metadata.get("total_tokens", 0),
                 }
-                llm_tokens.add(usage.get("input_tokens", 0), {"direction": "input", "model": model_name})
-                llm_tokens.add(usage.get("output_tokens", 0), {"direction": "output", "model": model_name})
                 span.set_attribute("llm.input_tokens", usage.get("input_tokens", 0))
                 span.set_attribute("llm.output_tokens", usage.get("output_tokens", 0))
 
                 # --- Analytics: per-tenant token tracking ---
+                # ci.llm.tokens.total is emitted by invoke_with_retry; the
+                # gateway additionally tracks per-tenant consumption via the
+                # analytics counter, which requires the tenant_id from the
+                # request header (not available in the worker's direct path).
                 tenant_id = x_tenant_id or "unknown"
                 llm_tokens_by_tenant.add(
                     usage.get("input_tokens", 0),
@@ -168,7 +159,6 @@ async def complete(
                 })
 
             content = result.content if hasattr(result, "content") else str(result)
-            llm_latency.record(latency_ms / 1000, {"model": model_name})
 
             return CompletionResponse(
                 content=content,
@@ -178,7 +168,6 @@ async def complete(
             )
 
     except Exception as e:
-        model_name = getattr(llm, "model_name", "") or getattr(llm, "model", "unknown")
-        llm_errors.add(1, {"model": model_name})
+        # ci.llm.errors.total is emitted by invoke_with_retry on final failure.
         logger.error("LLM completion failed: %s", e, exc_info=True)
         raise HTTPException(status_code=502, detail=f"LLM call failed: {e}")

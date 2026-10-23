@@ -11,6 +11,9 @@ exporters:
   # Print traces to stdout for easy verification in docker compose logs.
   debug:
     verbosity: detailed
+  # Expose collected metrics for Prometheus to scrape.
+  prometheus:
+    endpoint: 0.0.0.0:8889
 
 service:
   pipelines:
@@ -21,7 +24,7 @@ service:
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug]
+      exporters: [debug, prometheus]
     logs:
       receivers: [otlp]
       processors: [batch]

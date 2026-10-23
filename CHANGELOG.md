@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v1.1.0...backend-v1.2.0) (2026-10-23)
+
+
+### Features
+
+* **observability:** consolidate LLM metrics in invoke_with_retry and add Prometheus scraping ([ebb4e69](https://github.com/bcit-tlu/course-intelligence/commit/ebb4e699c8a6c7c1d8b40efcde0978b3b459da59))
+
 ## [1.1.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v1.0.0...backend-v1.1.0) (2026-10-22)
 
 

@@ -25,6 +25,7 @@ class FakeStorage:
 
     def __init__(self):
         self.objects: dict[str, bytes] = {}
+        self.deleted_keys: list[str] = []
 
     def upload_fileobj(self, fileobj, key: str) -> str:
         self.objects[key] = fileobj.read()
@@ -35,6 +36,10 @@ class FakeStorage:
             f.write(self.objects[key])
         return dest_path
 
+    def delete_object(self, key: str) -> None:
+        self.objects.pop(key, None)
+        self.deleted_keys.append(key)
+
 
 class FakeQueue:
     """Minimal Redis stand-in: only the ops the API uses."""
@@ -44,6 +49,12 @@ class FakeQueue:
 
     def lpush(self, _key, value):
         self.items.insert(0, value)
+
+    def lrem(self, _key, count, value):
+        for _ in range(count):
+            if value in self.items:
+                self.items.remove(value)
+                break
 
 
 @pytest.fixture()
@@ -70,12 +81,14 @@ def client(monkeypatch):
     fake_storage = FakeStorage()
     monkeypatch.setattr(storage, "upload_fileobj", fake_storage.upload_fileobj)
     monkeypatch.setattr(storage, "download_file", fake_storage.download_file)
+    monkeypatch.setattr(storage, "delete_object", fake_storage.delete_object)
 
     fake_queue = FakeQueue()
     monkeypatch.setattr(api, "_get_redis", lambda: fake_queue)
 
     test_client = TestClient(api.app)
     test_client.queue = fake_queue
+    test_client.storage = fake_storage
     yield test_client
 
 
@@ -167,3 +180,114 @@ def test_corrupt_zip_marks_failed_and_survives(client):
     good = _upload(client, b"Trauma care basics.", "ok.txt")
     _drain_worker(client.queue)
     assert client.get(f"/jobs/{good.json()['job_id']}").json()["status"] == "completed"
+
+
+# --- Delete ---
+
+
+def test_delete_completed_job(client):
+    resp = _upload(client, b"Sepsis is a life-threatening condition.", "module.txt")
+    job_id = resp.json()["job_id"]
+    _drain_worker(client.queue)
+
+    storage_key = client.get(f"/jobs/{job_id}").json()
+    assert storage_key["status"] == "completed"
+    assert client.get(f"/jobs/{job_id}/results").status_code == 200
+
+    deleted = client.delete(f"/jobs/{job_id}")
+    assert deleted.status_code == 204
+
+    # Job and results are gone
+    assert client.get(f"/jobs/{job_id}").status_code == 404
+    assert client.get(f"/jobs/{job_id}/results").status_code == 404
+    # Storage object was deleted
+    assert storage_key["job_id"] == job_id  # sanity
+    # The uploaded object key is jobs/<id>/module.txt
+    assert f"jobs/{job_id}/module.txt" in client.storage.deleted_keys
+
+
+def test_delete_processing_job_returns_409(client):
+    from course_intelligence import api
+    from course_intelligence.db import Job, JobStatus
+
+    resp = _upload(client, b"Some content.", "module.txt")
+    job_id = resp.json()["job_id"]
+
+    # Force the job into processing directly in the DB
+    session = api.get_session()
+    try:
+        job = session.get(Job, job_id)
+        job.status = JobStatus.processing
+        session.commit()
+    finally:
+        session.close()
+
+    deleted = client.delete(f"/jobs/{job_id}")
+    assert deleted.status_code == 409
+    # Job still exists
+    assert client.get(f"/jobs/{job_id}").status_code == 200
+
+
+def test_delete_unknown_job_returns_404(client):
+    assert client.delete("/jobs/does-not-exist").status_code == 404
+
+
+def test_delete_queued_job_removes_from_queue(client):
+    resp = _upload(client, b"Some content.", "module.txt")
+    job_id = resp.json()["job_id"]
+    assert job_id in client.queue.items
+
+    deleted = client.delete(f"/jobs/{job_id}")
+    assert deleted.status_code == 204
+
+    # Job removed from the Redis queue so the worker won't pick it up
+    assert job_id not in client.queue.items
+    # Job row is gone
+    assert client.get(f"/jobs/{job_id}").status_code == 404
+
+
+def test_delete_cascades_results(client):
+    resp = _upload(client, b"Sepsis is a life-threatening condition.", "module.txt")
+    job_id = resp.json()["job_id"]
+    _drain_worker(client.queue)
+
+    # Results exist before delete
+    assert client.get(f"/jobs/{job_id}/results").json()["elements"]
+
+    deleted = client.delete(f"/jobs/{job_id}")
+    assert deleted.status_code == 204
+
+    # Results are gone with the job (cascade)
+    assert client.get(f"/jobs/{job_id}/results").status_code == 404
+
+
+def test_delete_respects_tenant(client):
+    from course_intelligence import api
+    from course_intelligence.db import Job
+
+    resp = _upload(
+        client,
+        b"Some content.",
+        "module.txt",
+    )
+    job_id = resp.json()["job_id"]
+    _drain_worker(client.queue)
+
+    # Tag the job with tenant A
+    session = api.get_session()
+    try:
+        job = session.get(Job, job_id)
+        job.tenant_id = "tenant-a"
+        session.commit()
+    finally:
+        session.close()
+
+    # Tenant B cannot see or delete it
+    assert client.delete(
+        f"/jobs/{job_id}", headers={"X-Tenant-Id": "tenant-b"}
+    ).status_code == 404
+    # Tenant A can
+    assert client.delete(
+        f"/jobs/{job_id}", headers={"X-Tenant-Id": "tenant-a"}
+    ).status_code == 204
+    assert client.get(f"/jobs/{job_id}").status_code == 404

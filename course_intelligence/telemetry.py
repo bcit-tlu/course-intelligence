@@ -49,6 +49,7 @@ _ALLOWED_EVENTS = frozenset({
     "studio.upload.completed",
     "studio.upload.failed",
     "studio.job.viewed",
+    "studio.job.deleted",
     "studio.results.viewed",
     "studio.results.filter_blooms",
     "studio.results.searched",

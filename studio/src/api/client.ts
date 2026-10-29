@@ -103,6 +103,14 @@ export async function getResults(jobId: string): Promise<JobResults> {
   return res.json();
 }
 
+export async function deleteJob(jobId: string): Promise<void> {
+  const res = await fetch(`${BASE}/jobs/${jobId}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) return parseError(res);
+}
+
 // --- Telemetry relay ---
 
 // Matches the backend's _MAX_EVENTS_PER_REQUEST in telemetry.py; larger

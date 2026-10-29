@@ -11,9 +11,10 @@ import logging
 from pathlib import Path
 
 import redis as redis_lib
-from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, Header, HTTPException, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from sqlalchemy import select
 
 from course_intelligence import storage
 from course_intelligence.analytics import (
@@ -242,5 +243,78 @@ def get_job_results(
                 for r in job.results
             ],
         }
+    finally:
+        session.close()
+
+
+@app.delete("/jobs/{job_id}", status_code=204)
+def delete_job(
+    job_id: str,
+    x_tenant_id: str | None = Header(default=None),
+    x_session_id: str | None = Header(default=None),
+):
+    """Delete a job, its results, and the uploaded object.
+
+    Completed, failed, and queued jobs may be deleted. A job that is
+    currently processing is refused (409) to avoid racing the worker.
+    For queued jobs the id is also removed from the Redis queue so the
+    worker never picks up a deleted job.
+
+    The job row is locked (SELECT ... FOR UPDATE) for the duration of
+    the transaction so the status check and the delete are atomic with
+    respect to the worker's claim (which locks the same row — see
+    worker.process_job). This closes the TOCTOU window where the worker
+    commits "processing" between our read of "queued" and our delete.
+    """
+    session = get_session()
+    try:
+        job = session.execute(
+            select(Job).where(Job.id == job_id).with_for_update()
+        ).scalar_one_or_none()
+        if job is None:
+            raise HTTPException(404, "Job not found")
+        # Tenant isolation: a tenant may only delete its own jobs. When no
+        # tenant header is present (e.g. local dev), the filter is skipped —
+        # mirroring list_jobs/get_job.
+        if x_tenant_id is not None and job.tenant_id != x_tenant_id:
+            raise HTTPException(404, "Job not found")
+        if job.status == JobStatus.processing:
+            raise HTTPException(
+                409, "Cannot delete a job that is currently processing"
+            )
+
+        storage_key = job.storage_key
+        status_value = job.status.value
+        tenant_id = job.tenant_id
+        was_queued = job.status == JobStatus.queued
+
+        # Cascades to Result rows (FK ondelete=CASCADE).
+        session.delete(job)
+        session.commit()
+
+        # Best-effort cleanup of object storage and the Redis queue. Wrap
+        # each in try/except so a cleanup failure does not resurrect the
+        # already-deleted DB row.
+        if storage_key:
+            try:
+                storage.delete_object(storage_key)
+            except Exception:
+                logger.exception("Failed to delete storage object %s", storage_key)
+        if was_queued:
+            try:
+                _get_redis().lrem(JOB_QUEUE, 1, job_id)
+            except Exception:
+                logger.exception("Failed to dequeue job %s", job_id)
+
+        emit_event("ci.job.deleted", {
+            "job.id": job_id,
+            "job.tenant_id": tenant_id,
+            "job.status": status_value,
+            "session.id": x_session_id or "",
+        })
+        return Response(status_code=204)
+    except HTTPException:
+        session.rollback()
+        raise
     finally:
         session.close()

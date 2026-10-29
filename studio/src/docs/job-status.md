@@ -35,6 +35,17 @@ All jobs are listed on the **History** page (`/jobs`). Each entry shows:
 
 Click any job to view its details, including processing progress or results.
 
+## Deleting jobs
+
+Completed, failed, and queued jobs can be removed from the history list.
+Each job card has a **trash** button on its right edge; clicking it opens a
+confirmation dialog. Confirming permanently deletes the job, its results,
+and the uploaded file — this cannot be undone.
+
+Jobs that are currently **Processing** cannot be deleted until they finish.
+The trash button is hidden for those jobs; wait for the job to complete or
+fail, then delete it.
+
 ## Error states
 
 If a job fails, the job page displays:

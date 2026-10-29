@@ -111,4 +111,7 @@ export const analytics = {
 
   jobsListed: (count: number) =>
     trackAction("studio.jobs.listed", { "jobs.count": count }),
+
+  jobDeleted: (jobId: string, status: string) =>
+    trackAction("studio.job.deleted", { "job.id": jobId, "job.status": status }),
 };

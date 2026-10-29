@@ -22,6 +22,7 @@ from pathlib import Path
 
 import redis as redis_lib
 from opentelemetry import trace, metrics
+from sqlalchemy import select
 
 from course_intelligence import storage
 from course_intelligence.analytics import (
@@ -126,24 +127,56 @@ def _set_step_progress(job_id: str, progress: dict) -> None:
         session.close()
 
 
-def process_job(job_id: str, graph: CourseProcessorGraph) -> None:
-    """Process a single job: download, run pipeline, save results."""
+def _claim_job(job_id: str) -> tuple[str, str, str] | None:
+    """Atomically claim a job for processing under a row lock.
+
+    Transitions the job to ``processing`` and returns
+    ``(storage_key, filename, learning_objectives)``, or ``None`` if the
+    job is missing or already terminal (completed/failed).
+
+    The ``SELECT ... FOR UPDATE`` coordinates with ``delete_job``, which
+    locks the same row: whichever transaction acquires the lock first
+    wins, and the other sees the committed state.
+
+      - If delete commits first (row deleted), the locked get returns
+        ``None`` and we return ``None`` so the caller skips — the worker
+        never starts on a deleted job.
+      - If we claim first (commit ``processing``), ``delete_job`` blocks
+        on the lock, then sees ``processing`` and returns 409.
+
+    Reading ``storage_key`` *inside* the locked transaction (rather than
+    before the claim) closes the window where a delete could remove the
+    row and its S3 object between our read and our claim.
+    """
     session = get_session()
     try:
-        job = session.get(Job, job_id)
+        job = session.execute(
+            select(Job).where(Job.id == job_id).with_for_update()
+        ).scalar_one_or_none()
         if job is None:
             logger.warning("Job %s not found in DB — skipping", job_id)
-            return
+            return None
         if job.status in (JobStatus.completed, JobStatus.failed):
             logger.info("Job %s already %s — skipping", job_id, job.status)
-            return
+            session.rollback()
+            return None
+        job.status = JobStatus.processing
         storage_key = job.storage_key
         filename = job.filename
         learning_objectives = job.learning_objectives
+        session.commit()
+        return storage_key, filename, learning_objectives
     finally:
         session.close()
 
-    _set_status(job_id, JobStatus.processing)
+
+def process_job(job_id: str, graph: CourseProcessorGraph) -> None:
+    """Process a single job: download, run pipeline, save results."""
+    claimed = _claim_job(job_id)
+    if claimed is None:
+        return
+    storage_key, filename, learning_objectives = claimed
+
     logger.info("Job %s: processing (%s)", job_id, filename)
     started = time.monotonic()
 

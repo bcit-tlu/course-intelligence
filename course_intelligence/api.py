@@ -14,6 +14,7 @@ import redis as redis_lib
 from fastapi import FastAPI, File, Form, Header, HTTPException, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from sqlalchemy import select
 
 from course_intelligence import storage
 from course_intelligence.analytics import (
@@ -258,10 +259,18 @@ def delete_job(
     currently processing is refused (409) to avoid racing the worker.
     For queued jobs the id is also removed from the Redis queue so the
     worker never picks up a deleted job.
+
+    The job row is locked (SELECT ... FOR UPDATE) for the duration of
+    the transaction so the status check and the delete are atomic with
+    respect to the worker's claim (which locks the same row — see
+    worker.process_job). This closes the TOCTOU window where the worker
+    commits "processing" between our read of "queued" and our delete.
     """
     session = get_session()
     try:
-        job = session.get(Job, job_id)
+        job = session.execute(
+            select(Job).where(Job.id == job_id).with_for_update()
+        ).scalar_one_or_none()
         if job is None:
             raise HTTPException(404, "Job not found")
         # Tenant isolation: a tenant may only delete its own jobs. When no
@@ -276,6 +285,7 @@ def delete_job(
 
         storage_key = job.storage_key
         status_value = job.status.value
+        tenant_id = job.tenant_id
         was_queued = job.status == JobStatus.queued
 
         # Cascades to Result rows (FK ondelete=CASCADE).
@@ -298,7 +308,7 @@ def delete_job(
 
         emit_event("ci.job.deleted", {
             "job.id": job_id,
-            "job.tenant_id": x_tenant_id,
+            "job.tenant_id": tenant_id,
             "job.status": status_value,
             "session.id": x_session_id or "",
         })

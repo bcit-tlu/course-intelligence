@@ -22,6 +22,7 @@ from pathlib import Path
 
 import redis as redis_lib
 from opentelemetry import trace, metrics
+from sqlalchemy import select
 
 from course_intelligence import storage
 from course_intelligence.analytics import (
@@ -128,22 +129,39 @@ def _set_step_progress(job_id: str, progress: dict) -> None:
 
 def process_job(job_id: str, graph: CourseProcessorGraph) -> None:
     """Process a single job: download, run pipeline, save results."""
+    # Claim the job by transitioning it to processing under a row lock
+    # (SELECT ... FOR UPDATE). This coordinates with delete_job, which
+    # locks the same row: whichever transaction acquires the lock first
+    # wins, and the other sees the committed state.
+    #
+    #   - If delete commits first (row deleted), our locked get returns
+    #     None and we skip — the worker never starts on a deleted job.
+    #   - If we claim first (commit "processing"), delete_job blocks on
+    #     the lock, then sees "processing" and returns 409.
+    #
+    # Reading storage_key *inside* the locked transaction (rather than
+    # before the claim) closes the window where a delete could remove
+    # the row and its S3 object between our read and our claim.
     session = get_session()
     try:
-        job = session.get(Job, job_id)
+        job = session.execute(
+            select(Job).where(Job.id == job_id).with_for_update()
+        ).scalar_one_or_none()
         if job is None:
             logger.warning("Job %s not found in DB — skipping", job_id)
             return
         if job.status in (JobStatus.completed, JobStatus.failed):
             logger.info("Job %s already %s — skipping", job_id, job.status)
+            session.rollback()
             return
+        job.status = JobStatus.processing
         storage_key = job.storage_key
         filename = job.filename
         learning_objectives = job.learning_objectives
+        session.commit()
     finally:
         session.close()
 
-    _set_status(job_id, JobStatus.processing)
     logger.info("Job %s: processing (%s)", job_id, filename)
     started = time.monotonic()
 

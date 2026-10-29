@@ -291,3 +291,38 @@ def test_delete_respects_tenant(client):
         f"/jobs/{job_id}", headers={"X-Tenant-Id": "tenant-a"}
     ).status_code == 204
     assert client.get(f"/jobs/{job_id}").status_code == 404
+
+
+def test_delete_event_carries_job_tenant_without_header(client, monkeypatch):
+    """The ci.job.deleted event records the job's stored tenant_id, not the
+    (optional) X-Tenant-Id header — so a headerless delete still attributes
+    the event to the owning tenant."""
+    from course_intelligence import api
+    from course_intelligence.db import Job
+
+    resp = _upload(client, b"Some content.", "module.txt")
+    job_id = resp.json()["job_id"]
+    _drain_worker(client.queue)
+
+    # Tag the job with a tenant
+    session = api.get_session()
+    try:
+        job = session.get(Job, job_id)
+        job.tenant_id = "tenant-a"
+        session.commit()
+    finally:
+        session.close()
+
+    captured: list[tuple[str, dict]] = []
+    monkeypatch.setattr(
+        api, "emit_event", lambda name, attrs=None: captured.append((name, attrs or {}))
+    )
+
+    # Delete WITHOUT an X-Tenant-Id header
+    assert client.delete(f"/jobs/{job_id}").status_code == 204
+
+    # The event carries the job's stored tenant, not the absent header
+    deletions = [attrs for name, attrs in captured if name == "ci.job.deleted"]
+    assert len(deletions) == 1
+    assert deletions[0]["job.tenant_id"] == "tenant-a"
+    assert deletions[0]["job.id"] == job_id

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v1.0.0...studio-v1.1.0) (2026-10-29)
+
+
+### Features
+
+* **api:** add DELETE /jobs/{job_id} endpoint with storage and queue … ([#177](https://github.com/bcit-tlu/course-intelligence/issues/177)) ([cc8b217](https://github.com/bcit-tlu/course-intelligence/commit/cc8b217a4abb88307350036de187d841fde091db))
+
 ## [1.0.0](https://github.com/bcit-tlu/course-intelligence/compare/studio-v0.13.0...studio-v1.0.0) (2026-10-13)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v1.2.0...backend-v1.3.0) (2026-10-29)
+
+
+### Features
+
+* **api:** add DELETE /jobs/{job_id} endpoint with storage and queue … ([#177](https://github.com/bcit-tlu/course-intelligence/issues/177)) ([cc8b217](https://github.com/bcit-tlu/course-intelligence/commit/cc8b217a4abb88307350036de187d841fde091db))
+
 ## [1.2.0](https://github.com/bcit-tlu/course-intelligence/compare/backend-v1.1.0...backend-v1.2.0) (2026-10-23)
 
 
